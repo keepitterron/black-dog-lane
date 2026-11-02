@@ -166,6 +166,17 @@ describe('pr', () => {
     expect(git(repo, 'branch', '--show-current')).toBe('work')
     expect(git(repo, 'log', '-1', '--format=%s', 'level/drafty-202611021020')).toBe('Update level drafty')
     expect(readFileSync(join(root, 'gh-args'), 'utf8')).toContain('Update level: ')
+
+    // A level tracked on the current branch and changed in place (git status ` M`) counts as
+    // the only change, and the branch is left with its committed version.
+    git(repo, 'fetch', 'origin')
+    git(repo, 'merge', '--ff-only', 'origin/main')
+    writeFileSync(join(repo, 'levels/play/drafty.level'), await encodeLevel({ ...twoRooms(), id: 'drafty', theme: 'reworked' }))
+    expect(git(repo, 'status', '--porcelain')).toBe('M levels/play/drafty.level')
+    expect(await openPr('drafty', { cwd: repo, now: new Date('2026-11-02T11:30:00Z') })).toBe('https://example.com/pull/1')
+    expect(git(repo, 'branch', '--show-current')).toBe('work')
+    expect(git(repo, 'log', '-1', '--format=%s', 'level/drafty-202611021130')).toBe('Update level drafty')
+    expect(git(repo, 'status', '--porcelain')).toBe('')
   })
 
   test('refuses a dirty working tree', async () => {
