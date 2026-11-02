@@ -31,7 +31,6 @@ export const ASSETS = {
   cageClose: closeUps.cageClose,
   windowClose: closeUps.windowClose,
   lockPlateClose: closeUps.lockPlateClose,
-  underShelfClose: closeUps.underShelfClose,
 } satisfies Record<string, Asset>
 
 export type AssetId = keyof typeof ASSETS

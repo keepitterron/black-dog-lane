@@ -9,10 +9,10 @@ const parsed = parseLevel(basic)
 if (!parsed.ok) throw new Error('levels/test/basic.json is invalid')
 const level = parsed.level
 
-test('the basic level plays through all three chapters to the hero ending', () => {
+test('the basic level plays through all three chapters to the ending', () => {
   const actions: Action[] = [
     { type: 'arrive' },
-    { type: 'askDog' },
+    { type: 'hint' },
     { type: 'turn', dir: 'right' },
     { type: 'arrive' },
     { type: 'tapHotspot', id: 'shelf' },
@@ -24,7 +24,6 @@ test('the basic level plays through all three chapters to the hero ending', () =
     { type: 'tapHotspot', id: 'door2' },
     { type: 'tapHotspot', id: 'lockbox' },
     { type: 'puzzleInput', puzzle: 'p1', input: { kind: 'dial', dial: 0, dir: 1 } },
-    { type: 'tapItem', id: 'dog' },
     { type: 'tapHotspot', id: 'hole' },
   ]
   const { state, events } = play(level, actions)
@@ -35,7 +34,6 @@ test('the basic level plays through all three chapters to the hero ending', () =
     { type: 'chapterEnd', chapter: 'c3' },
   ])
   expect(events).toContainEqual({ type: 'beat', id: 'b1' })
-  expect(events).toContainEqual({ type: 'dog', act: 'standGuard' })
-  expect(events.find(e => e.type === 'ending')).toMatchObject({ id: 'hero', secretsFound: 0, secretsTotal: 1 })
-  expect(state.ended).toBe('hero')
+  expect(events.find(e => e.type === 'ending')).toMatchObject({ id: 'found', secretsFound: 0, secretsTotal: 1 })
+  expect(state.ended).toBe('found')
 })

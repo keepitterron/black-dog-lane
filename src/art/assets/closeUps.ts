@@ -121,9 +121,3 @@ export const windowClose: Asset = (p, ctx) => {
 export const lockPlateClose: Asset = (p, ctx) =>
   `<rect width="800" height="600" fill="#3b281c"/><rect x="60" y="40" width="680" height="520" fill="none" stroke="#2a1c13" stroke-width="10"/><rect x="160" y="130" width="480" height="340" rx="18" fill="#8c6a35" stroke="#5a4220" stroke-width="6"/><text x="400" y="340" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="21" fill="#4a3618">${str(p, 'inscription', '')}</text><ellipse cx="400" cy="400" rx="26" ry="36" fill="#6b5226"/><circle cx="400" cy="392" r="9" fill="#120c09"/><path d="M395 396 L405 396 L408 420 L392 420Z" fill="#120c09"/>` +
   (on(p, 'keyFlag', ctx) ? `<rect x="395" y="386" width="10" height="40" fill="#c9a35a"/><circle cx="400" cy="440" r="14" fill="none" stroke="#c9a35a" stroke-width="6"/>` : '')
-
-// Under the bookshelf, low down: dust, and a key until `keyGoneFlag`.
-export const underShelfClose: Asset = (p, ctx) =>
-  `<rect width="800" height="600" fill="#140d09"/><rect y="0" width="800" height="120" fill="#24180f"/><rect y="120" width="800" height="14" fill="#3b281c"/><rect y="470" width="800" height="130" fill="url(#planks)" opacity=".6"/>` +
-  `<ellipse cx="200" cy="420" rx="60" ry="10" fill="#2a2018" opacity=".7"/><ellipse cx="560" cy="440" rx="80" ry="12" fill="#2a2018" opacity=".6"/>` +
-  (on(p, 'keyGoneFlag', ctx) ? '' : `<g opacity=".9">${sym('key', 420, 420, 34, '#c9a35a', false, 6)}</g><circle cx="420" cy="420" r="70" fill="#e3a84b" opacity=".06"/>`)

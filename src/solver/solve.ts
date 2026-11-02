@@ -2,7 +2,6 @@
 // driving the real engine. Location is abstracted away: any view in the chapter counts as
 // reachable. Reports numbers only, never level content.
 import { seenFlag, test } from '../engine/conditions.ts'
-import { DOG_SLOT } from '../engine/dog.ts'
 import { lookup } from '../engine/lookup.ts'
 import { isSolved, type PuzzleInput } from '../engine/puzzles.ts'
 import { clockTime, dialValues, progress } from '../engine/puzzles.ts'
@@ -25,12 +24,12 @@ export type SolveReport = {
 type Node = { state: GameState; depth: number }
 
 // What can change how the game plays from here: flags read by gameplay conditions (not by
-// art, hints or secrets), puzzle state, the inventory, and beats or dog moments whose firing
+// art, hints or secrets), puzzle state, the inventory, and beats whose firing
 // matters (they change state, or a condition asks whether they fired). States that agree on
 // all of these play the same, so the search treats them as one.
 type Relevance = { flags: Set<string>; prefixes: string[]; fired: Set<string> }
 
-const changesState = (effects: readonly { do: string }[]) => effects.some(e => !['say', 'sound', 'dog'].includes(e.do))
+const changesState = (effects: readonly { do: string }[]) => effects.some(e => !['say', 'sound'].includes(e.do))
 
 function relevance(level: Level): Relevance {
   const flags = new Set<string>()
@@ -55,10 +54,6 @@ function relevance(level: Level): Relevance {
       conds(beat.on)
       if (beat.on.type === 'afterFlag') flags.add(beat.on.flag)
       if (changesState(beat.do)) fired.add(beat.id)
-    }
-    for (const moment of chapter.dogMoments) {
-      conds(moment.when)
-      if (changesState(moment.do)) fired.add(moment.id)
     }
     for (const puzzle of chapter.puzzles) {
       conds(puzzle.activeWhen)
@@ -160,7 +155,7 @@ function successors(level: Level, from: GameState): GameState[] {
       for (const hotspot of view.hotspots) {
         if (!test(hotspot.visibleWhen, at)) continue
         run(at, [{ type: 'tapHotspot', id: hotspot.id }])
-        for (const item of [...items, DOG_SLOT]) {
+        for (const item of items) {
           if (!hotspot.accepts?.includes(item)) continue
           run({ ...at, selected: item }, [{ type: 'tapHotspot', id: hotspot.id }])
         }
@@ -175,7 +170,6 @@ function successors(level: Level, from: GameState): GameState[] {
   }
   const anywhere: GameState = { ...from, location: { ...from.location, closeUps: [] } }
   for (const a of items) {
-    run({ ...anywhere, selected: DOG_SLOT }, [{ type: 'tapItem', id: a }])
     for (const b of items) if (a < b) run({ ...anywhere, selected: a }, [{ type: 'tapItem', id: b }])
   }
   return results
@@ -203,7 +197,7 @@ function solutionInputs(puzzle: Puzzle, state: GameState): PuzzleInput[] {
     }
     case 'sequence':
       return puzzle.solution.map(target => ({ kind: 'tap', target }))
-    case 'scent':
+    case 'trail':
       return puzzle.trail.slice(progress(puzzle, state.flags)).map(view => ({ kind: 'trail', view }))
     case 'slider':
     case 'pattern':

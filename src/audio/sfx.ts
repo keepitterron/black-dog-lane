@@ -1,8 +1,7 @@
-// Room sounds, ported from the prototype, plus the low room drone. Cold and minor against
-// the dog's warm sounds. Every id in the level schema's SFX list has a sound here.
+// Room sounds, ported from the prototype, plus the low room drone. Every id in the level
+// schema's SFX list has a sound here.
 import type { SFX } from '../engine/schema.ts'
 import { getAudio, noise, tone } from './audio.ts'
-import { playDogSound } from './dogSounds.ts'
 
 export type SfxId = (typeof SFX)[number]
 
@@ -64,12 +63,6 @@ function play(id: SfxId): void {
       return
     case 'tick':
       return noise(a, { dur: 0.025, gain: 0.16, freq: 3400 })
-    case 'happyBark':
-    case 'sniffing':
-    case 'panting':
-    case 'tailThump':
-    case 'growl':
-      return playDogSound(id)
   }
 }
 

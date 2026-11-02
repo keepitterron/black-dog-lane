@@ -1,18 +1,15 @@
 // The game screen: runs the engine, saves after every step, and plays the resulting events
-// in order (lines of text, beats, sounds, the dog's acts, chapter cards and the ending).
+// in order (lines of text, beats, sounds, chapter cards and the ending).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { setMuted, isMuted, onAudioReady } from '../../audio/audio.ts'
 import { playSfx, startDrone, stopDrone, type SfxId } from '../../audio/sfx.ts'
 import { test } from '../../engine/conditions.ts'
 import { currentViewId, type GameEvent } from '../../engine/context.ts'
-import { DOG, fillText } from '../../engine/dog.ts'
 import { lookup } from '../../engine/lookup.ts'
 import { clearSave, saveGame } from '../../engine/save.ts'
-import { WALLS, type Level } from '../../engine/schema.ts'
+import type { Level } from '../../engine/schema.ts'
 import { newGame, type GameState } from '../../engine/state.ts'
 import { step, type Action } from '../../engine/step.ts'
-import { Dog } from '../dog/Dog.tsx'
-import { useDogActor } from '../dog/useDogActor.ts'
 import { Inventory } from '../Inventory.tsx'
 import { Message, type MessageItem } from '../Message.tsx'
 import { useReducedMotion } from '../useReducedMotion.ts'
@@ -42,10 +39,8 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
   const stateRef = useRef(initial)
   const [message, setMessage] = useState<MessageItem | null>(null)
   const [card, setCard] = useState<Card | null>(fresh ? { kind: 'chapter', index: 0 } : null)
-  const [facing, setFacing] = useState<'left' | 'right'>('right')
   const [muted, setMutedState] = useState(isMuted)
   const [confirmRestart, setConfirmRestart] = useState(false)
-  const actor = useDogActor()
   const reducedMotion = useReducedMotion()
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
   const cardPending = useRef(false)
@@ -61,7 +56,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
   // Plays one step's events on a little timeline: beats pause before their sting, lines of
   // text follow one another, and chapter cards and the ending wait for the text to finish.
   const direct = useCallback(
-    (events: GameEvent[], after: GameState) => {
+    (events: GameEvent[]) => {
       let t = 0
       let textFree = 0
       const show = (text: string) => {
@@ -85,22 +80,9 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
           case 'give':
             later(t, () => playSfx('pick'))
             break
-          case 'dog': {
-            const act = event.act
-            later(t, () => actor.play(act))
+          case 'hint':
+            show(`Hint ${event.tier + 1} of 3: ${event.text}`)
             break
-          }
-          case 'hint': {
-            const { act, view } = event
-            const target = lookup(level).views.get(view)
-            if (target?.wall && !after.location.closeUps.length) {
-              const turns = (WALLS.indexOf(target.wall) - WALLS.indexOf(after.location.wall) + 4) % 4
-              setFacing(turns === 3 ? 'left' : 'right')
-            }
-            if (act) later(t, () => actor.play(act))
-            show(event.text)
-            break
-          }
           case 'chapterEnd': {
             const index = (lookup(level).chapters.get(event.chapter)?.index ?? 0) + 1
             if (index < level.chapters.length) {
@@ -131,7 +113,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
         }
       }
     },
-    [actor, later, level],
+    [later, level],
   )
 
   const dispatch = useCallback(
@@ -141,7 +123,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
       stateRef.current = result.state
       setState(result.state)
       if (action.type !== 'arrive' && result.events.some(e => e.type === 'say' || e.type === 'hint')) cancelPending()
-      direct(result.events, result.state)
+      direct(result.events)
     },
     [cancelPending, direct, level],
   )
@@ -184,13 +166,11 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
     () => state.inventory.map(id => ({ id, name: level.items[id]?.name ?? id, icon: level.items[id]?.icon ?? '' })),
     [state.inventory, level],
   )
-  const closeUp = state.location.closeUps.length > 0
 
   function restart() {
     const store = storage()
     if (store) clearSave(store, level.id)
     cancelPending()
-    actor.stop()
     const restarted = newGame(level)
     stateRef.current = restarted
     setState(restarted)
@@ -207,8 +187,8 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
         </button>
         <span className={styles.title}>{level.title}</span>
         <div className={styles.actions}>
-          <button type="button" className={styles.pill} onClick={() => dispatch({ type: 'askDog' })}>
-            Ask {DOG.name}
+          <button type="button" className={styles.pill} onClick={() => dispatch({ type: 'hint' })}>
+            Hint
           </button>
           <button
             type="button"
@@ -244,22 +224,9 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
           onTurn={dir => dispatch({ type: 'turn', dir })}
           onBack={() => dispatch({ type: 'back' })}
         >
-          {(!closeUp || actor.act) && (
-            <div className={styles.dog} data-closeup={closeUp || undefined}>
-              <Dog pose={actor.pose} facing={facing} carrying={actor.pose === 'fetch' ? 'key' : null} />
-            </div>
-          )}
           <Message message={message} />
         </Scene>
-        <Inventory
-          items={items}
-          selected={state.selected}
-          dogBusy={actor.act !== null}
-          onTap={id => {
-            setFacing('right')
-            dispatch({ type: 'tapItem', id })
-          }}
-        />
+        <Inventory items={items} selected={state.selected} onTap={id => dispatch({ type: 'tapItem', id })} />
       </div>
 
       {card && (
@@ -268,7 +235,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
             <>
               {card.index === 0 && <h1>{level.title}</h1>}
               <h2>Chapter {ORDINALS[card.index] ?? card.index + 1}</h2>
-              <p>{fillText(level.chapters[card.index]?.intro ?? '')}</p>
+              <p>{level.chapters[card.index]?.intro}</p>
               <button type="button" className={styles.big} onClick={() => setCard(null)}>
                 {card.index === 0 ? 'Enter' : 'Continue'}
               </button>

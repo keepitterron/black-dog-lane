@@ -1,4 +1,3 @@
-import type { DogAct } from './dog.ts'
 import { lookup, wallViewId, type LevelIndex } from './lookup.ts'
 import type { Chapter, FlagValue, Level, SFX } from './schema.ts'
 import type { GameState } from './state.ts'
@@ -21,8 +20,7 @@ export type GameEvent =
   | { type: 'take'; item: string }
   | { type: 'sound'; sfx: (typeof SFX)[number] }
   | { type: 'beat'; id: string }
-  | { type: 'dog'; act: DogAct }
-  | { type: 'hint'; objective: string; tier: 0 | 1 | 2; view: string; act: DogAct | null; text: string }
+  | { type: 'hint'; objective: string; tier: 0 | 1 | 2; text: string }
   | { type: 'puzzleSolved'; puzzle: string }
   | { type: 'chapterEnd'; chapter: string }
   | { type: 'ending'; id: string; text: string; secretsFound: number; secretsTotal: number }

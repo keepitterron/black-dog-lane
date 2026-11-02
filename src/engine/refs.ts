@@ -1,18 +1,15 @@
 // Cross-reference checks the schema can't express: every id a level mentions must exist,
 // ids must be unique, and puzzle data must be internally consistent. Reports ids only.
-import { DOG_SLOT } from './dog.ts'
 import { lookup } from './lookup.ts'
 import type { Chapter, Cond, Effect, Level, Puzzle } from './schema.ts'
 
 export type RefCode =
   | 'DUPLICATE_ID'
-  | 'RESERVED_ID'
   | 'UNKNOWN_ITEM'
   | 'UNKNOWN_VIEW'
   | 'UNKNOWN_ROOM'
   | 'UNKNOWN_BEAT'
   | 'UNKNOWN_PUZZLE'
-  | 'UNKNOWN_TARGET'
   | 'UNKNOWN_FIRED'
   | 'UNKNOWN_LAYER'
   | 'PUZZLE_SHAPE'
@@ -28,8 +25,7 @@ export function checkRefs(level: Level): RefIssue[] {
   // One namespace for everything an action, effect or condition can name.
   const seen = new Set<string>()
   const claim = (id: string) => {
-    if (id === DOG_SLOT) report('RESERVED_ID', id)
-    else if (seen.has(id)) report('DUPLICATE_ID', id)
+    if (seen.has(id)) report('DUPLICATE_ID', id)
     seen.add(id)
   }
   for (const id of items) claim(id)
@@ -45,7 +41,7 @@ export function checkRefs(level: Level): RefIssue[] {
         for (const layer of view.layers) if (layer.id) claim(layer.id)
       }
     }
-    for (const list of [chapter.puzzles, chapter.beats, chapter.objectives, chapter.dogMoments]) for (const { id } of list) claim(id)
+    for (const list of [chapter.puzzles, chapter.beats, chapter.objectives]) for (const { id } of list) claim(id)
   }
 
   const item = (id: string) => items.has(id) || report('UNKNOWN_ITEM', id)
@@ -61,7 +57,7 @@ export function checkRefs(level: Level): RefIssue[] {
   for (const ending of level.endings) cond(ending.when, null)
 
   for (const chapter of level.chapters) {
-    const fireable = new Set([...chapter.beats, ...chapter.dogMoments].map(x => x.id))
+    const fireable = new Set(chapter.beats.map(x => x.id))
     if (idx.rooms.get(chapter.start.room)?.chapter !== chapter) report('UNKNOWN_ROOM', chapter.start.room)
     cond(chapter.exitWhen, chapter, fireable)
     for (const room of chapter.rooms) {
@@ -70,7 +66,7 @@ export function checkRefs(level: Level): RefIssue[] {
         if (v.puzzle && idx.puzzles.get(v.puzzle)?.chapter !== chapter) report('UNKNOWN_PUZZLE', v.puzzle)
         for (const hotspot of v.hotspots) {
           cond(hotspot.visibleWhen, chapter, fireable)
-          for (const id of hotspot.accepts ?? []) if (id !== DOG_SLOT) item(id)
+          for (const id of hotspot.accepts ?? []) item(id)
           for (const rule of hotspot.rules) {
             cond(rule.when, chapter, fireable)
             effects(rule.do, chapter, room.id)
@@ -84,25 +80,16 @@ export function checkRefs(level: Level): RefIssue[] {
       cond(puzzle.activeWhen, chapter, fireable)
       effects(puzzle.onSolve, chapter, null)
       if (!puzzleShapeOk(puzzle)) report('PUZZLE_SHAPE', puzzle.id)
-      if (puzzle.kind === 'scent') puzzle.trail.forEach(view)
+      if (puzzle.kind === 'trail') puzzle.trail.forEach(view)
     }
     for (const beat of chapter.beats) {
       if (beat.on.type !== 'afterFlag') view(beat.on.view)
       cond(beat.on.when, chapter, fireable)
       effects(beat.do, chapter, null)
     }
-    for (const moment of chapter.dogMoments) {
-      const hotspotHere = chapter.rooms.some(room =>
-        [...Object.values(room.walls), ...Object.values(room.closeUps)].some(v => v.hotspots.some(h => h.id === moment.at)),
-      )
-      if (!hotspotHere && !items.has(moment.at)) report('UNKNOWN_TARGET', moment.id, moment.at)
-      cond(moment.when, chapter, fireable)
-      effects(moment.do, chapter, null)
-    }
     for (const objective of chapter.objectives) {
       cond(objective.availableWhen, chapter, fireable)
       cond(objective.doneWhen, chapter, fireable)
-      view(objective.dogPoints)
     }
   }
   return issues
@@ -112,13 +99,13 @@ export function checkRefs(level: Level): RefIssue[] {
     switch (c.op) {
       case 'has':
       case 'selected':
-        if (c.item !== DOG_SLOT) item(c.item)
+        item(c.item)
         return
       case 'seen':
         view(c.view)
         return
       case 'fired': {
-        const known = chapter ? fireable?.has(c.id) : level.chapters.some(ch => [...ch.beats, ...ch.dogMoments].some(x => x.id === c.id))
+        const known = chapter ? fireable?.has(c.id) : level.chapters.some(ch => ch.beats.some(x => x.id === c.id))
         if (!known) report('UNKNOWN_FIRED', c.id)
         return
       }
@@ -183,7 +170,7 @@ function puzzleShapeOk(puzzle: Puzzle): boolean {
       const n = puzzle.rows * puzzle.cols
       return puzzle.initial.length === n && puzzle.solution.length === n
     }
-    case 'scent':
+    case 'trail':
       return true
   }
 }

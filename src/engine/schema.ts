@@ -2,7 +2,6 @@
 // generator all use the types inferred from it. Cross-references (ids that must exist) are
 // checked separately in refs.ts.
 import * as v from 'valibot'
-import { DOG_ACTS, DOG_ROLES } from './dog.ts'
 
 export const WALLS = ['n', 'e', 's', 'w'] as const
 export type Wall = (typeof WALLS)[number]
@@ -10,7 +9,6 @@ export type Wall = (typeof WALLS)[number]
 export const SFX = [
   'turn', 'pick', 'click', 'wrong', 'page', 'unlock', 'strike', 'sand', 'chime', 'knock', 'steps',
   'whisper', 'musicbox', 'eerie', 'sting', 'tick',
-  'happyBark', 'sniffing', 'panting', 'tailThump', 'growl',
 ] as const
 
 export const MESSAGE_MAX = 140
@@ -23,7 +21,6 @@ const FlagValue = v.union([v.boolean(), v.number(), v.string()])
 const Text = v.pipe(v.string(), v.minLength(1))
 const Message = v.pipe(Text, v.maxLength(MESSAGE_MAX))
 const Wall = v.picklist(WALLS)
-const DogAct = v.picklist(DOG_ACTS)
 const Int = (min: number, max: number) => v.pipe(v.number(), v.integer(), v.minValue(min), v.maxValue(max))
 
 export type FlagValue = v.InferOutput<typeof FlagValue>
@@ -61,7 +58,6 @@ export const Effect = v.variant('do', [
   v.strictObject({ do: v.literal('sound'), sfx: v.picklist(SFX) }),
   v.strictObject({ do: v.literal('beat'), id: Id }),
   v.strictObject({ do: v.literal('endChapter') }),
-  v.strictObject({ do: v.literal('dog'), act: DogAct }),
 ])
 export type Effect = v.InferOutput<typeof Effect>
 
@@ -158,7 +154,7 @@ export const Puzzle = v.variant('kind', [
   }),
   v.strictObject({
     ...puzzleBase,
-    kind: v.literal('scent'),
+    kind: v.literal('trail'),
     trail: v.pipe(v.array(ViewId), v.minLength(2)),
   }),
 ])
@@ -177,28 +173,15 @@ const Beat = v.strictObject({
   id: Id,
   on: Trigger,
   once: v.literal(true),
-  threat: v.optional(v.boolean()),
   do: Effects,
-  dogResponse: v.optional(DogAct),
 })
 export type Beat = v.InferOutput<typeof Beat>
-
-const DogMoment = v.strictObject({
-  id: Id,
-  role: v.picklist(DOG_ROLES),
-  // A hotspot (send the dog there) or an item (let the dog sniff it).
-  at: Id,
-  when: v.optional(Cond),
-  do: Effects,
-})
-export type DogMoment = v.InferOutput<typeof DogMoment>
 
 const Objective = v.strictObject({
   id: Id,
   availableWhen: v.optional(Cond),
   doneWhen: Cond,
   hints: v.tuple([Message, Message, Message]),
-  dogPoints: ViewId,
 })
 export type Objective = v.InferOutput<typeof Objective>
 
@@ -210,7 +193,6 @@ const Chapter = v.strictObject({
   puzzles: v.array(Puzzle),
   beats: v.array(Beat),
   objectives: v.array(Objective),
-  dogMoments: v.array(DogMoment),
   exitWhen: Cond,
 })
 export type Chapter = v.InferOutput<typeof Chapter>

@@ -8,7 +8,8 @@
   }
 
   .slot {
-    inline-size: clamp(52px, 15cqi, 64px);
+    /* Six slots always fit in one row. */
+    inline-size: clamp(44px, calc((100cqi - 80px) / 6), 64px);
     aspect-ratio: 1;
     display: grid;
     place-items: center;
@@ -29,12 +30,9 @@
       box-shadow: inset 0 0 0 2px var(--amber);
     }
 
-    &[data-dog] {
-      background: color-mix(in srgb, var(--amber) 10%, var(--chip));
-    }
-
-    &[data-busy] {
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 45%, transparent);
+    &[data-empty] {
+      opacity: 0.35;
+      cursor: default;
     }
   }
 

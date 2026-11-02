@@ -95,9 +95,8 @@ export const candle: Asset = (p, ctx) =>
 
 export const rug: Asset = () => `<ellipse cx="400" cy="545" rx="270" ry="40" fill="#4b2e2e" opacity=".85"/>`
 
-// A bookshelf of seeded books with one marked red book. `glintFlag` shows something shiny
-// in the gap underneath.
-export const bookshelf: Asset = (p, ctx) => {
+// A bookshelf of seeded books with one marked red book.
+export const bookshelf: Asset = p => {
   let s = `<rect x="140" y="108" width="280" height="352" fill="#24180f" stroke="#3b281c" stroke-width="8"/>`
   const rows: [number, number][] = [[118, 186], [198, 266], [278, 346], [358, 452]]
   const cols = ['#5b3a2e', '#38443a', '#6b5a3a', '#2f3640', '#4b2e2e', '#5c5246', '#3d4a4f']
@@ -119,8 +118,6 @@ export const bookshelf: Asset = (p, ctx) => {
   })
   for (const y of [186, 266, 346]) s += `<rect x="144" y="${y}" width="272" height="10" fill="#3b281c"/>`
   s += `<g transform="rotate(-11 310 266)"><rect x="298" y="202" width="24" height="64" fill="#6e2a2a"/><rect x="298" y="212" width="24" height="3" fill="#b08a4a"/><rect x="298" y="252" width="24" height="3" fill="#b08a4a"/></g>`
-  s += `<rect x="146" y="460" width="268" height="12" fill="#120c08"/>`
-  if (on(p, 'glintFlag', ctx)) s += `<g><circle cx="236" cy="466" r="3" fill="#c9a35a"/><circle cx="236" cy="466" r="9" fill="#e3a84b" opacity=".25"><animate attributeName="opacity" values=".1;.4;.1" dur="2.2s" repeatCount="indefinite"/></circle></g>`
   return s
 }
 

@@ -2,7 +2,7 @@ import * as v from 'valibot'
 import { Id, WALLS, type Level } from './schema.ts'
 
 // Bump when GameState changes shape; older saves then offer "Start over" instead of loading.
-export const SAVE_VERSION = 1
+export const SAVE_VERSION = 2
 
 export const GameState = v.strictObject({
   version: v.literal(SAVE_VERSION),
@@ -15,10 +15,10 @@ export const GameState = v.strictObject({
     closeUps: v.array(Id),
   }),
   inventory: v.array(Id),
-  // An item id, the dog slot, or nothing.
+  // The selected item, if any.
   selected: v.nullable(Id),
   flags: v.record(v.string(), v.union([v.boolean(), v.number(), v.string()])),
-  // Beats and dog moments that already ran.
+  // Beats that already ran.
   fired: v.array(Id),
   hint: v.strictObject({ objective: v.nullable(Id), tier: v.picklist([0, 1, 2]) }),
   ended: v.nullable(Id),

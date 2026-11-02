@@ -1,6 +1,6 @@
 # Black Dog Lane
 
-A data-driven, Rusty Lake-style point-and-click puzzle game (Vite + React PWA on GitHub Pages) for a parent and a 9-year-old playing together on a phone. A faithful black dog is the hero of every level. A local generator turns a one-line theme into a validated, encoded three-chapter level and opens a PR.
+A data-driven, Rusty Lake-style point-and-click puzzle game (Vite + React PWA on GitHub Pages) for a parent and a 9-year-old playing together on a phone. The black dog is only the logo (title screen and app icons), not a character in levels. A local generator turns a one-line theme into a validated, encoded three-chapter level and opens a PR.
 
 Full spec: [docs/handoff.md](docs/handoff.md). Behavioural reference for the engine: [docs/reference/prototype.html](docs/reference/prototype.html) (the test room, not secret).
 
@@ -27,7 +27,7 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 - The engine is a pure reducer: `step(level, state, action) → { state, events }`. No level-specific code anywhere; levels are pure data validated by the Valibot schema (types are inferred from it).
 - Every level has exactly three chapters. Conditions and effects are closed sets; no `eval`.
 - Art is a parametric SVG asset library in `src/art`; audio is synthesized with Web Audio in `src/audio`. No raster or generated images.
-- The dog is always safe, always helpful, never scared or the cause of a scare. Its name and look are global in `src/engine/dog.ts`; level text uses `{dog}`.
+- No dog in levels: an animated helper dog was tried and removed in M4.1 because it broke the creepy tone. Don't reintroduce dog mechanics, poses or sounds unless asked.
 
 ## Commands
 
@@ -41,7 +41,7 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 
 The service worker lives in `src/sw/` with its own `tsconfig.json` (WebWorker lib, which clashes with DOM). Files in `public/` must be listed in `PUBLIC_FILES` in `vite.config.ts` to be precached.
 
-`levels/test/waiting-room.json` is the prototype ported to level data (three chapters in one room, Pino added), built by `scripts/levels/waiting-room.ts`. Edit the builder, never the JSON. `src/solver/solve.ts` proves every test level can be finished with no dead ends.
+`levels/test/waiting-room.json` is the prototype ported to level data (three chapters in one room), built by `scripts/levels/waiting-room.ts`. Edit the builder, never the JSON. `src/solver/solve.ts` proves every test level can be finished with no dead ends.
 
 Art is a catalog of parametric assets in `src/art/assets` (`(params, { flags }) → SVG`). Params ending in `Flag` name a flag the asset reacts to. Puzzle widgets with fixed close-up layouts live in `src/ui/game/PuzzleWidget.tsx`; only dial lock and clock exist so far.
 

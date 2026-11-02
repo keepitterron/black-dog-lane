@@ -2,7 +2,6 @@
 // the widget shows its declared initial value.
 import { test } from './conditions.ts'
 import { emit, fail, setFlag, type Ctx } from './context.ts'
-import { fillText } from './dog.ts'
 import { runEffects } from './effects.ts'
 import type { Puzzle } from './schema.ts'
 import type { GameState } from './state.ts'
@@ -42,7 +41,7 @@ export function clockTime(puzzle: Extract<Puzzle, { kind: 'clockSet' }>, flags: 
   return { h: readNumber(flags, puzzle, 'h', puzzle.initial.h), m: readNumber(flags, puzzle, 'm', puzzle.initial.m) }
 }
 
-export function progress(puzzle: Extract<Puzzle, { kind: 'sequence' | 'scent' }>, flags: Flags): number {
+export function progress(puzzle: Extract<Puzzle, { kind: 'sequence' | 'trail' }>, flags: Flags): number {
   return readNumber(flags, puzzle, 'progress', 0)
 }
 
@@ -58,7 +57,7 @@ export function applyPuzzleInput(ctx: Ctx, puzzle: Puzzle, input: PuzzleInput): 
   const { flags } = ctx.state
   if (isSolved(puzzle, flags)) return
   if (!test(puzzle.activeWhen, ctx.state)) {
-    if (puzzle.inactiveSay) emit(ctx, { type: 'say', text: fillText(puzzle.inactiveSay) })
+    if (puzzle.inactiveSay) emit(ctx, { type: 'say', text: puzzle.inactiveSay })
     return
   }
   const solved = apply(ctx, puzzle, input)
@@ -124,10 +123,10 @@ function apply(ctx: Ctx, puzzle: Puzzle, input: PuzzleInput): boolean | null {
       setFlag(ctx, key(puzzle, 'cells'), cells.join(''))
       return cells.join('') === puzzle.solution
     }
-    case 'scent': {
+    case 'trail': {
       if (input.kind !== 'trail') return null
       const done = progress(puzzle, flags)
-      // The dog follows the trail in order; tapping off the trail does nothing.
+      // Follow the trail in order; tapping off the trail does nothing.
       if (input.view !== puzzle.trail[done]) return false
       setFlag(ctx, key(puzzle, 'progress'), done + 1)
       return done + 1 === puzzle.trail.length

@@ -15,14 +15,13 @@ describe('reference checks', () => {
     expect(checkRefs(baseLevel())).toEqual([])
   })
 
-  test('duplicate and reserved ids', () => {
+  test('duplicate ids', () => {
     expect(issues(l => addHotspot(l, 'c1r/n', { id: 'a', rules: [] }))).toEqual([{ code: 'DUPLICATE_ID', ids: ['a'] }])
-    expect(issues(l => addHotspot(l, 'c1r/n', { id: 'dog', rules: [] }))).toEqual([{ code: 'RESERVED_ID', ids: ['dog'] }])
   })
 
   test('unknown items in effects, conditions, accepts and combos', () => {
     expect(issues(withEffect({ do: 'give', item: 'nope' }))).toEqual([{ code: 'UNKNOWN_ITEM', ids: ['nope'] }])
-    expect(issues(l => addHotspot(l, 'c1r/n', { id: 'h', accepts: ['nope', 'dog'], rules: [{ when: { op: 'has', item: 'gone' }, do: [] }] }))).toEqual([
+    expect(issues(l => addHotspot(l, 'c1r/n', { id: 'h', accepts: ['nope'], rules: [{ when: { op: 'has', item: 'gone' }, do: [] }] }))).toEqual([
       { code: 'UNKNOWN_ITEM', ids: ['nope'] },
       { code: 'UNKNOWN_ITEM', ids: ['gone'] },
     ])
@@ -37,10 +36,7 @@ describe('reference checks', () => {
     expect(issues(l => (l.chapters[1].start.room = 'c1r'))).toEqual([{ code: 'UNKNOWN_ROOM', ids: ['c1r'] }])
   })
 
-  test('dog moments must target a hotspot or item; fired must name a beat or dog moment', () => {
-    expect(issues(l => l.chapters[0].dogMoments.push({ id: 'm', role: 'fetch', at: 'nowhere', do: [] }))).toEqual([
-      { code: 'UNKNOWN_TARGET', ids: ['m', 'nowhere'] },
-    ])
+  test('fired must name a beat', () => {
     expect(issues(l => (l.chapters[0].exitWhen = { op: 'fired', id: 'ghost' }))).toEqual([{ code: 'UNKNOWN_FIRED', ids: ['ghost'] }])
   })
 

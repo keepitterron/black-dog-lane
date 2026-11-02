@@ -29,7 +29,7 @@ function midGame() {
   const level = baseLevel()
   level.chapters[0].rooms[0]!.closeUps['cu'] = { layers: [], hotspots: [] }
   addHotspot(level, 'c1r/n', { id: 'h', rules: [{ do: [{ do: 'give', item: 'a' }, { do: 'setFlag', flag: 'n', value: 2 }, { do: 'open', view: 'cu' }] }] })
-  const { state } = play(level, [{ type: 'arrive' }, { type: 'tapHotspot', id: 'h' }, { type: 'tapItem', id: 'a' }, { type: 'askDog' }])
+  const { state } = play(level, [{ type: 'arrive' }, { type: 'tapHotspot', id: 'h' }, { type: 'tapItem', id: 'a' }, { type: 'hint' }])
   return { level, state }
 }
 

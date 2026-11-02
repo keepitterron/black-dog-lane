@@ -1,23 +1,18 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import waitingRoomJson from '../../levels/test/waiting-room.json'
-import { DOG } from '../engine/dog.ts'
+import { dogMark } from '../art/dogMark.ts'
 import { loadGame, type LoadResult } from '../engine/save.ts'
 import { parseLevel } from '../engine/schema.ts'
 import { newGame, type GameState } from '../engine/state.ts'
 import { applyUpdate, registerServiceWorker } from '../pwa.ts'
 import styles from './App.module.css'
-import { Dog } from './dog/Dog.tsx'
-import { DogLab } from './DogLab.tsx'
 import { Game } from './game/Game.tsx'
+
+const logo = dogMark()
 
 const parsed = parseLevel(waitingRoomJson)
 if (!parsed.ok) throw new Error('levels/test/waiting-room.json is invalid')
 const level = parsed.level
-
-const subscribeHash = (notify: () => void) => {
-  addEventListener('hashchange', notify)
-  return () => removeEventListener('hashchange', notify)
-}
 
 function readSave(): LoadResult {
   try {
@@ -30,12 +25,10 @@ function readSave(): LoadResult {
 export function App() {
   const [waiting, setWaiting] = useState<ServiceWorker | null>(null)
   const [playing, setPlaying] = useState<{ state: GameState; fresh: boolean } | null>(null)
-  const hash = useSyncExternalStore(subscribeHash, () => location.hash)
   useEffect(() => registerServiceWorker(setWaiting), [])
 
   let screen
-  if (hash === '#dog') screen = <DogLab />
-  else if (playing) screen = <Game level={level} initial={playing.state} fresh={playing.fresh} onQuit={() => setPlaying(null)} />
+  if (playing) screen = <Game level={level} initial={playing.state} fresh={playing.fresh} onQuit={() => setPlaying(null)} />
   else screen = <Title onPlay={(state, fresh) => setPlaying({ state, fresh })} />
 
   return (
@@ -58,7 +51,7 @@ function Title({ onPlay }: { onPlay: (state: GameState, fresh: boolean) => void 
   return (
     <main className={styles.shell}>
       <div className={styles.title}>
-        <Dog className={styles.dog} pose="wag" />
+        <svg className={styles.logo} viewBox="0 0 100 100" aria-hidden="true" dangerouslySetInnerHTML={{ __html: logo }} />
         <h1>Black Dog Lane</h1>
         <p>{level.title}</p>
         <div className={styles.buttons}>
@@ -72,9 +65,6 @@ function Title({ onPlay }: { onPlay: (state: GameState, fresh: boolean) => void 
           </button>
         </div>
         {save.kind === 'mismatch' && <p className={styles.note}>Your saved game is from an older version, so it starts over.</p>}
-        <a className={styles.quiet} href="#dog">
-          Meet {DOG.name}
-        </a>
       </div>
       <p className={styles.version}>build {__BUILD_ID__}</p>
     </main>

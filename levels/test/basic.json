@@ -186,7 +186,6 @@
             "flag": "shelfTaken"
           },
           "once": true,
-          "threat": true,
           "do": [
             {
               "do": "sound",
@@ -196,8 +195,7 @@
               "do": "say",
               "text": "Three knocks."
             }
-          ],
-          "dogResponse": "standGuard"
+          ]
         }
       ],
       "objectives": [
@@ -211,8 +209,7 @@
             "Hint 1a.",
             "Hint 1b.",
             "Hint 1c."
-          ],
-          "dogPoints": "r1/e"
+          ]
         },
         {
           "id": "o2",
@@ -228,11 +225,9 @@
             "Hint 2a.",
             "Hint 2b.",
             "Hint 2c."
-          ],
-          "dogPoints": "r1/n"
+          ]
         }
       ],
-      "dogMoments": [],
       "exitWhen": {
         "op": "flag",
         "flag": "c1done"
@@ -381,11 +376,9 @@
             "Hint 3a.",
             "Hint 3b.",
             "Hint 3c."
-          ],
-          "dogPoints": "r3/s"
+          ]
         }
       ],
-      "dogMoments": [],
       "exitWhen": {
         "op": "flag",
         "flag": "c2done"
@@ -417,14 +410,15 @@
                     {
                       "do": [
                         {
-                          "do": "say",
-                          "text": "Too deep."
+                          "do": "setFlag",
+                          "flag": "c3done",
+                          "value": true
+                        },
+                        {
+                          "do": "endChapter"
                         }
                       ]
                     }
-                  ],
-                  "accepts": [
-                    "dog"
                   ]
                 }
               ]
@@ -458,28 +452,6 @@
             "Hint 4a.",
             "Hint 4b.",
             "Hint 4c."
-          ],
-          "dogPoints": "r4/n"
-        }
-      ],
-      "dogMoments": [
-        {
-          "id": "dm1",
-          "role": "hero",
-          "at": "hole",
-          "do": [
-            {
-              "do": "dog",
-              "act": "fetch"
-            },
-            {
-              "do": "setFlag",
-              "flag": "c3done",
-              "value": true
-            },
-            {
-              "do": "endChapter"
-            }
           ]
         }
       ],
@@ -504,12 +476,12 @@
   ],
   "endings": [
     {
-      "id": "hero",
+      "id": "found",
       "when": {
-        "op": "fired",
-        "id": "dm1"
+        "op": "flag",
+        "flag": "c3done"
       },
-      "text": "{dog} found the way out."
+      "text": "You found the way out."
     },
     {
       "id": "plain",

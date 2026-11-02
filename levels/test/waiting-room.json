@@ -57,7 +57,7 @@
   "chapters": [
     {
       "id": "ch1",
-      "intro": "A small room. The door won’t open, and it’s very dark. {dog} presses close against your leg.",
+      "intro": "A small room. The door won’t open, and it’s very dark.",
       "start": {
         "room": "room1",
         "wall": "n"
@@ -86,8 +86,8 @@
                     "litFlag": "candle",
                     "keyFlag": "keyIn",
                     "openFlag": "doorOpen",
-                    "feetFlag": "feet",
-                    "feetGoneFlag": "feetGone"
+                    "feetFlag": "candle",
+                    "feetGoneFlag": "shadowGone"
                   }
                 },
                 {
@@ -145,6 +145,57 @@
                         {
                           "do": "say",
                           "text": "The door won’t open. There’s a dial lock, and a keyhole under it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "shadow1",
+                  "rect": [
+                    340,
+                    430,
+                    120,
+                    85
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "doorOpen"
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "shadowGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "shadowGone",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "steps"
+                        },
+                        {
+                          "do": "say",
+                          "text": "The shadows step away from the door. Slowly."
                         }
                       ]
                     }
@@ -490,15 +541,12 @@
                   "asset": "rug"
                 },
                 {
-                  "asset": "bookshelf",
-                  "params": {
-                    "glintFlag": "keyUnder"
-                  }
+                  "asset": "bookshelf"
                 },
                 {
                   "asset": "birdcage",
                   "params": {
-                    "keyGoneFlag": "cageOpen",
+                    "keyGoneFlag": "brassKeyGone",
                     "openFlag": "cageOpen"
                   }
                 },
@@ -545,29 +593,6 @@
                         {
                           "do": "open",
                           "view": "cageC1"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "gap1",
-                  "rect": [
-                    146,
-                    452,
-                    268,
-                    30
-                  ],
-                  "visibleWhen": {
-                    "op": "flag",
-                    "flag": "keyUnder"
-                  },
-                  "rules": [
-                    {
-                      "do": [
-                        {
-                          "do": "open",
-                          "view": "underC1"
                         }
                       ]
                     }
@@ -1265,9 +1290,6 @@
                     90,
                     70
                   ],
-                  "accepts": [
-                    "dog"
-                  ],
                   "visibleWhen": {
                     "op": "not",
                     "cond": {
@@ -1279,8 +1301,13 @@
                     {
                       "do": [
                         {
-                          "do": "say",
-                          "text": "You pull, but it won’t come. Something deep in the soil is holding on."
+                          "do": "give",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "stringGone",
+                          "value": true
                         }
                       ]
                     }
@@ -1314,9 +1341,6 @@
                     285,
                     125,
                     115
-                  ],
-                  "accepts": [
-                    "dog"
                   ],
                   "rules": [
                     {
@@ -1397,7 +1421,7 @@
                   "asset": "cageClose",
                   "params": {
                     "openFlag": "cageOpen",
-                    "keyGoneFlag": "cageOpen"
+                    "keyGoneFlag": "brassKeyGone"
                   }
                 },
                 {
@@ -1447,11 +1471,6 @@
                         {
                           "do": "setFlag",
                           "flag": "cageOpen",
-                          "value": true
-                        },
-                        {
-                          "do": "setFlag",
-                          "flag": "keyUnder",
                           "value": true
                         },
                         {
@@ -1517,11 +1536,6 @@
                           "value": true
                         },
                         {
-                          "do": "setFlag",
-                          "flag": "keyUnder",
-                          "value": true
-                        },
-                        {
                           "do": "sound",
                           "sfx": "click"
                         }
@@ -1536,68 +1550,46 @@
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            "underC1": {
-              "layers": [
-                {
-                  "asset": "underShelfClose",
-                  "params": {
-                    "keyGoneFlag": "brassKeyGone"
-                  }
                 },
                 {
-                  "asset": "lighting",
-                  "params": {
-                    "litFlag": "candle",
-                    "cx": 400,
-                    "cy": 270
-                  }
-                }
-              ],
-              "hotspots": [
-                {
-                  "id": "reach1",
+                  "id": "cageKey1",
                   "rect": [
-                    300,
-                    330,
-                    240,
-                    180
+                    350,
+                    410,
+                    100,
+                    60
                   ],
-                  "accepts": [
-                    "dog"
-                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "cageOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "brassKeyGone"
+                        }
+                      }
+                    ]
+                  },
                   "rules": [
                     {
-                      "when": {
-                        "op": "any",
-                        "conds": [
-                          {
-                            "op": "flag",
-                            "flag": "brassKeyGone"
-                          },
-                          {
-                            "op": "not",
-                            "cond": {
-                              "op": "flag",
-                              "flag": "keyUnder"
-                            }
-                          }
-                        ]
-                      },
                       "do": [
                         {
-                          "do": "say",
-                          "text": "Only dust under here."
-                        }
-                      ]
-                    },
-                    {
-                      "do": [
+                          "do": "give",
+                          "item": "brassKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "brassKeyGone",
+                          "value": true
+                        },
                         {
                           "do": "say",
-                          "text": "It’s too far back. Your arm won’t fit under the shelf."
+                          "text": "A heavy brass key. It’s warm, as if someone was holding it."
                         }
                       ]
                     }
@@ -1680,8 +1672,6 @@
             "flag": "stringGone"
           },
           "once": true,
-          "threat": true,
-          "dogResponse": "standGuard",
           "do": [
             {
               "do": "sound",
@@ -1689,7 +1679,7 @@
             },
             {
               "do": "say",
-              "text": "Just before it came free, something under the soil pulled back."
+              "text": "A small iron key on a string. Just before it came free, something under the soil pulled back."
             }
           ]
         },
@@ -1700,8 +1690,6 @@
             "flag": "drawerOpen"
           },
           "once": true,
-          "threat": true,
-          "dogResponse": "standGuard",
           "do": [
             {
               "do": "sound",
@@ -1782,11 +1770,10 @@
             "flag": "stringGone"
           },
           "hints": [
-            "{dog} keeps sniffing at the plant pot by the window.",
-            "There’s a string in the soil. It won’t pull free by hand.",
-            "Tap {dog}, then tap the string in the pot. {dog} can dig."
-          ],
-          "dogPoints": "room1/w"
+            "Something is hidden in the plant pot.",
+            "Look closely at the soil by the window.",
+            "Pull the string poking out of the soil."
+          ]
         },
         {
           "id": "o1Drawer",
@@ -1795,11 +1782,10 @@
             "flag": "drawerOpen"
           },
           "hints": [
-            "That little iron key fits a keyhole somewhere.",
-            "{dog} sits by the desk and looks at the drawer.",
-            "Select the iron key, then tap the desk drawer."
-          ],
-          "dogPoints": "room1/e"
+            "That iron key fits a small keyhole somewhere.",
+            "Look at the desk.",
+            "Select the iron key, then tap the drawer."
+          ]
         },
         {
           "id": "o1Photo",
@@ -1809,10 +1795,9 @@
           },
           "hints": [
             "There’s a photograph in the drawer.",
-            "{dog} paws at the drawer. Look at the photograph up close.",
-            "Open the drawer and tap the photograph."
-          ],
-          "dogPoints": "room1/e"
+            "Look at it up close.",
+            "Tap the photograph in the drawer."
+          ]
         },
         {
           "id": "o1Matchbox",
@@ -1821,11 +1806,10 @@
             "flag": "matchboxGone"
           },
           "hints": [
-            "Something else is in the drawer.",
-            "A matchbox could be useful later.",
-            "Tap the matchbox in the drawer to take it."
-          ],
-          "dogPoints": "room1/e"
+            "The drawer is open now.",
+            "Look inside it.",
+            "Take the matchbox."
+          ]
         },
         {
           "id": "o1Coat",
@@ -1835,66 +1819,8 @@
           },
           "hints": [
             "Someone left their coat behind.",
-            "{dog} sniffs at the coat’s pocket.",
-            "Tap the coat, tap the pocket, then pick up what falls out."
-          ],
-          "dogPoints": "room1/e"
-        }
-      ],
-      "dogMoments": [
-        {
-          "id": "m1Dig",
-          "role": "fetch",
-          "at": "string1",
-          "do": [
-            {
-              "do": "dog",
-              "act": "fetch"
-            },
-            {
-              "do": "give",
-              "item": "ironKey"
-            },
-            {
-              "do": "setFlag",
-              "flag": "stringGone",
-              "value": true
-            },
-            {
-              "do": "say",
-              "text": "{dog} digs, grabs the string and tugs. A small iron key comes up out of the soil."
-            }
-          ]
-        },
-        {
-          "id": "m1Sniff",
-          "role": "sniff",
-          "at": "pocket1",
-          "when": {
-            "op": "not",
-            "cond": {
-              "op": "flag",
-              "flag": "sand"
-            }
-          },
-          "do": [
-            {
-              "do": "dog",
-              "act": "sniff"
-            },
-            {
-              "do": "say",
-              "text": "{dog} sniffs the pocket and sneezes. Something gritty is in there."
-            },
-            {
-              "do": "setFlag",
-              "flag": "sand",
-              "value": true
-            },
-            {
-              "do": "sound",
-              "sfx": "sand"
-            }
+            "Check the coat’s pocket.",
+            "Tap the pocket, then pick up what falls out."
           ]
         }
       ],
@@ -1943,8 +1869,8 @@
                     "litFlag": "candle",
                     "keyFlag": "keyIn",
                     "openFlag": "doorOpen",
-                    "feetFlag": "feet",
-                    "feetGoneFlag": "feetGone"
+                    "feetFlag": "candle",
+                    "feetGoneFlag": "shadowGone"
                   }
                 },
                 {
@@ -2002,6 +1928,57 @@
                         {
                           "do": "say",
                           "text": "The door won’t open. There’s a dial lock, and a keyhole under it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "shadow2",
+                  "rect": [
+                    340,
+                    430,
+                    120,
+                    85
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "doorOpen"
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "shadowGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "shadowGone",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "steps"
+                        },
+                        {
+                          "do": "say",
+                          "text": "The shadows step away from the door. Slowly."
                         }
                       ]
                     }
@@ -2347,15 +2324,12 @@
                   "asset": "rug"
                 },
                 {
-                  "asset": "bookshelf",
-                  "params": {
-                    "glintFlag": "keyUnder"
-                  }
+                  "asset": "bookshelf"
                 },
                 {
                   "asset": "birdcage",
                   "params": {
-                    "keyGoneFlag": "cageOpen",
+                    "keyGoneFlag": "brassKeyGone",
                     "openFlag": "cageOpen"
                   }
                 },
@@ -2402,29 +2376,6 @@
                         {
                           "do": "open",
                           "view": "cageC2"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "gap2",
-                  "rect": [
-                    146,
-                    452,
-                    268,
-                    30
-                  ],
-                  "visibleWhen": {
-                    "op": "flag",
-                    "flag": "keyUnder"
-                  },
-                  "rules": [
-                    {
-                      "do": [
-                        {
-                          "do": "open",
-                          "view": "underC2"
                         }
                       ]
                     }
@@ -3123,9 +3074,6 @@
                     90,
                     70
                   ],
-                  "accepts": [
-                    "dog"
-                  ],
                   "visibleWhen": {
                     "op": "not",
                     "cond": {
@@ -3137,8 +3085,13 @@
                     {
                       "do": [
                         {
-                          "do": "say",
-                          "text": "You pull, but it won’t come. Something deep in the soil is holding on."
+                          "do": "give",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "stringGone",
+                          "value": true
                         }
                       ]
                     }
@@ -3172,9 +3125,6 @@
                     285,
                     125,
                     115
-                  ],
-                  "accepts": [
-                    "dog"
                   ],
                   "rules": [
                     {
@@ -3255,7 +3205,7 @@
                   "asset": "cageClose",
                   "params": {
                     "openFlag": "cageOpen",
-                    "keyGoneFlag": "cageOpen"
+                    "keyGoneFlag": "brassKeyGone"
                   }
                 },
                 {
@@ -3305,11 +3255,6 @@
                         {
                           "do": "setFlag",
                           "flag": "cageOpen",
-                          "value": true
-                        },
-                        {
-                          "do": "setFlag",
-                          "flag": "keyUnder",
                           "value": true
                         },
                         {
@@ -3375,11 +3320,6 @@
                           "value": true
                         },
                         {
-                          "do": "setFlag",
-                          "flag": "keyUnder",
-                          "value": true
-                        },
-                        {
                           "do": "sound",
                           "sfx": "click"
                         }
@@ -3394,68 +3334,46 @@
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            "underC2": {
-              "layers": [
-                {
-                  "asset": "underShelfClose",
-                  "params": {
-                    "keyGoneFlag": "brassKeyGone"
-                  }
                 },
                 {
-                  "asset": "lighting",
-                  "params": {
-                    "litFlag": "candle",
-                    "cx": 400,
-                    "cy": 270
-                  }
-                }
-              ],
-              "hotspots": [
-                {
-                  "id": "reach2",
+                  "id": "cageKey2",
                   "rect": [
-                    300,
-                    330,
-                    240,
-                    180
+                    350,
+                    410,
+                    100,
+                    60
                   ],
-                  "accepts": [
-                    "dog"
-                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "cageOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "brassKeyGone"
+                        }
+                      }
+                    ]
+                  },
                   "rules": [
                     {
-                      "when": {
-                        "op": "any",
-                        "conds": [
-                          {
-                            "op": "flag",
-                            "flag": "brassKeyGone"
-                          },
-                          {
-                            "op": "not",
-                            "cond": {
-                              "op": "flag",
-                              "flag": "keyUnder"
-                            }
-                          }
-                        ]
-                      },
                       "do": [
                         {
-                          "do": "say",
-                          "text": "Only dust under here."
-                        }
-                      ]
-                    },
-                    {
-                      "do": [
+                          "do": "give",
+                          "item": "brassKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "brassKeyGone",
+                          "value": true
+                        },
                         {
                           "do": "say",
-                          "text": "It’s too far back. Your arm won’t fit under the shelf."
+                          "text": "A heavy brass key. It’s warm, as if someone was holding it."
                         }
                       ]
                     }
@@ -3634,8 +3552,6 @@
             "flag": "candle"
           },
           "once": true,
-          "threat": true,
-          "dogResponse": "standGuard",
           "do": [
             {
               "do": "sound",
@@ -3648,6 +3564,59 @@
             {
               "do": "sound",
               "sfx": "knock"
+            }
+          ]
+        },
+        {
+          "id": "b2Shadow",
+          "on": {
+            "type": "arrive",
+            "view": "room2/n",
+            "when": {
+              "op": "all",
+              "conds": [
+                {
+                  "op": "flag",
+                  "flag": "candle"
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "doorOpen"
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "shadowGone"
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "shadowSeen"
+                  }
+                }
+              ]
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "shadowSeen",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "steps"
+            },
+            {
+              "do": "say",
+              "text": "There’s someone standing just outside the door."
             }
           ]
         },
@@ -3700,9 +3669,8 @@
           "hints": [
             "The clock has stopped.",
             "The bird-shaped key belongs to the clock.",
-            "Select the winding key, then tap the clock."
-          ],
-          "dogPoints": "room2/n"
+            "Select the winding key, then tap the clock face."
+          ]
         },
         {
           "id": "o2Time",
@@ -3712,10 +3680,9 @@
           },
           "hints": [
             "The clock wants a particular time.",
-            "{dog} sits by the clock and stares at the drawer. The photograph shows the same clock.",
+            "The photograph shows the same clock.",
             "Quarter past nine. The left hole turns the hours, the right hole the minutes."
-          ],
-          "dogPoints": "room2/n"
+          ]
         },
         {
           "id": "o2Cutters",
@@ -3725,10 +3692,9 @@
           },
           "hints": [
             "Something opened below the clock.",
-            "{dog} paws at the pendulum case.",
+            "Look at the pendulum case.",
             "Tap the open pendulum case."
-          ],
-          "dogPoints": "room2/n"
+          ]
         },
         {
           "id": "o2Match",
@@ -3738,10 +3704,9 @@
           },
           "hints": [
             "A matchbox is no use without a match.",
-            "{dog} sniffs along the bookshelf and stops at one book.",
-            "Open the red book on the shelf and take the match."
-          ],
-          "dogPoints": "room2/s"
+            "One of the books looks different.",
+            "Open the red book on the shelf."
+          ]
         },
         {
           "id": "o2Strike",
@@ -3762,8 +3727,7 @@
             "Two things you’re carrying belong together.",
             "The match and the matchbox.",
             "Tap one of them, then tap the other."
-          ],
-          "dogPoints": "room2/e"
+          ]
         },
         {
           "id": "o2Candle",
@@ -3773,45 +3737,8 @@
           },
           "hints": [
             "It’s very dark in here.",
-            "{dog} sits by the candle on the desk.",
+            "The candle on the desk.",
             "Select the lit match, then tap the candle."
-          ],
-          "dogPoints": "room2/e"
-        }
-      ],
-      "dogMoments": [
-        {
-          "id": "m2Book",
-          "role": "sniff",
-          "at": "book2",
-          "do": [
-            {
-              "do": "dog",
-              "act": "sniff"
-            },
-            {
-              "do": "say",
-              "text": "{dog} sniffs along the shelf and stops at the red book. It smells of old flowers."
-            }
-          ]
-        },
-        {
-          "id": "m2Case",
-          "role": "guard",
-          "at": "case2",
-          "when": {
-            "op": "flag",
-            "flag": "wound"
-          },
-          "do": [
-            {
-              "do": "dog",
-              "act": "standGuard"
-            },
-            {
-              "do": "say",
-              "text": "{dog} stands by the clock, very still, listening to it tick."
-            }
           ]
         }
       ],
@@ -3860,8 +3787,8 @@
                     "litFlag": "candle",
                     "keyFlag": "keyIn",
                     "openFlag": "doorOpen",
-                    "feetFlag": "feet",
-                    "feetGoneFlag": "feetGone"
+                    "feetFlag": "candle",
+                    "feetGoneFlag": "shadowGone"
                   }
                 },
                 {
@@ -3913,19 +3840,22 @@
                     312
                   ],
                   "accepts": [
-                    "brassKey",
-                    "dog"
+                    "brassKey"
                   ],
                   "rules": [
                     {
                       "when": {
                         "op": "flag",
-                        "flag": "unlocked"
+                        "flag": "doorOpen"
                       },
                       "do": [
                         {
-                          "do": "say",
-                          "text": "The door is open a crack. It’s very dark out there. You don’t want to go first."
+                          "do": "setFlag",
+                          "flag": "left",
+                          "value": true
+                        },
+                        {
+                          "do": "endChapter"
                         }
                       ]
                     },
@@ -3959,6 +3889,57 @@
                         {
                           "do": "open",
                           "view": "lock3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "shadow3",
+                  "rect": [
+                    340,
+                    430,
+                    120,
+                    85
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "doorOpen"
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "shadowGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "shadowGone",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "steps"
+                        },
+                        {
+                          "do": "say",
+                          "text": "The shadows step away from the door. Slowly."
                         }
                       ]
                     }
@@ -4304,15 +4285,12 @@
                   "asset": "rug"
                 },
                 {
-                  "asset": "bookshelf",
-                  "params": {
-                    "glintFlag": "keyUnder"
-                  }
+                  "asset": "bookshelf"
                 },
                 {
                   "asset": "birdcage",
                   "params": {
-                    "keyGoneFlag": "cageOpen",
+                    "keyGoneFlag": "brassKeyGone",
                     "openFlag": "cageOpen"
                   }
                 },
@@ -4359,29 +4337,6 @@
                         {
                           "do": "open",
                           "view": "cageC3"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "gap3",
-                  "rect": [
-                    146,
-                    452,
-                    268,
-                    30
-                  ],
-                  "visibleWhen": {
-                    "op": "flag",
-                    "flag": "keyUnder"
-                  },
-                  "rules": [
-                    {
-                      "do": [
-                        {
-                          "do": "open",
-                          "view": "underC3"
                         }
                       ]
                     }
@@ -5079,9 +5034,6 @@
                     90,
                     70
                   ],
-                  "accepts": [
-                    "dog"
-                  ],
                   "visibleWhen": {
                     "op": "not",
                     "cond": {
@@ -5093,8 +5045,13 @@
                     {
                       "do": [
                         {
-                          "do": "say",
-                          "text": "You pull, but it won’t come. Something deep in the soil is holding on."
+                          "do": "give",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "stringGone",
+                          "value": true
                         }
                       ]
                     }
@@ -5128,9 +5085,6 @@
                     285,
                     125,
                     115
-                  ],
-                  "accepts": [
-                    "dog"
                   ],
                   "rules": [
                     {
@@ -5211,7 +5165,7 @@
                   "asset": "cageClose",
                   "params": {
                     "openFlag": "cageOpen",
-                    "keyGoneFlag": "cageOpen"
+                    "keyGoneFlag": "brassKeyGone"
                   }
                 },
                 {
@@ -5261,11 +5215,6 @@
                         {
                           "do": "setFlag",
                           "flag": "cageOpen",
-                          "value": true
-                        },
-                        {
-                          "do": "setFlag",
-                          "flag": "keyUnder",
                           "value": true
                         },
                         {
@@ -5331,11 +5280,6 @@
                           "value": true
                         },
                         {
-                          "do": "setFlag",
-                          "flag": "keyUnder",
-                          "value": true
-                        },
-                        {
                           "do": "sound",
                           "sfx": "click"
                         }
@@ -5350,68 +5294,46 @@
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            "underC3": {
-              "layers": [
-                {
-                  "asset": "underShelfClose",
-                  "params": {
-                    "keyGoneFlag": "brassKeyGone"
-                  }
                 },
                 {
-                  "asset": "lighting",
-                  "params": {
-                    "litFlag": "candle",
-                    "cx": 400,
-                    "cy": 270
-                  }
-                }
-              ],
-              "hotspots": [
-                {
-                  "id": "reach3",
+                  "id": "cageKey3",
                   "rect": [
-                    300,
-                    330,
-                    240,
-                    180
+                    350,
+                    410,
+                    100,
+                    60
                   ],
-                  "accepts": [
-                    "dog"
-                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "cageOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "brassKeyGone"
+                        }
+                      }
+                    ]
+                  },
                   "rules": [
                     {
-                      "when": {
-                        "op": "any",
-                        "conds": [
-                          {
-                            "op": "flag",
-                            "flag": "brassKeyGone"
-                          },
-                          {
-                            "op": "not",
-                            "cond": {
-                              "op": "flag",
-                              "flag": "keyUnder"
-                            }
-                          }
-                        ]
-                      },
                       "do": [
                         {
-                          "do": "say",
-                          "text": "Only dust under here."
-                        }
-                      ]
-                    },
-                    {
-                      "do": [
+                          "do": "give",
+                          "item": "brassKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "brassKeyGone",
+                          "value": true
+                        },
                         {
                           "do": "say",
-                          "text": "It’s too far back. Your arm won’t fit under the shelf."
+                          "text": "A heavy brass key. It’s warm, as if someone was holding it."
                         }
                       ]
                     }
@@ -5605,13 +5527,17 @@
       ],
       "beats": [
         {
-          "id": "b3Feet",
+          "id": "b3Shadow",
           "on": {
             "type": "arrive",
             "view": "room3/n",
             "when": {
               "op": "all",
               "conds": [
+                {
+                  "op": "flag",
+                  "flag": "candle"
+                },
                 {
                   "op": "not",
                   "cond": {
@@ -5623,19 +5549,24 @@
                   "op": "not",
                   "cond": {
                     "op": "flag",
-                    "flag": "feet"
+                    "flag": "shadowGone"
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "shadowSeen"
                   }
                 }
               ]
             }
           },
           "once": true,
-          "threat": true,
-          "dogResponse": "standGuard",
           "do": [
             {
               "do": "setFlag",
-              "flag": "feet",
+              "flag": "shadowSeen",
               "value": true
             },
             {
@@ -5644,44 +5575,7 @@
             },
             {
               "do": "say",
-              "text": "Shadows under the door. Someone is standing just outside."
-            }
-          ]
-        },
-        {
-          "id": "b3FeetGo",
-          "on": {
-            "type": "leave",
-            "view": "room3/n",
-            "when": {
-              "op": "flag",
-              "flag": "feet"
-            }
-          },
-          "once": true,
-          "do": [
-            {
-              "do": "setFlag",
-              "flag": "feetGone",
-              "value": true
-            }
-          ]
-        },
-        {
-          "id": "b3FeetGone",
-          "on": {
-            "type": "arrive",
-            "view": "room3/n",
-            "when": {
-              "op": "flag",
-              "flag": "feetGone"
-            }
-          },
-          "once": true,
-          "do": [
-            {
-              "do": "say",
-              "text": "The shadows have gone. {dog} gives one short, proud wag."
+              "text": "There’s someone standing just outside the door."
             }
           ]
         },
@@ -5692,8 +5586,6 @@
             "view": "room3/w"
           },
           "once": true,
-          "threat": true,
-          "dogResponse": "standGuard",
           "do": [
             {
               "do": "sound",
@@ -5701,7 +5593,7 @@
             },
             {
               "do": "say",
-              "text": "Whispering, close to the window. It stops when {dog} growls."
+              "text": "Whispering, close to the window. It stops when you listen."
             }
           ]
         },
@@ -5752,7 +5644,7 @@
             },
             {
               "do": "say",
-              "text": "You turn around quickly. Nobody there. {dog} is still beside you."
+              "text": "You turn around quickly. Nobody there."
             }
           ]
         },
@@ -5770,7 +5662,7 @@
             },
             {
               "do": "say",
-              "text": "The wire snaps. The key drops, bounces and skitters under the bookshelf."
+              "text": "The wire snaps. It was twisted shut from the inside."
             }
           ]
         },
@@ -5830,7 +5722,7 @@
           "do": [
             {
               "do": "setFlag",
-              "flag": "unlocked",
+              "flag": "doorOpen",
               "value": true
             }
           ]
@@ -5849,16 +5741,16 @@
           "do": [
             {
               "do": "setFlag",
-              "flag": "unlocked",
+              "flag": "doorOpen",
               "value": true
             }
           ]
         },
         {
-          "id": "b3Unlocked",
+          "id": "b3DoorOpens",
           "on": {
             "type": "afterFlag",
-            "flag": "unlocked"
+            "flag": "doorOpen"
           },
           "once": true,
           "do": [
@@ -5868,7 +5760,7 @@
             },
             {
               "do": "say",
-              "text": "The key turns. The door opens a crack onto the dark. {dog}’s ears go up."
+              "text": "The key turns. The door swings open by itself."
             }
           ]
         }
@@ -5884,21 +5776,19 @@
             "Something is hanging inside the birdcage.",
             "The cage door is wired shut.",
             "Select the cutters, then tap the cage door."
-          ],
-          "dogPoints": "room3/s"
+          ]
         },
         {
-          "id": "o3Fetch",
+          "id": "o3CageKey",
           "doneWhen": {
             "op": "flag",
             "flag": "brassKeyGone"
           },
           "hints": [
-            "The key went under the bookshelf.",
-            "{dog} lies flat and stares into the gap under the shelf.",
-            "Tap {dog}, then tap the gap under the shelf. {dog} can squeeze in."
-          ],
-          "dogPoints": "room3/s"
+            "The cage is open.",
+            "Take what’s inside it.",
+            "Tap the key hanging from the perch."
+          ]
         },
         {
           "id": "o3Keyhole",
@@ -5910,8 +5800,7 @@
             "The door has a keyhole as well as dials.",
             "The heavy brass key.",
             "Select the brass key, then tap the door."
-          ],
-          "dogPoints": "room3/n"
+          ]
         },
         {
           "id": "o3Window",
@@ -5921,10 +5810,9 @@
           },
           "hints": [
             "Light makes reflections.",
-            "{dog} sits by the window and looks at the glass.",
-            "Look closely at the window now that the candle is lit."
-          ],
-          "dogPoints": "room3/w"
+            "Look closely at the window.",
+            "Look at the window now that the candle is lit."
+          ]
         },
         {
           "id": "o3Dials",
@@ -5936,89 +5824,18 @@
             "The dials want four symbols.",
             "Read the note on the desk, then look at the window again.",
             "Moon, eye, key, bird."
-          ],
-          "dogPoints": "room3/n"
+          ]
         },
         {
           "id": "o3Out",
           "doneWhen": {
             "op": "flag",
-            "flag": "doorOpen"
+            "flag": "left"
           },
           "hints": [
-            "The door is open a crack, but it’s dark out there.",
-            "{dog} stands by the door, tail going.",
-            "Tap {dog}, then tap the door. {dog} will go first."
-          ],
-          "dogPoints": "room3/n"
-        }
-      ],
-      "dogMoments": [
-        {
-          "id": "m3Fetch",
-          "role": "fetch",
-          "at": "reach3",
-          "when": {
-            "op": "all",
-            "conds": [
-              {
-                "op": "flag",
-                "flag": "keyUnder"
-              },
-              {
-                "op": "not",
-                "cond": {
-                  "op": "flag",
-                  "flag": "brassKeyGone"
-                }
-              }
-            ]
-          },
-          "do": [
-            {
-              "do": "dog",
-              "act": "fetch"
-            },
-            {
-              "do": "give",
-              "item": "brassKey"
-            },
-            {
-              "do": "setFlag",
-              "flag": "brassKeyGone",
-              "value": true
-            },
-            {
-              "do": "say",
-              "text": "{dog} squeezes flat under the shelf and comes back with the heavy brass key."
-            }
-          ]
-        },
-        {
-          "id": "m3Hero",
-          "role": "hero",
-          "at": "door3",
-          "when": {
-            "op": "flag",
-            "flag": "unlocked"
-          },
-          "do": [
-            {
-              "do": "dog",
-              "act": "trot"
-            },
-            {
-              "do": "setFlag",
-              "flag": "doorOpen",
-              "value": true
-            },
-            {
-              "do": "say",
-              "text": "{dog} noses the door wide and trots out into the dark. A happy bark comes back: it’s safe."
-            },
-            {
-              "do": "endChapter"
-            }
+            "The door is open.",
+            "Go through it.",
+            "Tap the open door."
           ]
         }
       ],
@@ -6048,11 +5865,11 @@
         "op": "has",
         "item": "glassEye"
       },
-      "text": "Behind you, the clock strikes quarter past nine again. In your pocket, the glass eye has gone warm. {dog} led you out."
+      "text": "Behind you, the clock strikes quarter past nine again. In your pocket, the glass eye has gone warm."
     },
     {
       "id": "endOut",
-      "text": "Behind you, the clock strikes quarter past nine again. Someone is still watching, but {dog} led you out."
+      "text": "Behind you, the clock strikes quarter past nine again. You have the feeling someone is still watching."
     }
   ]
 }

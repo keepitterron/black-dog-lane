@@ -1,14 +1,13 @@
 // The engine: step(level, state, action) → { state, events }. Pure; nothing here knows about
 // a specific level. React renders `state`; `events` drive messages, sounds and beats.
 import { seenFlag, test } from './conditions.ts'
-import { currentChapter, currentViewId, emit, fail, makeCtx, setFlag, type Ctx, type GameEvent } from './context.ts'
-import { DOG_SLOT, fillText } from './dog.ts'
+import { currentViewId, emit, fail, makeCtx, setFlag, type Ctx, type GameEvent } from './context.ts'
 import { fireViewBeats, runEffects, settle } from './effects.ts'
-import { askDog } from './hints.ts'
+import { askHint } from './hints.ts'
 import { applyPuzzleInput, type PuzzleInput } from './puzzles.ts'
 import { WALLS, type Level } from './schema.ts'
 import type { GameState } from './state.ts'
-import { DOG_NOTHING, DOG_READY, DOG_WAG, NO_COMBINE, NOTHING_HAPPENS } from './text.ts'
+import { NO_COMBINE, NOTHING_HAPPENS } from './text.ts'
 
 export type Action =
   | { type: 'turn'; dir: 'left' | 'right' }
@@ -19,7 +18,7 @@ export type Action =
   | { type: 'puzzleInput'; puzzle: string; input: PuzzleInput }
   // Sent by the UI once a view has faded in, so arrival beats fire in view.
   | { type: 'arrive' }
-  | { type: 'askDog' }
+  | { type: 'hint' }
 
 export type StepResult = { state: GameState; events: GameEvent[] }
 
@@ -68,13 +67,13 @@ function act(ctx: Ctx, action: Action): void {
       if (ctx.idx.views.get(currentViewId(state))?.view.puzzle !== action.puzzle) return fail(ctx, 'PUZZLE_NOT_IN_VIEW', action.puzzle)
       return applyPuzzleInput(ctx, entry.puzzle, action.input)
     }
-    case 'askDog':
-      return askDog(ctx)
+    case 'hint':
+      return askHint(ctx)
   }
 }
 
 function say(ctx: Ctx, text: string): void {
-  emit(ctx, { type: 'say', text: fillText(text) })
+  emit(ctx, { type: 'say', text })
 }
 
 function tapHotspot(ctx: Ctx, id: string): void {
@@ -82,10 +81,6 @@ function tapHotspot(ctx: Ctx, id: string): void {
   const hotspot = ctx.idx.views.get(currentViewId(state))?.view.hotspots.find(h => h.id === id)
   if (!hotspot || !test(hotspot.visibleWhen, state)) return fail(ctx, 'UNKNOWN_HOTSPOT', id)
   const selected = state.selected
-  if (selected === DOG_SLOT) {
-    state.selected = null
-    return sendDog(ctx, id)
-  }
   if (selected && !hotspot.accepts?.includes(selected)) {
     state.selected = null
     return say(ctx, NOTHING_HAPPENS)
@@ -96,32 +91,9 @@ function tapHotspot(ctx: Ctx, id: string): void {
   if (selected && state.selected === selected) state.selected = null
 }
 
-// The dog goes to a hotspot or sniffs an item: the first matching, unused dog moment there.
-function sendDog(ctx: Ctx, at: string): void {
-  const { state } = ctx
-  const moment = currentChapter(ctx).dogMoments.find(
-    m => m.at === at && !state.fired.includes(m.id) && test(m.when, state),
-  )
-  if (!moment) return say(ctx, DOG_NOTHING)
-  state.fired.push(moment.id)
-  runEffects(ctx, moment.do)
-}
-
 function tapItem(ctx: Ctx, id: string): void {
   const { state, level } = ctx
   const selected = state.selected
-  if (id === DOG_SLOT) {
-    if (selected === DOG_SLOT) {
-      state.selected = null
-      return say(ctx, DOG_WAG)
-    }
-    if (selected) {
-      state.selected = null
-      return sendDog(ctx, selected)
-    }
-    state.selected = DOG_SLOT
-    return say(ctx, DOG_READY)
-  }
   const item = level.items[id]
   if (!item || !state.inventory.includes(id)) return fail(ctx, 'UNKNOWN_ITEM', id)
   if (selected === id) {
@@ -133,7 +105,6 @@ function tapItem(ctx: Ctx, id: string): void {
     return say(ctx, item.name)
   }
   state.selected = null
-  if (selected === DOG_SLOT) return sendDog(ctx, id)
   const combo = level.combos.find(c => (c.a === selected && c.b === id) || (c.a === id && c.b === selected))
   if (!combo) return say(ctx, NO_COMBINE)
   runEffects(ctx, [
