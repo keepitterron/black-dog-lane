@@ -3,11 +3,11 @@
 // reachable. Reports numbers only, never level content.
 import { seenFlag, test } from '../engine/conditions.ts'
 import { lookup } from '../engine/lookup.ts'
-import { isSolved, type PuzzleInput } from '../engine/puzzles.ts'
-import { clockTime, dialValues, progress } from '../engine/puzzles.ts'
-import type { Level, Puzzle, Wall } from '../engine/schema.ts'
+import { isSolved } from '../engine/puzzles.ts'
+import type { Level, Wall } from '../engine/schema.ts'
 import { newGame, type GameState } from '../engine/state.ts'
 import { step, type Action } from '../engine/step.ts'
+import { solutionInputs } from './puzzleInputs.ts'
 
 export type SolveReport = {
   solvable: boolean
@@ -21,7 +21,34 @@ export type SolveReport = {
   deadEndSamples?: GameState[]
 }
 
-type Node = { state: GameState; depth: number }
+// What a solver step did: tap a hotspot (maybe with an item), solve a puzzle, combine two
+// items, look at a view (arrive) or leave one (turn or back).
+export type Via =
+  | { kind: 'hotspot'; id: string; item?: string }
+  | { kind: 'puzzle'; id: string }
+  | { kind: 'combine'; a: string; b: string }
+  | { kind: 'look'; view: string }
+  | { kind: 'leave'; view: string }
+
+export type Node = { key: string; state: GameState; depth: number; parent: string | null; via: Via | null }
+export type Edge = { to: string; via: Via }
+
+export type Graph = {
+  start: string
+  nodes: Map<string, Node>
+  // State-changing steps only: an action that leaves the abstract state as it was isn't an edge.
+  edges: Map<string, Edge[]>
+  // The first ending found, so the parent chain from it is a shortest path.
+  goal: string | null
+  // States from which an ending can still be reached.
+  canFinish: Set<string>
+  truncated: boolean
+  // `afterFlag` beats that were due when a step ended their chapter, so they never fired.
+  lostBeats: Set<string>
+  // Hotspots that changed the state at least once (edges keep one step per target, so a
+  // hotspot that does the same as another wouldn't show up in them).
+  usedHotspots: Set<string>
+}
 
 // What can change how the game plays from here: flags read by gameplay conditions (not by
 // art, hints or secrets), puzzle state, the inventory, and beats whose firing
@@ -74,40 +101,47 @@ const keyOf = (r: Relevance) => (s: GameState) =>
     s.ended,
   ])
 
-export function solve(level: Level, { maxStates = 100_000, samples = 0 } = {}): SolveReport {
+export function explore(level: Level, { maxStates = 100_000 } = {}): Graph {
   const key = keyOf(relevance(level))
   const start = newGame(level)
-  const seen = new Map<string, Node>([[key(start), { state: start, depth: 0 }]])
-  const edges = new Map<string, Set<string>>()
-  const queue: string[] = [key(start)]
-  let shortest: number | null = null
+  const startKey = key(start)
+  const nodes = new Map<string, Node>([[startKey, { key: startKey, state: start, depth: 0, parent: null, via: null }]])
+  const edges = new Map<string, Edge[]>()
+  const lostBeats = new Set<string>()
+  const usedHotspots = new Set<string>()
+  const queue: string[] = [startKey]
+  let goal: string | null = null
   let truncated = false
 
-  while (queue.length > 0) {
-    const k = queue.shift() ?? ''
-    const node = seen.get(k)
+  for (let head = 0; head < queue.length; head++) {
+    const k = queue[head] ?? ''
+    const node = nodes.get(k)
     if (!node || node.state.ended) continue
-    const out = new Set<string>()
-    for (const next of successors(level, node.state)) {
+    const out = new Map<string, Edge>()
+    for (const { state: next, via, solverGaveUp } of successors(level, node.state)) {
+      if (solverGaveUp) truncated = true
       const nk = key(next)
       if (nk === k) continue
-      out.add(nk)
-      if (seen.has(nk)) continue
-      if (seen.size >= maxStates) {
+      if (via.kind === 'hotspot') usedHotspots.add(via.id)
+      if (next.location.chapter !== node.state.location.chapter || next.ended) lostAfterExit(level, node.state, next, lostBeats)
+      // One edge per target is enough; the first found is also the one BFS keeps as parent.
+      if (!out.has(nk)) out.set(nk, { to: nk, via })
+      if (nodes.has(nk)) continue
+      if (nodes.size >= maxStates) {
         truncated = true
         continue
       }
-      seen.set(nk, { state: next, depth: node.depth + 1 })
-      if (next.ended) shortest ??= node.depth + 1
+      nodes.set(nk, { key: nk, state: next, depth: node.depth + 1, parent: k, via })
+      if (next.ended) goal ??= nk
       else queue.push(nk)
     }
-    edges.set(k, out)
+    edges.set(k, [...out.values()])
   }
 
   // Walk backwards from every ending to find the states that can still finish.
   const reverse = new Map<string, string[]>()
-  for (const [from, tos] of edges) for (const to of tos) reverse.set(to, [...(reverse.get(to) ?? []), from])
-  const canFinish = new Set([...seen].filter(([, n]) => n.state.ended).map(([k]) => k))
+  for (const [from, out] of edges) for (const { to } of out) reverse.set(to, [...(reverse.get(to) ?? []), from])
+  const canFinish = new Set([...nodes].filter(([, n]) => n.state.ended).map(([k]) => k))
   const stack = [...canFinish]
   while (stack.length > 0) {
     for (const prev of reverse.get(stack.pop() ?? '') ?? []) {
@@ -116,27 +150,58 @@ export function solve(level: Level, { maxStates = 100_000, samples = 0 } = {}): 
       stack.push(prev)
     }
   }
+  return { start: startKey, nodes, edges, goal, canFinish, truncated, lostBeats, usedHotspots }
+}
 
-  const dead = truncated ? [] : [...seen].filter(([k]) => !canFinish.has(k)).map(([, n]) => n.state)
+// The steps from the start to the first ending found, in order.
+export function shortestPath(graph: Graph): { from: Node; via: Via; to: Node }[] {
+  const steps: { from: Node; via: Via; to: Node }[] = []
+  for (let to = graph.goal ? graph.nodes.get(graph.goal) : undefined; to?.parent && to.via; ) {
+    const from = graph.nodes.get(to.parent)
+    if (!from) break
+    steps.push({ from, via: to.via, to })
+    to = from
+  }
+  return steps.toReversed()
+}
+
+export function solve(level: Level, { maxStates = 100_000, samples = 0 } = {}): SolveReport {
+  const graph = explore(level, { maxStates })
+  const goal = graph.goal ? graph.nodes.get(graph.goal) : undefined
+  const dead = graph.truncated ? [] : [...graph.nodes].filter(([k]) => !graph.canFinish.has(k)).map(([, n]) => n.state)
   return {
-    solvable: shortest !== null,
-    shortest,
-    states: seen.size,
+    solvable: goal !== undefined,
+    shortest: goal?.depth ?? null,
+    states: graph.nodes.size,
     deadEnds: dead.length,
-    truncated,
+    truncated: graph.truncated,
     ...(samples > 0 ? { deadEndSamples: dead.slice(0, samples) } : {}),
   }
 }
 
-function successors(level: Level, from: GameState): GameState[] {
+// When a step leaves a chapter, `afterFlag` beats of that chapter that were due on a flag the
+// step changed never get to fire (the engine settles beats in the new chapter).
+function lostAfterExit(level: Level, from: GameState, to: GameState, lost: Set<string>): void {
+  const chapter = lookup(level).chapters.get(from.location.chapter)?.chapter
+  for (const beat of chapter?.beats ?? []) {
+    const { on } = beat
+    if (on.type !== 'afterFlag' || to.fired.includes(beat.id)) continue
+    if (from.flags[on.flag] === to.flags[on.flag]) continue
+    if (test(on.when, to)) lost.add(beat.id)
+  }
+}
+
+type Successor = { state: GameState; via: Via; solverGaveUp?: true }
+
+function successors(level: Level, from: GameState): Successor[] {
   const idx = lookup(level)
   const chapter = idx.chapters.get(from.location.chapter)?.chapter
   if (!chapter) return []
-  const results: GameState[] = []
-  const run = (at: GameState, actions: Action[]) => {
+  const results: Successor[] = []
+  const run = (at: GameState, via: Via, actions: Action[]) => {
     let state = at
     for (const action of actions) state = step(level, state, action).state
-    results.push({ ...state, selected: null, hint: { objective: null, tier: 0 } })
+    results.push({ state: { ...state, selected: null, hint: { objective: null, tier: 0 } }, via })
   }
   const items = [...from.inventory]
 
@@ -149,59 +214,29 @@ function successors(level: Level, from: GameState): GameState[] {
       const view = idx.views.get(viewId)?.view
       if (!view) continue
       const at: GameState = { ...from, location: { chapter: chapter.id, room: room.id, wall, closeUps } }
-      run(at, [{ type: 'arrive' }])
-      run(at, closeUps.length ? [{ type: 'back' }] : [{ type: 'turn', dir: 'right' }])
-      if (!closeUps.length) run(at, [{ type: 'turn', dir: 'left' }])
+      run(at, { kind: 'look', view: viewId }, [{ type: 'arrive' }])
+      run(at, { kind: 'leave', view: viewId }, closeUps.length ? [{ type: 'back' }] : [{ type: 'turn', dir: 'right' }])
+      if (!closeUps.length) run(at, { kind: 'leave', view: viewId }, [{ type: 'turn', dir: 'left' }])
       for (const hotspot of view.hotspots) {
         if (!test(hotspot.visibleWhen, at)) continue
-        run(at, [{ type: 'tapHotspot', id: hotspot.id }])
+        run(at, { kind: 'hotspot', id: hotspot.id }, [{ type: 'tapHotspot', id: hotspot.id }])
         for (const item of items) {
           if (!hotspot.accepts?.includes(item)) continue
-          run({ ...at, selected: item }, [{ type: 'tapHotspot', id: hotspot.id }])
+          run({ ...at, selected: item }, { kind: 'hotspot', id: hotspot.id, item }, [{ type: 'tapHotspot', id: hotspot.id }])
         }
       }
       const puzzle = view.puzzle ? idx.puzzles.get(view.puzzle)?.puzzle : undefined
       // Solving needs the clues: every clue view must have been looked at first.
       if (puzzle && !isSolved(puzzle, at.flags) && puzzle.clues.every(clue => at.flags[seenFlag(clue)] === true)) {
-        const inputs = solutionInputs(puzzle, at)
-        if (inputs.length) run(at, inputs.map(input => ({ type: 'puzzleInput', puzzle: puzzle.id, input })))
+        const inputs = solutionInputs(puzzle, at.flags)
+        if (inputs === null) results.push({ state: from, via: { kind: 'puzzle', id: puzzle.id }, solverGaveUp: true })
+        else if (inputs.length) run(at, { kind: 'puzzle', id: puzzle.id }, inputs.map(input => ({ type: 'puzzleInput', puzzle: puzzle.id, input })))
       }
     }
   }
   const anywhere: GameState = { ...from, location: { ...from.location, closeUps: [] } }
   for (const a of items) {
-    for (const b of items) if (a < b) run({ ...anywhere, selected: a }, [{ type: 'tapItem', id: b }])
+    for (const b of items) if (a < b) run({ ...anywhere, selected: a }, { kind: 'combine', a, b }, [{ type: 'tapItem', id: b }])
   }
   return results
-}
-
-// Inputs that take a puzzle from its current state to its declared solution.
-function solutionInputs(puzzle: Puzzle, state: GameState): PuzzleInput[] {
-  const inputs: PuzzleInput[] = []
-  switch (puzzle.kind) {
-    case 'dialLock': {
-      dialValues(puzzle, state.flags).forEach((value, dial) => {
-        const from = puzzle.symbols.indexOf(value)
-        const to = puzzle.symbols.indexOf(puzzle.solution[dial] ?? '')
-        const turns = (to - from + puzzle.symbols.length) % puzzle.symbols.length
-        for (let i = 0; i < turns; i++) inputs.push({ kind: 'dial', dial, dir: 1 })
-      })
-      return inputs
-    }
-    case 'clockSet': {
-      const now = clockTime(puzzle, state.flags)
-      for (let i = 0; i < (puzzle.solution.h - now.h + 12) % 12; i++) inputs.push({ kind: 'clock', hand: 'h', dir: 1 })
-      const minuteTurns = ((puzzle.solution.m - now.m + 60) % 60) / puzzle.minuteStep
-      for (let i = 0; i < minuteTurns; i++) inputs.push({ kind: 'clock', hand: 'm', dir: 1 })
-      return inputs
-    }
-    case 'sequence':
-      return puzzle.solution.map(target => ({ kind: 'tap', target }))
-    case 'trail':
-      return puzzle.trail.slice(progress(puzzle, state.flags)).map(view => ({ kind: 'trail', view }))
-    case 'slider':
-    case 'pattern':
-      // Not used by any level yet; the full validator (Milestone 5) will search these.
-      return []
-  }
 }
