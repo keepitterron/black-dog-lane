@@ -27,12 +27,73 @@
       transition: transform 120ms ease-out;
     }
 
+    /* A level's own decor recedes into the room, so it never reads as something to use. */
+    & :global(.art-decor) {
+      opacity: 0.72;
+      filter: saturate(0.6) brightness(0.85);
+    }
+
+    /* Motion a level's own art can ask for. */
+    & :global(.art-flicker) {
+      animation: art-flicker 2.6s steps(1) infinite;
+    }
+
+    & :global(.art-sway) {
+      transform-box: fill-box;
+      transform-origin: 50% 0;
+      animation: art-sway 5s ease-in-out infinite alternate;
+    }
+
+    & :global(.art-breathe) {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: art-breathe 4s ease-in-out infinite alternate;
+    }
+
+    & :global(.art-drift) {
+      animation: art-drift 9s ease-in-out infinite alternate;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       animation: none;
 
       & :global(.tile) {
         transition: none;
       }
+
+      & :global(:is(.art-flicker, .art-sway, .art-breathe, .art-drift)) {
+        animation: none;
+      }
+    }
+  }
+
+  @keyframes art-flicker {
+    0%, 40%, 44%, 100% {
+      opacity: 1;
+    }
+    42%, 71% {
+      opacity: 0.55;
+    }
+  }
+
+  @keyframes art-sway {
+    from {
+      rotate: -3deg;
+    }
+    to {
+      rotate: 3deg;
+    }
+  }
+
+  @keyframes art-breathe {
+    to {
+      scale: 1.04;
+    }
+  }
+
+  @keyframes art-drift {
+    to {
+      translate: 14px -6px;
     }
   }
 

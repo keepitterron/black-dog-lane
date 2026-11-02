@@ -2,9 +2,7 @@
 // puzzle widgets draw their controls on top of `panelClose`.
 import { FONT, on, str, sym, type Asset, type Params } from '../kit.ts'
 import { inscription, windKey } from './furniture.ts'
-import * as props from './props.ts'
-
-const PROPS: Partial<Record<string, Asset>> = { ...props }
+import { drawProp } from './index.ts'
 
 const symbols = (p: Params, key: string) => str(p, key, '').split(',').filter(Boolean)
 
@@ -44,9 +42,9 @@ export const containerClose: Asset = (p, ctx) => {
           : `<rect width="800" height="600" fill="${woodMid}"/><rect x="110" y="110" width="580" height="400" fill="#1e140e" stroke="${woodLight}" stroke-width="20"/>`
   for (const [i, [x, y]] of CONTAINER_AT.entries()) {
     const id = str(p, `prop${i + 1}`, '')
-    const draw = Object.hasOwn(PROPS, id) ? PROPS[id] : undefined
-    if (!draw || on(p, `prop${i + 1}GoneFlag`, ctx)) continue
-    s += `<g transform="translate(${x} ${y}) scale(2.4)">${draw({}, ctx)}</g>`
+    const art = id ? drawProp(id, ctx) : ''
+    if (!art || on(p, `prop${i + 1}GoneFlag`, ctx)) continue
+    s += `<g transform="translate(${x} ${y}) scale(2.4)">${art}</g>`
   }
   return s
 }

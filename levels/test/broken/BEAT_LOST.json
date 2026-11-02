@@ -1,9 +1,45 @@
 {
   "id": "strict",
-  "schema": 1,
+  "schema": 2,
   "title": "Strict Test Level",
   "theme": "test fixture that passes the strict profile",
-  "palette": "plain",
+  "palette": {
+    "base": "plain",
+    "colours": {
+      "wall": "#5c5850"
+    }
+  },
+  "art": {
+    "a01": {
+      "kind": "wall",
+      "bbox": [
+        0,
+        0,
+        60,
+        80
+      ],
+      "anchor": "wall",
+      "decor": true,
+      "shapes": [
+        {
+          "el": "rect",
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 80,
+          "fill": "woodDark"
+        },
+        {
+          "el": "circle",
+          "cx": 30,
+          "cy": 40,
+          "r": 14,
+          "fill": "wallMotif",
+          "unless": "c1found"
+        }
+      ]
+    }
+  },
   "items": {},
   "combos": [],
   "chapters": [
@@ -326,6 +362,13 @@
               "layers": [
                 {
                   "asset": "roomShell"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "atX": 265,
+                    "atY": 280
+                  }
                 },
                 {
                   "id": "c1mark",
@@ -1255,6 +1298,13 @@
               "layers": [
                 {
                   "asset": "roomShell"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "atX": 265,
+                    "atY": 280
+                  }
                 }
               ],
               "hotspots": [
@@ -2127,6 +2177,13 @@
               "layers": [
                 {
                   "asset": "roomShell"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "atX": 265,
+                    "atY": 280
+                  }
                 }
               ],
               "hotspots": [

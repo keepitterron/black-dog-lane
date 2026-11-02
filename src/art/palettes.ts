@@ -1,25 +1,10 @@
 // Colour token sets, one per level theme. Assets take room colours (walls, floor, wood, cloth,
 // light) from the palette in their context; colours that mean something (brass keys, flame,
 // paper, ink) stay fixed so clues read the same in every room.
-import { isPaletteId, type PaletteId } from '../catalog/assets.ts'
+import { isPaletteId, type PaletteId, type PaletteToken } from '../catalog/assets.ts'
+import type { LevelPalette } from '../engine/schema.ts'
 
-export type Palette = {
-  wall: string
-  wallDark: string
-  wallMotif: string
-  rail: string
-  skirting: string
-  floor: string
-  floorSeam: string
-  wood: string
-  woodDark: string
-  woodEdge: string
-  woodMid: string
-  woodLight: string
-  cloth: string
-  light: string
-  dark: string
-}
+export type Palette = Record<PaletteToken, string>
 
 // The prototype's colours. Every other palette is a variation on it.
 const waiting: Palette = {
@@ -132,6 +117,9 @@ export const PALETTES: Record<PaletteId, Palette> = {
   },
 }
 
-export function paletteFor(id: string): Palette {
-  return isPaletteId(id) ? PALETTES[id] : waiting
+const named = (id: string): Palette => (isPaletteId(id) ? PALETTES[id] : waiting)
+
+// A level's palette: a catalog one, or a catalog base with the level's own colours over it.
+export function paletteFor(palette: LevelPalette): Palette {
+  return typeof palette === 'string' ? named(palette) : { ...named(palette.base), ...palette.colours }
 }

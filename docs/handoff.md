@@ -123,8 +123,9 @@ A level is one JSON file validated by a Valibot schema; TypeScript types are inf
 
 ```ts
 type Level = {
-  id: string; schema: 1; title: string; theme: string
-  palette: PaletteId
+  id: string; schema: 1 | 2; title: string; theme: string
+  palette: PaletteId | { base: PaletteId; colours: Partial<Palette> }
+  art?: Record<ArtId, ArtAsset>              // the level's own drawings, as shape data
   items: Record<ItemId, { name: string; desc: string; icon: AssetRef }>
   combos: { a: ItemId; b: ItemId; make: ItemId; say: string }[]
   chapters: [Chapter, Chapter, Chapter]       // always exactly three
@@ -144,6 +145,10 @@ type Beat = { id: string; on: Trigger; once: true; do: Effect[] }
 type Objective = { id: string; doneWhen: Cond; availableWhen: Cond
                    hints: [string, string, string] }
 ```
+
+**Own art.** Each level draws its own world in `art`: pieces of kind `shell`, `wall`, `prop` or `closeUp`, built from a closed set of shapes (rect, circle, ellipse, line, poly, path, text, group, and `use` to nest a catalog or own asset). Colours name a palette token, a fixed colour or a hex; shapes can show or hide on flags and take a little motion (`flicker`, `sway`, `breathe`, `drift`). Layers name own art like catalog assets and place it the same way; own props also serve as item icons, sequence targets and container props. `decor: true` marks set dressing, drawn quieter. `src/art/levelArt.ts` draws it; the schema rejects anything that isn't in the vocabulary, so a level never carries raw SVG. Since this lives in the encoded level, new art stays as secret as the rest of the level.
+
+**Schema versions.** `schema: 2` added own art and the rules that keep objects alive (`SILENT_TAP`, `DEAD_PROP`, `DECOR_TAP`, `NOVELTY`). New drafts must use 2; levels packed on 1 still validate under the old rules until they are reworked.
 
 **Puzzle widgets** are a closed library so the generator can't invent unplayable mechanics: dial lock (N dials over a symbol set), clock set (hours + minutes), sequence (tap objects in order), sliding tiles, pattern match (light up a grid), and trail (follow marks across walls, in order, to a hidden spot). Each declares its solution in data so the solver can check it.
 
@@ -178,14 +183,19 @@ The validator replaces human playtesting: it proves a level can be finished, can
 | `ONE_WAY_DOOR` | A door into a room with no way back through doors that are always open. |
 | `ROOM_UNREACHABLE` | No door ever leads to a room. |
 | `NO_PAYOFF` | Chapter 1 or 2 has no `outro` (the ending is chapter 3's payoff). |
+| `SILENT_TAP` | A visible hotspot has no rule that applies in some reachable state, so tapping it does nothing (a spent object left on screen). Schema 2. |
+| `DEAD_PROP` | A catalog prop, or a catalog piece that changes with a flag, shows with no hotspot over it: elsewhere it's a puzzle piece, here it's dead. Schema 2. |
+| `DECOR_TAP` | A piece of the level's own art marked `decor` sits under a hotspot. Schema 2. |
+| `NOVELTY` | A room shows none of the level's own art. Schema 2. |
+| `ASSET_REF` | Art that can't be drawn: unknown asset, palette or icon, bad params or slot, a close-up on a wall, or own art that clashes with a catalog id, lacks a bbox, nests itself or draws too many shapes. |
 
-**Output** (stdout, CI and PR body): `levels/play/foo.level  OK  3 chapters · 61 steps · threads 2–3 · secrets 2 · beats 19 · states 4,812`. On failure: the code, the chapter and the opaque ids involved, never text.
+**Output** (stdout, CI and PR body): `levels/play/foo.level  OK  3 chapters · 61 steps · threads 2–3 · secrets 2 · beats 19 · own art 14 · states 4,812`. On failure: the code, the chapter and the opaque ids involved, never text.
 
 A Vitest suite runs the validator over every file in `levels/`, so CI fails on a broken level the same way it fails on broken code.
 
 ## Art and audio
 
-Art comes from a hand-built library of parametric SVG assets, never generated per level. That keeps the look consistent, costs nothing per level, and gives the generator a fixed vocabulary it can't break.
+Art comes from two places. A hand-built library of parametric SVG assets keeps a shared look and gives the generator pieces it can't break. Each level also draws its own pieces as shape data (`level.art`, see Level format). Playtesting the first generated level showed that a level built only from the library feels like the test rooms rearranged, so every room now shows art its level brought. Own art stays cheap through style, not reuse: bold silhouettes, few flat shapes, palette tones, a little motion.
 
 **Style:** flat, hand-drawn feel, muted palette, no pixel art. Carry over the prototype's look: patterned wallpaper, plank floor, candle-light radial overlay, a dark vignette before the light changes. Font: IM Fell English with a Georgia fallback.
 
@@ -236,7 +246,7 @@ An animated, posable helper dog was built in Milestone 3 and wired into the engi
 
 These came out of playtesting the prototype; they go verbatim into the generator prompt, and the validator enforces the ones it can.
 
-1. **Everything you can tap pays off.** Each interactive object feeds a puzzle, now or later. Pure atmosphere is drawn but not tappable.
+1. **Everything you can tap pays off, and keeps answering.** Each interactive object feeds a puzzle, now or later, and still says something once its job is done. Pure atmosphere is drawn but not tappable, and drawn so it reads as decor. A piece that is a puzzle piece in other levels is never left on screen dead.
 2. **If it looks like a clue, it is one.** A stopped clock, a number, a symbol or a marked object is always an input to a puzzle. The first prototype's stopped clock that meant nothing was the most confusing thing in it.
 3. **Two or three threads open at once.** Players can switch when stuck, and two people can chase different threads. Threads interlock: one needs a clue only the other gives.
 4. **Combine clues.** Answers come from two sources together (a note that says the writing is reversed + the writing itself), never one object stating the code.
@@ -246,6 +256,7 @@ These came out of playtesting the prototype; they go verbatim into the generator
 8. **Secrets have tells.** A small visible oddity (an eye that catches the light, a slightly different colour) rewards curiosity; the ending acknowledges secrets found.
 9. **Hints in three tiers:** a nudge, a pointer to the object, then the answer.
 10. **Readable for a 9-year-old on a phone.** Plain English, messages ≤ 140 characters, no wordplay that depends on adult vocabulary; visual clues over riddles; no maths-heavy puzzles; big tap targets.
+11. **Every level is new.** Its own look, its own objects, its own central mystery and a puzzle idea players haven't met before. The checks keep a level playable; they are not a template.
 
 ## CI/CD, GitHub Pages and PWA
 

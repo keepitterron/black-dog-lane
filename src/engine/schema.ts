@@ -2,6 +2,7 @@
 // generator all use the types inferred from it. Cross-references (ids that must exist) are
 // checked separately in refs.ts.
 import * as v from 'valibot'
+import { PALETTE_TOKENS } from '../catalog/assets.ts'
 
 export const WALLS = ['n', 'e', 's', 'w'] as const
 export type Wall = (typeof WALLS)[number]
@@ -76,6 +77,81 @@ export const Hotspot = v.strictObject({
   rules: v.array(Rule),
 })
 export type Hotspot = v.InferOutput<typeof Hotspot>
+
+// ── A level's own art ────────────────────────────────────────────────────────────────────────
+// Shapes are a closed vocabulary drawn by src/art/levelArt.ts, so a level can bring new drawings
+// without code (and without raw SVG). Colours name a palette token, a fixed colour or a hex.
+export const FIXED_PAINTS = ['ink', 'paper', 'brass', 'flame', 'glass', 'beyond', 'shadow', 'none'] as const
+export const ANIMS = ['flicker', 'sway', 'breathe', 'drift'] as const
+const Num = v.pipe(v.number(), v.finite())
+const Hex = v.pipe(v.string(), v.regex(/^#[0-9a-f]{6}$/i, 'hex colour'))
+const Paint = v.union([v.picklist([...PALETTE_TOKENS, ...FIXED_PAINTS]), Hex])
+const PathData = v.pipe(v.string(), v.regex(/^[MLHVCSQTAZmlhvcsqtaz\d\s,.eE-]+$/, 'path data'), v.maxLength(4000))
+export const ART_TEXT_MAX = 40
+
+type Style = {
+  fill?: string | undefined
+  stroke?: string | undefined
+  width?: number | undefined
+  opacity?: number | undefined
+  // Drawn only while this flag is set / unset.
+  if?: string | undefined
+  unless?: string | undefined
+  anim?: (typeof ANIMS)[number] | undefined
+}
+export type Shape = Style &
+  (
+    | { el: 'rect'; x: number; y: number; w: number; h: number; r?: number | undefined }
+    | { el: 'circle'; cx: number; cy: number; r: number }
+    | { el: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
+    | { el: 'line'; x1: number; y1: number; x2: number; y2: number }
+    | { el: 'poly'; points: number[]; open?: boolean | undefined }
+    | { el: 'path'; d: string }
+    | { el: 'text'; x: number; y: number; text: string; size?: number | undefined; italic?: boolean | undefined }
+    | { el: 'group'; x?: number | undefined; y?: number | undefined; scale?: number | undefined; rotate?: number | undefined; shapes: Shape[] }
+    // Another asset (catalog or this level's) drawn here, for composing pieces.
+    | { el: 'use'; asset: string; params?: Record<string, number | string> | undefined; x?: number | undefined; y?: number | undefined; scale?: number | undefined }
+  )
+
+const style = {
+  fill: v.optional(Paint),
+  stroke: v.optional(Paint),
+  width: v.optional(v.pipe(Num, v.minValue(0), v.maxValue(60))),
+  opacity: v.optional(v.pipe(Num, v.minValue(0), v.maxValue(1))),
+  if: v.optional(FlagName),
+  unless: v.optional(FlagName),
+  anim: v.optional(v.picklist(ANIMS)),
+}
+const Size = v.pipe(Num, v.minValue(0))
+
+export const Shape: v.GenericSchema<Shape> = v.lazy(() =>
+  v.variant('el', [
+    v.strictObject({ ...style, el: v.literal('rect'), x: Num, y: Num, w: Size, h: Size, r: v.optional(Size) }),
+    v.strictObject({ ...style, el: v.literal('circle'), cx: Num, cy: Num, r: Size }),
+    v.strictObject({ ...style, el: v.literal('ellipse'), cx: Num, cy: Num, rx: Size, ry: Size }),
+    v.strictObject({ ...style, el: v.literal('line'), x1: Num, y1: Num, x2: Num, y2: Num }),
+    v.strictObject({ ...style, el: v.literal('poly'), points: v.pipe(v.array(Num), v.minLength(4), v.check(p => p.length % 2 === 0, 'pairs')), open: v.optional(v.boolean()) }),
+    v.strictObject({ ...style, el: v.literal('path'), d: PathData }),
+    v.strictObject({ ...style, el: v.literal('text'), x: Num, y: Num, text: v.pipe(Text, v.maxLength(ART_TEXT_MAX)), size: v.optional(v.pipe(Num, v.minValue(6), v.maxValue(120))), italic: v.optional(v.boolean()) }),
+    v.strictObject({ ...style, el: v.literal('group'), x: v.optional(Num), y: v.optional(Num), scale: v.optional(v.pipe(Num, v.minValue(0.05), v.maxValue(10))), rotate: v.optional(Num), shapes: v.array(Shape) }),
+    v.strictObject({ ...style, el: v.literal('use'), asset: Id, params: v.optional(v.record(v.string(), v.union([v.number(), v.string()]))), x: v.optional(Num), y: v.optional(Num), scale: v.optional(v.pipe(Num, v.minValue(0.05), v.maxValue(10))) }),
+  ]),
+)
+
+export const ArtAsset = v.strictObject({
+  kind: v.picklist(['shell', 'wall', 'prop', 'closeUp']),
+  // Where the drawing sits (wall pieces; props default to the 60×60 box round the origin).
+  bbox: v.optional(v.tuple([Num, Num, Size, Size])),
+  anchor: v.optional(v.picklist(['floor', 'wall', 'hang'])),
+  // Pure set dressing: drawn quieter than everything you can use, and never under a hotspot.
+  decor: v.optional(v.boolean()),
+  shapes: v.pipe(v.array(Shape), v.minLength(1)),
+})
+export type ArtAsset = v.InferOutput<typeof ArtAsset>
+
+// A catalog palette, or one with its own colours laid over a catalog base.
+const LevelPalette = v.union([Id, v.strictObject({ base: Id, colours: v.record(v.picklist(PALETTE_TOKENS), Hex) })])
+export type LevelPalette = v.InferOutput<typeof LevelPalette>
 
 const Layer = v.strictObject({
   id: v.optional(Id),
@@ -201,12 +277,17 @@ export type Chapter = v.InferOutput<typeof Chapter>
 
 const Item = v.strictObject({ name: Text, desc: Message, icon: Id })
 
+// 2 added the level's own art and the rules that keep objects alive (SILENT_TAP, DEAD_PROP,
+// DECOR_TAP, NOVELTY). Levels written before keep 1 and aren't held to those rules.
+export const SCHEMA_VERSION = 2
+
 export const Level = v.strictObject({
   id: Id,
-  schema: v.literal(1),
+  schema: v.union([v.literal(1), v.literal(2)]),
   title: Text,
   theme: Text,
-  palette: Id,
+  palette: LevelPalette,
+  art: v.optional(v.record(Id, ArtAsset)),
   items: v.record(Id, Item),
   combos: v.array(v.strictObject({ a: Id, b: Id, make: Id, say: Message })),
   chapters: v.tuple([Chapter, Chapter, Chapter]),

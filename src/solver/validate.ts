@@ -2,11 +2,11 @@
 // (docs/handoff.md → Validator and solver). Builds on one solver graph and reports only codes,
 // chapter ids, opaque ids and counts, never level content.
 import { test } from '../engine/conditions.ts'
-import { CATALOG, ICON_IDS, isAssetId, isPaletteId, paramProblems } from '../catalog/assets.ts'
+import { assetMeta, CATALOG, ICON_IDS, isAssetId, isPaletteId, ownArt, paramProblems, placedRect, type ArtSet, type ParamSpec } from '../catalog/assets.ts'
 import { MIN_TAP_UNITS, padRect, SCENE_H, SCENE_W, type Rect } from '../engine/layout.ts'
 import { lookup } from '../engine/lookup.ts'
 import { checkRefs, type RefCode } from '../engine/refs.ts'
-import { parseLevel, type Chapter, type Hotspot, type Level, type Room } from '../engine/schema.ts'
+import { parseLevel, type Chapter, type Hotspot, type Level, type Room, type Shape, type View } from '../engine/schema.ts'
 import type { GameState } from '../engine/state.ts'
 import { explore, shortestPath, type Graph, type Node, type Via } from './solve.ts'
 
@@ -34,10 +34,18 @@ export const CHECK_CODES = [
   'BUSYWORK',
   'BEAT_SPARSE',
   'ASSET_REF',
+  'SILENT_TAP',
+  'DEAD_PROP',
+  'DECOR_TAP',
+  'NOVELTY',
 ] as const
 // Hand-built fixtures (the Waiting Room) keep description-only taps and per-chapter room
 // copies, so the rules about what a tap or a clue must lead to only bind real levels.
-const PLAY_ONLY = new Set<Code>(['ORPHAN_HOTSPOT', 'FALSE_CLUE', 'LENGTH', 'SINGLE_THREAD', 'SINGLE_SOURCE', 'BUSYWORK', 'BEAT_SPARSE', 'NO_PAYOFF'])
+const PLAY_ONLY = new Set<Code>(['ORPHAN_HOTSPOT', 'FALSE_CLUE', 'LENGTH', 'SINGLE_THREAD', 'SINGLE_SOURCE', 'BUSYWORK', 'BEAT_SPARSE', 'NO_PAYOFF', 'SILENT_TAP', 'DEAD_PROP', 'DECOR_TAP', 'NOVELTY'])
+// Rules added with schema 2; levels written before keep schema 1 and aren't held to them.
+const SINCE_2 = new Set<Code>(['SILENT_TAP', 'DEAD_PROP', 'DECOR_TAP', 'NOVELTY'])
+// Most shapes one piece of a level's own art may draw (nested groups included).
+export const ART_SHAPES_MAX = 160
 
 // CORRUPT: the file isn't JSON or doesn't decode. SCHEMA: it doesn't parse (ids are dot
 // paths). TRUNCATED: the search hit its state cap, so nothing can be proved.
@@ -53,6 +61,8 @@ export type Stats = {
   secrets: number
   beats: number
   states: number
+  // How many of the level's own drawings its rooms show.
+  art: number
 }
 
 export type ValidateReport = { ok: boolean; codes: Finding[]; stats: Stats | null }
@@ -76,6 +86,7 @@ export function validate(input: unknown, { profile = 'play', maxStates = 100_000
   const codes: Finding[] = []
   const add = (code: Code, ids: string[], chapter?: string) => {
     if (profile === 'fixture' && PLAY_ONLY.has(code)) return
+    if (level.schema < 2 && SINCE_2.has(code)) return
     codes.push({ code, ids, ...(chapter ? { chapter } : {}) })
   }
 
@@ -89,6 +100,9 @@ export function validate(input: unknown, { profile = 'play', maxStates = 100_000
   tapTargets(level, graph, add)
   oneWayDoors(level, add)
   assetRefs(level, add)
+  silentTaps(level, graph, add)
+  deadProps(level, graph, add)
+  novelty(level, add)
   if (!graph.truncated) unreachableRooms(level, graph, add)
   for (const ch of level.chapters.slice(0, -1)) if (!ch.outro) add('NO_PAYOFF', [ch.id], ch.id)
   for (const id of graph.lostBeats) add('BEAT_LOST', [id], lookup(level).beats.get(id)?.chapter.id)
@@ -126,6 +140,7 @@ export function validate(input: unknown, { profile = 'play', maxStates = 100_000
     secrets: level.secrets.length,
     beats,
     states: graph.nodes.size,
+    art: ownArtShown(level).size,
   }
   return { ok: codes.length === 0, codes: dedupe(codes), stats }
 }
@@ -250,31 +265,138 @@ function falseClues(level: Level, add: Add): void {
       for (const hotspot of view.hotspots) if (hotspot.looksLikeClue && !clues.has(id)) add('FALSE_CLUE', [hotspot.id], ch.id)
 }
 
-// Art the catalog can't draw: an unknown asset, palette or icon, params the asset doesn't
-// take, a slot it can't stand in, a puzzle param naming no puzzle, or a close-up drawn on a
-// wall. Ids are the view (or item) plus the asset id or the offending param.
+// Art that can't be drawn: an unknown asset, palette or icon, params the asset doesn't take, a
+// slot it can't stand in, a puzzle param naming no puzzle, or a close-up drawn on a wall. The
+// level's own art must not reuse a catalog or icon id, needs a bbox to stand on a wall, stays
+// under ART_SHAPES_MAX shapes, and may only nest assets that exist, without loops. Ids are the
+// view (or item, or own art) plus the asset id or the offending param.
 function assetRefs(level: Level, add: Add): void {
-  if (!isPaletteId(level.palette)) add('ASSET_REF', ['palette'])
+  const base = typeof level.palette === 'string' ? level.palette : level.palette.base
+  if (!isPaletteId(base)) add('ASSET_REF', ['palette'])
+  const art = level.art
   const icons: readonly string[] = ICON_IDS
-  for (const [id, item] of Object.entries(level.items)) if (!icons.includes(item.icon)) add('ASSET_REF', [id, 'icon'])
+  for (const [id, item] of Object.entries(level.items)) if (!icons.includes(item.icon) && ownArt(art, item.icon)?.kind !== 'prop') add('ASSET_REF', [id, 'icon'])
+  for (const [id, own] of Object.entries(art ?? {})) {
+    if (isAssetId(id) || icons.includes(id)) add('ASSET_REF', [id, 'clash'])
+    if (own.kind === 'wall' && !own.bbox) add('ASSET_REF', [id, 'bbox'])
+    if (countShapes(own.shapes) > ART_SHAPES_MAX) add('ASSET_REF', [id, 'size'])
+    for (const use of uses(own.shapes)) {
+      if (!assetMeta(use.asset, art)) add('ASSET_REF', [id, use.asset])
+      else for (const problem of paramProblems(use.asset, use.params ?? {}, art)) add('ASSET_REF', [id, use.asset, problem])
+    }
+    if (nestsItself(id, art)) add('ASSET_REF', [id, 'cycle'])
+  }
   const idx = lookup(level)
   for (const ch of level.chapters)
     for (const { id, view } of views(ch))
       for (const layer of view.layers) {
-        if (!isAssetId(layer.asset)) {
+        const m = assetMeta(layer.asset, art)
+        if (!m) {
           add('ASSET_REF', [id, layer.asset], ch.id)
           continue
         }
         const params = layer.params ?? {}
-        const problems = paramProblems(layer.asset, params)
-        const specs = CATALOG[layer.asset].params
+        const problems = paramProblems(layer.asset, params, art)
+        const specs: Record<string, ParamSpec> = isAssetId(layer.asset) ? CATALOG[layer.asset].params : {}
         for (const [key, spec] of Object.entries(specs)) {
           const value = params[key]
           if (spec.type === 'puzzle' && value !== undefined && !idx.puzzles.has(String(value))) problems.push(`puzzle:${key}`)
         }
-        if (CATALOG[layer.asset].kind === 'closeUp' && id.includes('/')) problems.push('kind')
+        if (m.kind === 'closeUp' && id.includes('/')) problems.push('kind')
         for (const problem of problems) add('ASSET_REF', [id, layer.asset, problem], ch.id)
       }
+}
+
+const countShapes = (shapes: Shape[]): number => shapes.reduce((n, s) => n + 1 + (s.el === 'group' ? countShapes(s.shapes) : 0), 0)
+
+function uses(shapes: Shape[]): Extract<Shape, { el: 'use' }>[] {
+  return shapes.flatMap(s => (s.el === 'use' ? [s] : s.el === 'group' ? uses(s.shapes) : []))
+}
+
+function nestsItself(id: string, art: ArtSet | undefined): boolean {
+  const seen = new Set<string>()
+  const stack = uses(ownArt(art, id)?.shapes ?? []).map(u => u.asset)
+  while (stack.length > 0) {
+    const next = stack.pop() ?? ''
+    if (next === id) return true
+    if (seen.has(next)) continue
+    seen.add(next)
+    stack.push(...uses(ownArt(art, next)?.shapes ?? []).map(u => u.asset))
+  }
+  return false
+}
+
+// A visible hotspot that answers nothing: in some reachable state no rule applies, so a tap
+// (with no item in hand) does nothing at all. Spent objects should still say something, change
+// their art, or go away.
+function silentTaps(level: Level, graph: Graph, add: Add): void {
+  const states = [...graph.nodes.values()].map(n => n.state)
+  for (const ch of level.chapters) {
+    const inChapter = states.filter(s => s.location.chapter === ch.id && !s.ended)
+    for (const { view } of views(ch))
+      for (const h of view.hotspots)
+        if (inChapter.some(s => test(h.visibleWhen, s) && !h.rules.some(r => test(r.when, s)))) add('SILENT_TAP', [h.id], ch.id)
+  }
+}
+
+// Catalog pieces that look like they do something (every prop, and wall pieces that change with
+// a flag) must sit under a hotspot whenever they show: elsewhere they are puzzle pieces, so drawn
+// dead they read as a broken puzzle. The level's own decor is the reverse: never under one.
+// Trail marks are tappable through their trail.
+function deadProps(level: Level, graph: Graph, add: Add): void {
+  const states = [...graph.nodes.values()].map(n => n.state)
+  for (const ch of level.chapters) {
+    const inChapter = states.filter(s => s.location.chapter === ch.id && !s.ended)
+    for (const { view } of views(ch))
+      for (const layer of view.layers) {
+        const own = ownArt(level.art, layer.asset)
+        const decor = own?.decor === true
+        if (!decor && !inviting(layer.asset)) continue
+        const centre = layerCentre(layer.asset, layer.params ?? {}, level.art)
+        if (!centre) continue
+        const shows = inChapter.filter(s => test(layer.visibleWhen, s))
+        const covered = (s: GameState) => coveringHotspots(view, centre, s).length > 0
+        if (decor) {
+          const over = new Set(shows.flatMap(s => coveringHotspots(view, centre, s).map(h => h.id)))
+          if (over.size) add('DECOR_TAP', [layer.asset, ...over], ch.id)
+        } else if (shows.some(s => !covered(s))) add('DEAD_PROP', [layer.id ?? layer.asset], ch.id)
+      }
+  }
+}
+
+function inviting(asset: string): boolean {
+  if (!isAssetId(asset) || asset === 'trailMark') return false
+  const m = CATALOG[asset]
+  return m.kind === 'prop' || (m.kind === 'wall' && Object.values(m.params).some(spec => spec.type === 'flag'))
+}
+
+function layerCentre(asset: string, params: Record<string, number | string>, art: ArtSet | undefined): [number, number] | null {
+  const rect = placedRect(asset, params, art)
+  return rect ? [rect[0] + rect[2] / 2, rect[1] + rect[3] / 2] : null
+}
+
+function coveringHotspots(view: View, [px, py]: [number, number], s: GameState): Hotspot[] {
+  return view.hotspots.filter(h => {
+    const [x, y, w, hh] = padRect(h.rect)
+    return test(h.visibleWhen, s) && px >= x && px <= x + w && py >= y && py <= y + hh
+  })
+}
+
+// The level's own drawings that some room shows (directly as a layer).
+function ownArtShown(level: Level): Set<string> {
+  const shown = new Set<string>()
+  for (const ch of level.chapters) for (const { view } of views(ch)) for (const layer of view.layers) if (ownArt(level.art, layer.asset)) shown.add(layer.asset)
+  return shown
+}
+
+// Every room shows at least one drawing the level brought itself, so no room is only the
+// catalog's furniture rearranged.
+function novelty(level: Level, add: Add): void {
+  for (const ch of level.chapters)
+    for (const room of ch.rooms) {
+      const roomViews = [...Object.values(room.walls), ...Object.values(room.closeUps)]
+      if (!roomViews.some(view => view.layers.some(layer => ownArt(level.art, layer.asset)))) add('NOVELTY', [room.id], ch.id)
+    }
 }
 
 function hintGaps(level: Level, graph: Graph, add: Add): void {

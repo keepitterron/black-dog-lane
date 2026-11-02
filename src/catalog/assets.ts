@@ -2,12 +2,19 @@
 // reacts to and where it may stand. Pure data and geometry, so the validator and the generator
 // can read it without the drawing code in src/art (which implements one renderer per id).
 import type { Rect } from '../engine/layout.ts'
+import type { ArtAsset, Level } from '../engine/schema.ts'
 
 export const SYMBOLS = ['moon', 'eye', 'key', 'bird', 'sun', 'star', 'hand', 'fish', 'tree', 'crown', 'paw', 'bone'] as const
 
 export const PALETTE_IDS = ['waiting', 'plain', 'attic', 'cellar', 'nursery', 'study', 'ash'] as const
 export type PaletteId = (typeof PALETTE_IDS)[number]
 export const isPaletteId = (id: string): id is PaletteId => (PALETTE_IDS as readonly string[]).includes(id)
+// The colours a palette sets; a level may override any of them on top of a base palette.
+export const PALETTE_TOKENS = [
+  'wall', 'wallDark', 'wallMotif', 'rail', 'skirting', 'floor', 'floorSeam',
+  'wood', 'woodDark', 'woodEdge', 'woodMid', 'woodLight', 'cloth', 'light', 'dark',
+] as const
+export type PaletteToken = (typeof PALETTE_TOKENS)[number]
 
 // Shells and close-ups fill the 800×600 scene. Wall pieces and props can be placed: by `slot`,
 // or at an anchor point (`atX`, `atY`), optionally resized by `scale`.
@@ -207,6 +214,28 @@ export function meta(id: AssetId): AssetMeta {
   return CATALOG[id]
 }
 
+// A level's own art (`level.art`), drawn from shape data instead of code. Ids are the level's.
+export type ArtSet = NonNullable<Level['art']>
+
+export const ownArt = (art: ArtSet | undefined, id: string): ArtAsset | undefined =>
+  art && Object.hasOwn(art, id) && !isAssetId(id) ? art[id] : undefined
+
+// Own art places like catalog art: props are drawn around the origin, wall pieces where their
+// bbox says, and either may stand in any slot.
+export function ownMeta(a: ArtAsset): AssetMeta {
+  if (a.kind === 'prop') return { ...prop(''), ...(a.bbox ? { bbox: a.bbox } : {}), anchor: a.anchor ?? 'floor', slots: SLOTS }
+  return { kind: a.kind, describe: '', params: {}, ...(a.bbox ? { bbox: a.bbox } : {}), anchor: a.anchor ?? 'floor', slots: SLOTS }
+}
+
+// Catalog metadata, or the level's own; null for an id neither knows.
+export function assetMeta(id: string, art?: ArtSet): AssetMeta | null {
+  if (isAssetId(id)) return meta(id)
+  const own = ownArt(art, id)
+  return own ? ownMeta(own) : null
+}
+
+export const isPropId = (id: string, art?: ArtSet): boolean => (PROP_IDS as string[]).includes(id) || ownArt(art, id)?.kind === 'prop'
+
 function num(p: Params, key: string, fallback: number): number {
   const v = p[key]
   return typeof v === 'number' ? v : fallback
@@ -250,8 +279,9 @@ export function placement(m: AssetMeta, p: Params): Placement | null {
 
 // Where an asset ends up in the scene: its bbox after placement. The generator lays out
 // rooms and derives hotspot rects from this.
-export function placedRect(id: AssetId, p: Params): Rect | null {
-  const m = meta(id)
+export function placedRect(id: string, p: Params, art?: ArtSet): Rect | null {
+  const m = assetMeta(id, art)
+  if (!m) return null
   const box = bboxOf(m, p)
   if (!box) return null
   const at = placement(m, p)
@@ -261,8 +291,9 @@ export function placedRect(id: AssetId, p: Params): Rect | null {
 }
 
 // Problems with one layer's params, as short codes for the validator (never content).
-export function paramProblems(id: AssetId, p: Params): string[] {
-  const m = meta(id)
+export function paramProblems(id: string, p: Params, art?: ArtSet): string[] {
+  const m = assetMeta(id, art)
+  if (!m) return ['asset']
   const specs: Record<string, ParamSpec> = m.kind === 'wall' || m.kind === 'prop' ? { ...PLACEMENT, ...m.params } : m.params
   const problems: string[] = []
   for (const [key, value] of Object.entries(p)) {
@@ -271,7 +302,7 @@ export function paramProblems(id: AssetId, p: Params): string[] {
       problems.push(`param:${key}`)
       continue
     }
-    if (!fits(spec, value)) problems.push(`value:${key}`)
+    if (!fits(spec, value, art)) problems.push(`value:${key}`)
   }
   const slot = p['slot']
   if (slot !== undefined && !(isSlot(slot) && (m.slots ?? []).includes(slot))) problems.push('slot')
@@ -280,7 +311,7 @@ export function paramProblems(id: AssetId, p: Params): string[] {
 
 const isSymbol = (s: string) => (SYMBOLS as readonly string[]).includes(s)
 
-function fits(spec: ParamSpec, value: number | string): boolean {
+function fits(spec: ParamSpec, value: number | string, art?: ArtSet): boolean {
   switch (spec.type) {
     case 'flag':
     case 'puzzle':
@@ -299,6 +330,6 @@ function fits(spec: ParamSpec, value: number | string): boolean {
       return list.length <= spec.max && list.every(isSymbol)
     }
     case 'prop':
-      return typeof value === 'string' && (PROP_IDS as string[]).includes(value)
+      return typeof value === 'string' && isPropId(value, art)
   }
 }
