@@ -66,13 +66,37 @@ You are writing a real level for Black Dog Lane, a creepy point-and-click puzzle
 - **Look.** Pick a palette that fits the theme. Each wall starts with `roomShell` (choose its `pattern`). Then place furniture by `slot` (at most one piece per slot per wall), and props by `slot` or on a surface with `atX`/`atY`.
 - **Hotspots.** On walls, give the layer an `id` and the hotspot `on: "<layer id>"` instead of a `rect`; `npm run level` fills in the rect. On close-ups, write `rect: [x, y, w, h]` in the 800×600 scene, with targets well apart.
 
+## How the validator sees a level (read before designing)
+
+- **Close-ups count as reachable from the start, however they're opened.** A lock on the hotspot that opens a close-up gates nothing for the solver. Gate the close-up's puzzle with `activeWhen`, and its pickups and taps with `visibleWhen` on the opener's flag. Otherwise the solver takes shortcuts a player can't, and step counts come out short.
+- **What counts as a step:**
+  - the first look at each clue view;
+  - each puzzle solve;
+  - each combine;
+  - each tap that changes state.
+  
+  Plan the 12–25 per chapter with that in mind.
+- **Objectives.** Prefer flags in `availableWhen`. A `has` on an item turns false once the item is used, which can leave no open objective (`HINT_GAP`).
+- **`looksLikeClue`** goes only on hotspots inside a view that some puzzle lists in `clues`. On a wall hotspot that merely opens a clue close-up it's a `FALSE_CLUE`.
+- **`exitWhen`** must match the condition under which the exit hotspot's `endChapter` rule fires.
+- **Codes.** The meanings are in `docs/handoff.md` → Validator and solver, and in the comments around `CHECK_CODES` in `src/solver/validate.ts` (which also has `BEAT_LOST`, `ASSET_REF` and the ref codes). `DRAFT_ON` means an `on:` names no placeable layer in that view.
+
+## Authoring tips
+
+- **Placement params.** `slot`, `atX`, `atY` and `scale` go inside a layer's `params`.
+- **Floor props.** A prop in the `floor` slot sits low, and its padded hotspot can pass the scene's bottom edge. Place small floor props with `atY` around 500 instead.
+- **Close-up positions.** For where close-up templates draw things (the `prop1`–`prop3` of `containerClose`, the key in `coatClose`), read the drawing in `src/art/assets/templates.ts` or `closeUps.ts` and put rects on those spots.
+- **Close-up view ids** are opaque too: `v01`…
+- **No starting flags.** Every flag starts unset, so design art states that switch on, not off.
+- **Builder script.** Writing a whole level as raw JSON is long. You may write a small builder script in `.gen/` (helpers like `scripts/levels/strict.ts`) that prints the draft. Keep it in `.gen/` and delete it with the draft.
+
 ## Workflow
 
 ### New level (`$ARGUMENTS` is a theme)
 1. Plan the three chapters for yourself: arc, rooms, threads, puzzles, items, beats, transforming moments, secrets, ending. Keep the plan in your head or in `.gen/`, never in the final message.
 2. Write the full level JSON to `.gen/<id>.json`.
 3. Run `npm run level -- check .gen/<id>.json`. Fix every code it prints and run it again until it prints `OK`. Codes come with chapter and opaque ids; `docs/handoff.md` explains each one. If the same code keeps failing after about 6 rounds, stop with `BLOCKED:`.
-4. Run `npm run level -- pack .gen/<id>.json`. It encodes to `levels/play/<id>.level` and deletes the draft.
+4. Run `npm run level -- pack .gen/<id>.json`. It encodes to `levels/play/<id>.level` and deletes the draft. Then delete anything else you left in `.gen/`.
 5. Run `npm run level -- pr <id>`. It needs a clean working tree. If it refuses, stop with `BLOCKED: working tree not clean` and leave the packed file where it is.
 6. Final message: the pack report lines, then the PR link.
 
