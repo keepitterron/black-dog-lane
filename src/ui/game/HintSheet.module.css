@@ -1,0 +1,71 @@
+@layer components {
+  /* A sheet over the bottom of the screen: in portrait that is the inventory and HUD, so the
+     scene stays in view while the hints are read. */
+  .sheet {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 10;
+    display: grid;
+    gap: 12px;
+    max-block-size: 60dvh;
+    overflow-y: auto;
+    padding: 16px calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+    background: var(--bg);
+    border-block-start: 1px solid var(--line);
+    box-shadow: 0 -12px 24px rgb(0 0 0 / 0.5);
+    animation: sheet-in 200ms ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .list {
+    display: grid;
+    gap: 10px;
+    margin: 0 auto;
+    padding-inline-start: 1.6em;
+    max-inline-size: 36ch;
+    font-size: var(--text-msg);
+    line-height: 1.45;
+
+    &:empty {
+      display: none;
+    }
+
+    & li::marker {
+      color: var(--amber);
+    }
+  }
+
+  .none {
+    margin: 0 auto;
+    max-inline-size: 36ch;
+    font-size: var(--text-msg);
+    text-align: center;
+    color: var(--ink-dim);
+  }
+
+  .row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .button {
+    min-block-size: var(--tap-min);
+    padding: 0 18px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+}

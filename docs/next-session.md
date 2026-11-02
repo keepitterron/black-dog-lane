@@ -81,7 +81,7 @@ Open housekeeping:
 4. ~~No fixture uses doors~~ (done in M6: `two-rooms.json`). The solver models rooms only through doors that would open in a state; a door that needs an item *selected* (rather than a flag) doesn't count as open, so levels should open doors with a flag.
 5. ~~The `palette` field isn't used~~ (done in M7).
 6. The landscape layout works but hasn't been tuned on a real device.
-7. `Game.tsx` plays hint text as `Hint N of 3: …`. Fine, but the developer hasn't commented on the wording.
+7. ~~`Game.tsx` plays hint text as `Hint N of 3: …`~~ Hints now open a sheet (`HintSheet.tsx`) that lists the tiers revealed so far for the current objective, with an "Another hint" button. On tall portrait screens messages sit in a strip under the scene and the last line stays dimmed; elsewhere they overlay the top of the scene and dismiss on tap. Reading time is `messageMs` in `src/ui/timing.ts`.
 
 ## Remaining milestones
 

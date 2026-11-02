@@ -42,8 +42,10 @@
     }
   }
 
+  /* Navigation stays above the message overlay (Message.module.css), so it is always tappable. */
   .arrow {
     position: absolute;
+    z-index: 3;
     inset-block-start: 50%;
     translate: 0 -50%;
     inline-size: 52px;
@@ -68,6 +70,7 @@
 
   .back {
     position: absolute;
+    z-index: 3;
     inset-block-start: 10px;
     inset-inline-start: 10px;
     min-block-size: var(--tap-min);
