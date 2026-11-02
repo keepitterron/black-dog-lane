@@ -1,0 +1,519 @@
+{
+  "id": "basic",
+  "schema": 1,
+  "title": "Basic Test Level",
+  "theme": "test fixture",
+  "palette": "plain",
+  "items": {
+    "key": {
+      "name": "Test key",
+      "desc": "A key for testing.",
+      "icon": "key"
+    }
+  },
+  "combos": [],
+  "chapters": [
+    {
+      "id": "c1",
+      "intro": "Chapter one.",
+      "start": {
+        "room": "r1",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "r1",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "door"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "door1",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "key"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "key"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "c1done",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "The door unlocks."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "c1done"
+                      },
+                      "do": [
+                        {
+                          "do": "endChapter"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Locked."
+                        }
+                      ]
+                    }
+                  ],
+                  "accepts": [
+                    "key"
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "shelf"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "shelf",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "shelfTaken"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "key"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "shelfTaken",
+                          "value": true
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "An empty shelf."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [],
+              "hotspots": []
+            },
+            "w": {
+              "layers": [
+                {
+                  "id": "l1",
+                  "asset": "plain"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "peek",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "peeked",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "A small mark."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {}
+        }
+      ],
+      "puzzles": [],
+      "beats": [
+        {
+          "id": "b1",
+          "on": {
+            "type": "afterFlag",
+            "flag": "shelfTaken"
+          },
+          "once": true,
+          "threat": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "knock"
+            },
+            {
+              "do": "say",
+              "text": "Three knocks."
+            }
+          ],
+          "dogResponse": "standGuard"
+        }
+      ],
+      "objectives": [
+        {
+          "id": "o1",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "shelfTaken"
+          },
+          "hints": [
+            "Hint 1a.",
+            "Hint 1b.",
+            "Hint 1c."
+          ],
+          "dogPoints": "r1/e"
+        },
+        {
+          "id": "o2",
+          "availableWhen": {
+            "op": "flag",
+            "flag": "shelfTaken"
+          },
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c1done"
+          },
+          "hints": [
+            "Hint 2a.",
+            "Hint 2b.",
+            "Hint 2c."
+          ],
+          "dogPoints": "r1/n"
+        }
+      ],
+      "dogMoments": [],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "c1done"
+      }
+    },
+    {
+      "id": "c2",
+      "intro": "Chapter two.",
+      "start": {
+        "room": "r2",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "r2",
+          "walls": {
+            "n": {
+              "layers": [],
+              "hotspots": [
+                {
+                  "id": "door2",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "goto",
+                          "room": "r3",
+                          "wall": "s"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [],
+              "hotspots": []
+            },
+            "s": {
+              "layers": [],
+              "hotspots": []
+            },
+            "w": {
+              "layers": [],
+              "hotspots": []
+            }
+          },
+          "closeUps": {}
+        },
+        {
+          "id": "r3",
+          "walls": {
+            "n": {
+              "layers": [],
+              "hotspots": []
+            },
+            "e": {
+              "layers": [],
+              "hotspots": []
+            },
+            "s": {
+              "layers": [],
+              "hotspots": [
+                {
+                  "id": "lockbox",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "lockcu"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [],
+              "hotspots": []
+            }
+          },
+          "closeUps": {
+            "lockcu": {
+              "layers": [],
+              "hotspots": [],
+              "puzzle": "p1"
+            }
+          }
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "p1",
+          "kind": "dialLock",
+          "symbols": [
+            "moon",
+            "sun"
+          ],
+          "initial": [
+            "moon",
+            "moon"
+          ],
+          "solution": [
+            "sun",
+            "moon"
+          ],
+          "clues": [
+            "r2/n"
+          ],
+          "onSolve": [
+            {
+              "do": "setFlag",
+              "flag": "c2done",
+              "value": true
+            },
+            {
+              "do": "endChapter"
+            }
+          ]
+        }
+      ],
+      "beats": [],
+      "objectives": [
+        {
+          "id": "o3",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c2done"
+          },
+          "hints": [
+            "Hint 3a.",
+            "Hint 3b.",
+            "Hint 3c."
+          ],
+          "dogPoints": "r3/s"
+        }
+      ],
+      "dogMoments": [],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "c2done"
+      }
+    },
+    {
+      "id": "c3",
+      "intro": "Chapter three.",
+      "start": {
+        "room": "r4",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "r4",
+          "walls": {
+            "n": {
+              "layers": [],
+              "hotspots": [
+                {
+                  "id": "hole",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Too deep."
+                        }
+                      ]
+                    }
+                  ],
+                  "accepts": [
+                    "dog"
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [],
+              "hotspots": []
+            },
+            "s": {
+              "layers": [],
+              "hotspots": []
+            },
+            "w": {
+              "layers": [],
+              "hotspots": []
+            }
+          },
+          "closeUps": {}
+        }
+      ],
+      "puzzles": [],
+      "beats": [],
+      "objectives": [
+        {
+          "id": "o4",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c3done"
+          },
+          "hints": [
+            "Hint 4a.",
+            "Hint 4b.",
+            "Hint 4c."
+          ],
+          "dogPoints": "r4/n"
+        }
+      ],
+      "dogMoments": [
+        {
+          "id": "dm1",
+          "role": "hero",
+          "at": "hole",
+          "do": [
+            {
+              "do": "dog",
+              "act": "fetch"
+            },
+            {
+              "do": "setFlag",
+              "flag": "c3done",
+              "value": true
+            },
+            {
+              "do": "endChapter"
+            }
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "c3done"
+      }
+    }
+  ],
+  "secrets": [
+    {
+      "id": "s1",
+      "foundWhen": {
+        "op": "flag",
+        "flag": "peeked"
+      },
+      "tell": {
+        "view": "r1/w",
+        "layer": "l1"
+      }
+    }
+  ],
+  "endings": [
+    {
+      "id": "hero",
+      "when": {
+        "op": "fired",
+        "id": "dm1"
+      },
+      "text": "{dog} found the way out."
+    },
+    {
+      "id": "plain",
+      "text": "The end."
+    }
+  ]
+}

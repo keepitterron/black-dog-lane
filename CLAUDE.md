@@ -40,6 +40,8 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 
 The service worker lives in `src/sw/` with its own `tsconfig.json` (WebWorker lib, which clashes with DOM). Files in `public/` must be listed in `PUBLIC_FILES` in `vite.config.ts` to be precached.
 
+Engine tests build levels with `tests/fixture.ts` (`baseLevel()` plus only what a test needs). `levels/test/basic.json` is a dull three-chapter fixture played end to end by `tests/walkthrough.test.ts`. Oxlint blocks React, UI imports and DOM globals inside `src/engine` and `src/solver`.
+
 `@types/node` is a dev dependency beyond the spec's list: `scripts/*.ts` and `vite.config.ts` need Node types to type-check.
 
 ## Workflow
