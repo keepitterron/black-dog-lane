@@ -13,7 +13,7 @@ export function dogMark({ coat = '#0d0b0a', white = '#e9e2d4', rim = '#e3a84b' }
     <g fill="none" stroke="${rim}" stroke-width="3.5" stroke-linejoin="round" opacity=".55">${body}</g>
     <g fill="${coat}" stroke="${coat}" stroke-width="1" stroke-linejoin="round">${body}</g>
     <path d="M58 20 Q50 22 51 34 Q52 41 57 40 Q61 32 60 21 Z" fill="#1c1715"/>
-    <path d="M72 21 Q80 23 86 29 L85 31.5 Q78 27 71 24.5 Z" fill="${white}"/>
+    <path d="M71 22.6 Q85 22.6 88.3 29" fill="none" stroke="${white}" stroke-width="2.2" stroke-linecap="round"/>
     <ellipse cx="88" cy="31" rx="2.6" ry="2.2" fill="#000"/>
     <circle cx="69" cy="25" r="1.8" fill="#9a7a3c"/>
     <path d="M62 48 Q67 46 70 50 L68 66 Q63 62 62 48 Z" fill="${white}"/>
