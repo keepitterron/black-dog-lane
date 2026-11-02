@@ -22,8 +22,17 @@
       cursor: pointer;
     }
 
+    /* Slider tiles glide to their new place. */
+    & :global(.tile) {
+      transition: transform 120ms ease-out;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       animation: none;
+
+      & :global(.tile) {
+        transition: none;
+      }
     }
   }
 

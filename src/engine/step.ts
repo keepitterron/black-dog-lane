@@ -64,7 +64,10 @@ function act(ctx: Ctx, action: Action): void {
     case 'puzzleInput': {
       const entry = ctx.idx.puzzles.get(action.puzzle)
       if (entry?.chapter.id !== location.chapter) return fail(ctx, 'UNKNOWN_PUZZLE', action.puzzle)
-      if (ctx.idx.views.get(currentViewId(state))?.view.puzzle !== action.puzzle) return fail(ctx, 'PUZZLE_NOT_IN_VIEW', action.puzzle)
+      // A trail runs across views: each tap counts on the view it was made on.
+      const here = currentViewId(state)
+      const inView = entry.puzzle.kind === 'trail' ? action.input.kind === 'trail' && action.input.view === here : ctx.idx.views.get(here)?.view.puzzle === action.puzzle
+      if (!inView) return fail(ctx, 'PUZZLE_NOT_IN_VIEW', action.puzzle)
       return applyPuzzleInput(ctx, entry.puzzle, action.input)
     }
     case 'hint':

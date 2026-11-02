@@ -2,6 +2,7 @@
 // blocks a tap, then the puzzle widget's controls on top of everything. Swipe or arrows turn; Back leaves a close-up.
 import { useEffect, useRef } from 'react'
 import { renderAsset } from '../../art/assets/index.ts'
+import { isAssetId, placedRect } from '../../catalog/assets.ts'
 import { sceneDefs } from '../../art/kit.ts'
 import { paletteFor } from '../../art/palettes.ts'
 import { test } from '../../engine/conditions.ts'
@@ -49,6 +50,14 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
     .map(layer => renderAsset(layer.asset, layer.params ?? {}, ctx))
     .join('')
   const puzzle = entry.view.puzzle ? idx.puzzles.get(entry.view.puzzle)?.puzzle : undefined
+  // Trail marks on this view that belong to an unsolved trail through it.
+  const marks = entry.view.layers.flatMap(layer => {
+    const id = layer.params?.['puzzle']
+    const trail = typeof id === 'string' ? idx.puzzles.get(id)?.puzzle : undefined
+    if (layer.asset !== 'trailMark' || trail?.kind !== 'trail' || !trail.trail.includes(viewId) || !test(layer.visibleWhen, state)) return []
+    const rect = isAssetId(layer.asset) ? placedRect(layer.asset, layer.params ?? {}) : null
+    return rect ? [{ puzzle: trail.id, rect }] : []
+  })
 
   return (
     <div
@@ -78,7 +87,11 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
             const [x, y, w, height] = padRect(h.rect)
             return <rect key={h.id} className="hs" data-hotspot={h.id} x={x} y={y} width={w} height={height} fill="transparent" onClick={() => onHotspot(h.id)} />
           })}
-        {puzzle && <PuzzleWidget puzzle={puzzle} flags={state.flags} onInput={input => onPuzzle(puzzle.id, input)} />}
+        {marks.map(({ puzzle: id, rect }) => {
+          const [x, y, w, height] = padRect(rect)
+          return <rect key={id} className="hs" data-trail={id} x={x} y={y} width={w} height={height} fill="transparent" onClick={() => onPuzzle(id, { kind: 'trail', view: viewId })} />
+        })}
+        {puzzle && <PuzzleWidget puzzle={puzzle} flags={state.flags} pal={pal} onInput={input => onPuzzle(puzzle.id, input)} />}
       </svg>
       {children}
       {closeUp ? (

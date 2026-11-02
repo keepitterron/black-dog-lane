@@ -80,7 +80,8 @@ export const noteClose: Asset = (p, ctx) => {
 
 // The mirror up close: the dark room behind you, maybe a figure, fog with a symbol.
 export const mirrorClose: Asset = (p, ctx) => {
-  let s = `<rect width="800" height="600" fill="${ctx.pal.wall}"/><ellipse cx="400" cy="300" rx="230" ry="280" fill="#b08a4a"/><ellipse cx="400" cy="300" rx="206" ry="256" fill="url(#glass)"/><rect x="230" y="440" width="340" height="110" fill="#0d1217" opacity=".6"/><rect x="260" y="160" width="90" height="160" fill="#0d1217" opacity=".5"/>`
+  // Everything seen in the glass is clipped to it.
+  let s = `<clipPath id="mirror-glass"><ellipse cx="400" cy="300" rx="206" ry="256"/></clipPath><rect width="800" height="600" fill="${ctx.pal.wall}"/><ellipse cx="400" cy="300" rx="230" ry="280" fill="#b08a4a"/><g clip-path="url(#mirror-glass)"><rect width="800" height="600" fill="url(#glass)"/><rect x="230" y="440" width="340" height="110" fill="#0d1217" opacity=".6"/><rect x="260" y="160" width="90" height="160" fill="#0d1217" opacity=".5"/>`
   if (on(p, 'figureFlag', ctx))
     s += `<path d="M450 520 L450 330 Q450 290 482 280 Q464 262 466 236 Q470 206 500 206 Q530 206 534 236 Q536 262 518 280 Q550 290 550 330 L550 520Z" fill="#050403" opacity=".8"/>`
   if (on(p, 'fogFlag', ctx)) {
@@ -88,7 +89,7 @@ export const mirrorClose: Asset = (p, ctx) => {
     const symbol = str(p, 'symbol', '')
     if (symbol) s += sym(symbol, 400, 280, 70, 'rgba(230,237,240,.55)', true, 6)
   }
-  return s + `<path d="M270 120 Q300 80 350 64" stroke="#c9d3d8" stroke-width="5" opacity=".2" fill="none"/>`
+  return s + `<path d="M270 120 Q300 80 350 64" stroke="#c9d3d8" stroke-width="5" opacity=".2" fill="none"/></g>`
 }
 
 const PANEL_FILL = { wood: ['#4a3326', '#2a1c13'], brass: ['#8c6a35', '#5a4220'], paper: ['#cfc3aa', '#8b7f69'] } as const
