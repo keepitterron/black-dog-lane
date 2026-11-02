@@ -8,17 +8,17 @@
 // clue close-ups, and a door that leaves once the lock is open.
 import type { Beat, Chapter, Cond, Effect, Hotspot, Level, Objective, Room, View } from '../../src/engine/schema.ts'
 
-const F = (flag: string): Cond => ({ op: 'flag', flag })
-const NOT = (cond: Cond): Cond => ({ op: 'not', cond })
-const ALL = (...conds: Cond[]): Cond => ({ op: 'all', conds })
-const set = (flag: string): Effect => ({ do: 'setFlag', flag, value: true })
-const say = (text: string): Effect => ({ do: 'say', text })
-const hints = (id: string): Objective['hints'] => [`Hint ${id} a.`, `Hint ${id} b.`, `Hint ${id} c.`]
+export const F = (flag: string): Cond => ({ op: 'flag', flag })
+export const NOT = (cond: Cond): Cond => ({ op: 'not', cond })
+export const ALL = (...conds: Cond[]): Cond => ({ op: 'all', conds })
+export const set = (flag: string): Effect => ({ do: 'setFlag', flag, value: true })
+export const say = (text: string): Effect => ({ do: 'say', text })
+export const hints = (id: string): Objective['hints'] => [`Hint ${id} a.`, `Hint ${id} b.`, `Hint ${id} c.`]
 
 // Six non-overlapping tap slots per view (two rows of three), padded size included.
 const SLOTS: Hotspot['rect'][] = [60, 330, 600].flatMap(x => [60, 360].map(y => [x, y, 140, 140] as Hotspot['rect']))
-const slot = (i: number): Hotspot['rect'] => SLOTS[i % SLOTS.length] ?? [0, 0, 140, 140]
-const TOP_LEFT = 0
+export const slot = (i: number): Hotspot['rect'] => SLOTS[i % SLOTS.length] ?? [0, 0, 140, 140]
+export const TOP_LEFT = 0
 const TOP_MIDDLE = 2
 const BOTTOM = [1, 3, 5]
 
@@ -28,7 +28,7 @@ export type StrictOptions = { steps?: number }
 
 // A thread is a chain of taps; each hotspot shows once the previous one is done and goes away
 // once tapped. A beat follows every second tap and the last one.
-function thread(ch: string, name: 'a' | 'b', steps: number) {
+export function thread(ch: string, name: 'a' | 'b', steps: number) {
   const flag = (i: number) => `${ch}${name}${i}`
   const spots = Array.from({ length: steps }, (_, k): Hotspot => {
     const i = k + 1
@@ -79,6 +79,7 @@ export function strictChapter(ch: string, { steps = 6 }: StrictOptions = {}): Ch
   return {
     id: ch,
     intro: `Chapter ${ch}.`,
+    outro: `End of ${ch}.`,
     start: { room: r, wall: 'n' },
     rooms: [room],
     puzzles: [
@@ -107,6 +108,8 @@ export function strictChapter(ch: string, { steps = 6 }: StrictOptions = {}): Ch
 
 export function strict(): Level {
   const chapters: Level['chapters'] = [strictChapter('c1'), strictChapter('c2'), strictChapter('c3')]
+  // The ending is the last chapter's payoff.
+  delete chapters[2].outro
   // One secret: an odd mark on the south wall of chapter 1 that goes away once tapped.
   const south = chapters[0].rooms[0]?.walls.s
   south?.layers.push({ id: 'c1mark', asset: 'roomShell', visibleWhen: NOT(F('c1found')) })

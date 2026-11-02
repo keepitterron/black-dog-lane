@@ -28,8 +28,10 @@ describe('test fixtures', () => {
     if (result.ok) expect(checkRefs(result.level)).toEqual([])
   })
 
-  test('the waiting room only uses art that exists', () => {
-    const result = parseLevel(fixtures['../levels/test/waiting-room.json'])
+  // basic.json is an engine fixture with placeholder art names; it is never drawn outside dev.
+  const drawn = Object.entries(fixtures).filter(([file]) => !file.endsWith('/basic.json'))
+  test.each(drawn)('%s only uses art that exists', (_file, json) => {
+    const result = parseLevel(json)
     expect(result.ok && missingArt(result.level)).toEqual([])
   })
 })

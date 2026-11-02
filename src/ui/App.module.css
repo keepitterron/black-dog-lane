@@ -1,10 +1,14 @@
 @layer components {
   .shell {
     container: shell / inline-size;
-    height: 100dvh;
+    /* The body never scrolls (the game screen fills it), so a long level list scrolls here. */
+    block-size: 100dvh;
+    overflow-y: auto;
     display: grid;
+    grid-template-rows: 1fr auto;
     place-items: center;
-    padding: calc(24px + var(--safe-top)) calc(16px + var(--safe-right)) calc(24px + var(--safe-bottom))
+    gap: 16px;
+    padding: calc(24px + var(--safe-top)) calc(16px + var(--safe-right)) calc(8px + var(--safe-bottom))
       calc(16px + var(--safe-left));
     text-align: center;
   }
@@ -16,7 +20,7 @@
 
     & h1 {
       font-weight: 400;
-      font-size: clamp(40px, 12cqi, 84px);
+      font-size: clamp(36px, min(12cqi, 11dvh), 84px);
       line-height: 1.05;
     }
 
@@ -28,8 +32,39 @@
     }
   }
 
+  /* The level list: one row per level, test levels under their own heading. */
+  .levels {
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    margin-top: 6px;
+
+    & h2 {
+      font-weight: 400;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--amber);
+      margin-top: 8px;
+    }
+  }
+
+  .level {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+
+    & > p:first-child {
+      color: var(--ink);
+      font-style: normal;
+    }
+
+    & .buttons {
+      margin-top: 0;
+    }
+  }
+
   .logo {
-    width: clamp(120px, 40cqi, 220px);
+    width: clamp(72px, min(40cqi, 26dvh), 220px);
     aspect-ratio: 1;
     filter: drop-shadow(0 0 18px color-mix(in srgb, var(--amber) 25%, transparent));
   }
@@ -61,8 +96,6 @@
   }
 
   .version {
-    position: fixed;
-    bottom: calc(8px + var(--safe-bottom));
     font-size: 13px;
     color: color-mix(in srgb, var(--ink-dim) 60%, transparent);
   }

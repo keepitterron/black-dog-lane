@@ -1,5 +1,5 @@
 // Room pieces seen on the four walls, ported from the prototype room.
-import { clockTimeFrom, cuttersArt, hands, num, on, sym, type Asset, type AssetCtx, type Params } from '../kit.ts'
+import { clockTimeFrom, cuttersArt, hands, num, on, str, sym, type Asset, type AssetCtx, type Params } from '../kit.ts'
 
 export const roomShell: Asset = () =>
   `<rect width="800" height="470" fill="url(#wp)"/><rect width="800" height="24" fill="#3d3026"/><rect y="448" width="800" height="24" fill="#3a2a20"/><rect y="472" width="800" height="128" fill="url(#planks)"/>`
@@ -149,3 +149,20 @@ export const curtainedWindow: Asset = (p, ctx) => {
 export const plantPot: Asset = (p, ctx) =>
   `<path d="M220 396 L222 330 M221 352 L196 318 M222 340 L246 304 M246 304 L258 296 M196 318 L190 300" stroke="#3a2a20" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M170 400 L270 400 L258 470 L182 470Z" fill="#7a4a33"/><rect x="164" y="392" width="112" height="14" rx="3" fill="#8a563d"/>` +
   (on(p, 'stringGoneFlag', ctx) ? '' : `<path d="M236 394 q6 -14 12 -4" stroke="#cfc3aa" stroke-width="1.6" fill="none"/>`)
+
+// A plain door to another room, its left edge at `x`. `openFlag` leaves it ajar onto the dark.
+export const doorway: Asset = (p, ctx) => {
+  const x = num(p, 'x', 322)
+  const frame = `<rect x="${x}" y="142" width="156" height="312" fill="#2a1c13"/>`
+  if (on(p, 'openFlag', ctx))
+    return `${frame}<rect x="${x + 8}" y="150" width="140" height="300" fill="url(#beyond)"/><path d="M${x + 148} 150 L${x + 184} 136 L${x + 184} 466 L${x + 148} 450Z" fill="#3b281c" stroke="#24180f" stroke-width="3"/>`
+  return `${frame}<rect x="${x + 8}" y="150" width="140" height="300" fill="#3b281c" stroke="#24180f" stroke-width="4"/><rect x="${x + 26}" y="170" width="104" height="260" fill="none" stroke="#2a1c13" stroke-width="4"/><circle cx="${x + 126}" cy="306" r="7" fill="#8c6a35"/>`
+}
+
+// A small framed panel filling the box (x, y, w, h), blank or showing `symbol` from the code set.
+export const frame: Asset = p => {
+  const [x, y, w, h] = [num(p, 'x', 330), num(p, 'y', 200), num(p, 'w', 140), num(p, 'h', 140)]
+  const symbol = str(p, 'symbol', '')
+  const mark = symbol ? sym(symbol, x + w / 2, y + h / 2, Math.min(w, h) * 0.3, '#3a2a20') : ''
+  return `<rect x="${x + 6}" y="${y + 6}" width="${w - 12}" height="${h - 12}" fill="#cfc3aa" stroke="#7a5b33" stroke-width="10"/>${mark}`
+}

@@ -42,7 +42,11 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 
 The service worker lives in `src/sw/` with its own `tsconfig.json` (WebWorker lib, which clashes with DOM). Files in `public/` must be listed in `PUBLIC_FILES` in `vite.config.ts` to be precached.
 
-`levels/test/waiting-room.json` is the prototype ported to level data (three chapters in one room), built by `scripts/levels/waiting-room.ts`. Edit the builder, never the JSON. `src/solver/solve.ts` explores the abstract state graph; `src/solver/validate.ts` runs every check over it (error codes in `CHECK_CODES`). `levels/test/strict.json` (`scripts/levels/strict.ts`) is a dull level that passes the strict profile, and `levels/test/broken/<CODE>.json` (`scripts/levels/broken.ts`) breaks exactly one rule each.
+`levels/test/waiting-room.json` is the prototype ported to level data (three chapters in one room), built by `scripts/levels/waiting-room.ts`. Edit the builder, never the JSON. `src/solver/solve.ts` explores the abstract state graph; `src/solver/validate.ts` runs every check over it (error codes in `CHECK_CODES`). `levels/test/strict.json` (`scripts/levels/strict.ts`) is a dull level that passes the strict profile, and `levels/test/broken/<CODE>.json` (`scripts/levels/broken.ts`) breaks exactly one rule each. `levels/test/two-rooms.json` (`scripts/levels/two-rooms.ts`) is the multi-room fixture: two rooms per chapter joined by doors, keys carried between chapters, chapter outros; it also passes the strict profile.
+
+The solver ignores where the player stands but only acts in rooms a door currently leads to from the chapter start (`reachableRooms`). That relies on `ONE_WAY_DOOR`: every door needs a way back through always-open doors. If Vitest's `import.meta.glob` misses newly written fixtures, delete `node_modules/.vitest-cache`.
+
+The title screen lists levels from `src/ui/levels.ts`: real levels first (decoded at runtime), then the Waiting Room and Two Rooms; `basic` and `strict` are listed in dev builds only. Each level keeps its own save.
 
 Art is a catalog of parametric assets in `src/art/assets` (`(params, { flags }) → SVG`). Params ending in `Flag` name a flag the asset reacts to. Puzzle widgets with fixed close-up layouts live in `src/ui/game/PuzzleWidget.tsx`; only dial lock and clock exist so far.
 

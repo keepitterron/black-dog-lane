@@ -10,6 +10,7 @@
     {
       "id": "c1",
       "intro": "Chapter c1.",
+      "outro": "End of c1.",
       "start": {
         "room": "c1r",
         "wall": "n"
@@ -908,6 +909,7 @@
     {
       "id": "c2",
       "intro": "Chapter c2.",
+      "outro": "End of c2.",
       "start": {
         "room": "c2r",
         "wall": "n"

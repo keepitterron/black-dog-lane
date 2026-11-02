@@ -1,10 +1,12 @@
 // Breadth-first search over abstract game states (chapter + flags + inventory + fired),
-// driving the real engine. Location is abstracted away: any view in the chapter counts as
-// reachable. Reports numbers only, never level content.
+// driving the real engine. Location is abstracted away: every view of a room counts as
+// reachable once a door leads there from the chapter's start (doors whose rule would fire in
+// that state). The validator's ONE_WAY_DOOR check makes sure the way back is always open, so
+// where the player stands never matters. Reports numbers only, never level content.
 import { seenFlag, test } from '../engine/conditions.ts'
 import { lookup } from '../engine/lookup.ts'
 import { isSolved } from '../engine/puzzles.ts'
-import type { Level, Wall } from '../engine/schema.ts'
+import type { Chapter, Level, Wall } from '../engine/schema.ts'
 import { newGame, type GameState } from '../engine/state.ts'
 import { step, type Action } from '../engine/step.ts'
 import { solutionInputs } from './puzzleInputs.ts'
@@ -48,6 +50,8 @@ export type Graph = {
   // Hotspots that changed the state at least once (edges keep one step per target, so a
   // hotspot that does the same as another wouldn't show up in them).
   usedHotspots: Set<string>
+  // Rooms reachable through doors in at least one explored state.
+  reachedRooms: Set<string>
 }
 
 // What can change how the game plays from here: flags read by gameplay conditions (not by
@@ -109,6 +113,7 @@ export function explore(level: Level, { maxStates = 100_000 } = {}): Graph {
   const edges = new Map<string, Edge[]>()
   const lostBeats = new Set<string>()
   const usedHotspots = new Set<string>()
+  const reachedRooms = new Set<string>()
   const queue: string[] = [startKey]
   let goal: string | null = null
   let truncated = false
@@ -118,7 +123,10 @@ export function explore(level: Level, { maxStates = 100_000 } = {}): Graph {
     const node = nodes.get(k)
     if (!node || node.state.ended) continue
     const out = new Map<string, Edge>()
-    for (const { state: next, via, solverGaveUp } of successors(level, node.state)) {
+    const chapter = lookup(level).chapters.get(node.state.location.chapter)?.chapter
+    const rooms = chapter ? reachableRooms(level, chapter, node.state) : new Set<string>()
+    for (const room of rooms) reachedRooms.add(room)
+    for (const { state: next, via, solverGaveUp } of successors(level, node.state, rooms)) {
       if (solverGaveUp) truncated = true
       const nk = key(next)
       if (nk === k) continue
@@ -150,7 +158,7 @@ export function explore(level: Level, { maxStates = 100_000 } = {}): Graph {
       stack.push(prev)
     }
   }
-  return { start: startKey, nodes, edges, goal, canFinish, truncated, lostBeats, usedHotspots }
+  return { start: startKey, nodes, edges, goal, canFinish, truncated, lostBeats, usedHotspots, reachedRooms }
 }
 
 // The steps from the start to the first ending found, in order.
@@ -193,7 +201,34 @@ function lostAfterExit(level: Level, from: GameState, to: GameState, lost: Set<s
 
 type Successor = { state: GameState; via: Via; solverGaveUp?: true }
 
-function successors(level: Level, from: GameState): Successor[] {
+// The rooms a door leads to from `room` right now: visible hotspots in any of its views whose
+// rule that would fire (the first whose condition holds, as in the engine) has a `goto`.
+export function doorsOut(level: Level, roomId: string, state: GameState): string[] {
+  const room = lookup(level).rooms.get(roomId)?.room
+  if (!room) return []
+  const targets: string[] = []
+  for (const view of [...Object.values(room.walls), ...Object.values(room.closeUps)])
+    for (const hotspot of view.hotspots) {
+      if (!test(hotspot.visibleWhen, state)) continue
+      const rule = hotspot.rules.find(r => test(r.when, state))
+      for (const effect of rule?.do ?? []) if (effect.do === 'goto') targets.push(effect.room)
+    }
+  return targets
+}
+
+export function reachableRooms(level: Level, chapter: Chapter, state: GameState): Set<string> {
+  const reached = new Set([chapter.start.room])
+  const stack = [chapter.start.room]
+  while (stack.length > 0)
+    for (const next of doorsOut(level, stack.pop() ?? '', state)) {
+      if (reached.has(next)) continue
+      reached.add(next)
+      stack.push(next)
+    }
+  return reached
+}
+
+function successors(level: Level, from: GameState, rooms: Set<string>): Successor[] {
   const idx = lookup(level)
   const chapter = idx.chapters.get(from.location.chapter)?.chapter
   if (!chapter) return []
@@ -206,6 +241,7 @@ function successors(level: Level, from: GameState): Successor[] {
   const items = [...from.inventory]
 
   for (const room of chapter.rooms) {
+    if (!rooms.has(room.id)) continue
     const views: [string, Wall, string[]][] = [
       ...(['n', 'e', 's', 'w'] as const).map(w => [`${room.id}/${w}`, w, []] as [string, Wall, string[]]),
       ...Object.keys(room.closeUps).map(id => [id, 'n', [id]] as [string, Wall, string[]]),

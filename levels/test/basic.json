@@ -317,7 +317,28 @@
           "walls": {
             "n": {
               "layers": [],
-              "hotspots": []
+              "hotspots": [
+                {
+                  "id": "door3",
+                  "rect": [
+                    300,
+                    200,
+                    200,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "goto",
+                          "room": "r2",
+                          "wall": "n"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             },
             "e": {
               "layers": [],

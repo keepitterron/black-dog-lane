@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest'
-import { addHotspot, baseLevel, play } from '../../tests/fixture.ts'
+import { addHotspot, baseLevel, play, room } from '../../tests/fixture.ts'
 import type { Level, Puzzle } from '../engine/schema.ts'
 import { newGame } from '../engine/state.ts'
 import { slideTiles, solutionInputs, toggleCells } from './puzzleInputs.ts'
-import { explore, shortestPath, solve } from './solve.ts'
+import { explore, reachableRooms, shortestPath, solve } from './solve.ts'
 
 // Puts `puzzle` in close-up `cu` of chapter 1, and makes solving it finish chapter 1. Chapters
 // 2 and 3 end at a single tap.
@@ -77,5 +77,35 @@ describe('explore', () => {
   test('an impossible slider makes the level unsolvable', () => {
     const level = levelWith({ ...base, kind: 'slider', size: 2, initial: [2, 1, 3, 0], solution: [1, 2, 3, 0] })
     expect(solve(level).solvable).toBe(false)
+  })
+})
+
+describe('rooms', () => {
+  // Chapter 1 ends in room c1x, behind a door in c1r that a lever opens; chapters 2 and 3 end
+  // at a single tap.
+  function behindDoor(withLever: boolean): Level {
+    const level = levelWith({ ...base, kind: 'slider', size: 2, initial: [1, 2, 3, 0], solution: [1, 2, 3, 0] })
+    const [c1] = level.chapters
+    c1.rooms.push(room('c1x'))
+    if (withLever) addHotspot(level, 'c1r/e', { id: 'lever', rules: [{ do: [{ do: 'setFlag', flag: 'opened', value: true }] }] })
+    addHotspot(level, 'c1r/w', { id: 'door', rules: [{ when: { op: 'flag', flag: 'opened' }, do: [{ do: 'goto', room: 'c1x' }] }, { do: [{ do: 'say', text: 'Shut.' }] }] })
+    addHotspot(level, 'c1x/s', { id: 'back', rules: [{ do: [{ do: 'goto', room: 'c1r', wall: 'w' }] }] })
+    addHotspot(level, 'c1x/n', { id: 'c1go', rules: [{ do: [{ do: 'setFlag', flag: 'c1done', value: true }] }] })
+    return level
+  }
+
+  test('a room behind a shut door is out of reach until it opens', () => {
+    const level = behindDoor(true)
+    const start = newGame(level)
+    expect([...reachableRooms(level, level.chapters[0], start)]).toEqual(['c1r'])
+    expect([...reachableRooms(level, level.chapters[0], { ...start, flags: { opened: true } })].toSorted()).toEqual(['c1r', 'c1x'])
+    const path = shortestPath(explore(level)).map(s => s.via)
+    expect(path.findIndex(v => v.kind === 'hotspot' && v.id === 'lever')).toBeLessThan(path.findIndex(v => v.kind === 'hotspot' && v.id === 'c1go'))
+  })
+
+  test('with no way to open the door the level is unsolvable', () => {
+    const level = behindDoor(false)
+    expect(solve(level).solvable).toBe(false)
+    expect(explore(level).reachedRooms.has('c1x')).toBe(false)
   })
 })

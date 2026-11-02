@@ -5,7 +5,7 @@ import { test } from '../engine/conditions.ts'
 import { MIN_TAP_UNITS, padRect, SCENE_H, SCENE_W, type Rect } from '../engine/layout.ts'
 import { lookup } from '../engine/lookup.ts'
 import { checkRefs, type RefCode } from '../engine/refs.ts'
-import { parseLevel, type Chapter, type Hotspot, type Level } from '../engine/schema.ts'
+import { parseLevel, type Chapter, type Hotspot, type Level, type Room } from '../engine/schema.ts'
 import type { GameState } from '../engine/state.ts'
 import { explore, shortestPath, type Graph, type Node, type Via } from './solve.ts'
 
@@ -24,6 +24,9 @@ export const CHECK_CODES = [
   'SECRET_NO_TELL',
   'TAP_TARGET',
   'BEAT_LOST',
+  'ONE_WAY_DOOR',
+  'ROOM_UNREACHABLE',
+  'NO_PAYOFF',
   'LENGTH',
   'SINGLE_THREAD',
   'SINGLE_SOURCE',
@@ -32,7 +35,7 @@ export const CHECK_CODES = [
 ] as const
 // Hand-built fixtures (the Waiting Room) keep description-only taps and per-chapter room
 // copies, so the rules about what a tap or a clue must lead to only bind real levels.
-const PLAY_ONLY = new Set<Code>(['ORPHAN_HOTSPOT', 'FALSE_CLUE', 'LENGTH', 'SINGLE_THREAD', 'SINGLE_SOURCE', 'BUSYWORK', 'BEAT_SPARSE'])
+const PLAY_ONLY = new Set<Code>(['ORPHAN_HOTSPOT', 'FALSE_CLUE', 'LENGTH', 'SINGLE_THREAD', 'SINGLE_SOURCE', 'BUSYWORK', 'BEAT_SPARSE', 'NO_PAYOFF'])
 
 // CORRUPT: the file isn't JSON or doesn't decode. SCHEMA: it doesn't parse (ids are dot
 // paths). TRUNCATED: the search hit its state cap, so nothing can be proved.
@@ -82,6 +85,9 @@ export function validate(input: unknown, { profile = 'play', maxStates = 100_000
   hintGaps(level, graph, add)
   secretTells(level, add)
   tapTargets(level, graph, add)
+  oneWayDoors(level, add)
+  if (!graph.truncated) unreachableRooms(level, graph, add)
+  for (const ch of level.chapters.slice(0, -1)) if (!ch.outro) add('NO_PAYOFF', [ch.id], ch.id)
   for (const id of graph.lostBeats) add('BEAT_LOST', [id], lookup(level).beats.get(id)?.chapter.id)
   for (const ch of level.chapters) for (const p of ch.puzzles) if (p.clues.length < 2) add('SINGLE_SOURCE', [p.id], ch.id)
 
@@ -158,8 +164,8 @@ function deadEnds(level: Level, graph: Graph, add: Add): void {
 
 // A hotspot that can be tapped but never changes the abstract state on any explored path.
 // Allowed anyway: taps that only describe a clue (tagged `looksLikeClue` or in a puzzle's clue
-// view), and taps that open a close-up or go to a room with something in it (the solver
-// treats every view as reachable, so navigating never changes its state).
+// view), and taps that open a close-up or go to a room with something in it (location isn't
+// part of the solver's state, so navigating never changes it).
 function orphans(level: Level, graph: Graph, add: Add): void {
   const idx = lookup(level)
   const clues = clueViews(level)
@@ -184,6 +190,53 @@ function orphans(level: Level, graph: Graph, add: Add): void {
         if (!describesClue && !navigates) add('ORPHAN_HOTSPOT', [hotspot.id], ch.id)
       }
     }
+  }
+}
+
+// A door that is always there and always leads on: no `visibleWhen`, and its first rule has no
+// condition and a `goto`.
+function openDoors(room: Room): string[] {
+  return [...Object.values(room.walls), ...Object.values(room.closeUps)].flatMap(view =>
+    view.hotspots.flatMap(h => {
+      const [first] = h.rules
+      if (h.visibleWhen || !first || first.when) return []
+      return first.do.flatMap(e => (e.do === 'goto' ? [e.room] : []))
+    }),
+  )
+}
+
+// Every door, gated or not, must have a way back through doors that are always open: the solver
+// assumes the player can always return to a room they reached.
+function oneWayDoors(level: Level, add: Add): void {
+  for (const ch of level.chapters) {
+    const open = new Map(ch.rooms.map(room => [room.id, openDoors(room)]))
+    const reaches = (from: string, to: string) => {
+      const seen = new Set([from])
+      const stack = [from]
+      while (stack.length > 0) {
+        const at = stack.pop() ?? ''
+        if (at === to) return true
+        for (const next of open.get(at) ?? []) {
+          if (seen.has(next)) continue
+          seen.add(next)
+          stack.push(next)
+        }
+      }
+      return false
+    }
+    for (const room of ch.rooms)
+      for (const view of [...Object.values(room.walls), ...Object.values(room.closeUps)])
+        for (const h of view.hotspots)
+          for (const e of h.rules.flatMap(r => r.do)) if (e.do === 'goto' && !reaches(e.room, room.id)) add('ONE_WAY_DOOR', [h.id], ch.id)
+  }
+}
+
+// A room no door ever leads to. Chapters the search never entered are UNSOLVABLE already.
+function unreachableRooms(level: Level, graph: Graph, add: Add): void {
+  const entered = new Set([...graph.nodes.values()].map(n => n.state.location.chapter))
+  for (const ch of level.chapters) {
+    if (!entered.has(ch.id)) continue
+    for (const room of ch.rooms) if (!graph.reachedRooms.has(room.id)) add('ROOM_UNREACHABLE', [room.id], ch.id)
   }
 }
 

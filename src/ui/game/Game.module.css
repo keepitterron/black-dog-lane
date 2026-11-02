@@ -146,6 +146,12 @@
     }
   }
 
+  /* The payoff of the chapter just finished, before the next one's heading. */
+  .outro {
+    color: var(--ink) !important;
+    margin-block-end: 18px;
+  }
+
   .small {
     font-size: 15px;
     font-style: normal;

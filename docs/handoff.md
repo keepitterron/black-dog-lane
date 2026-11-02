@@ -175,6 +175,9 @@ The validator replaces human playtesting: it proves a level can be finished, can
 | `BEAT_SPARSE` | Fewer than 1 beat per \~3 progress steps, or a beat that can fire off-screen. |
 | `TAP_TARGET` | A hotspot is smaller than 44 CSS px at a 360 px-wide screen. |
 | `LENGTH` | A chapter outside 12–25 steps on the shortest path. |
+| `ONE_WAY_DOOR` | A door into a room with no way back through doors that are always open. |
+| `ROOM_UNREACHABLE` | No door ever leads to a room. |
+| `NO_PAYOFF` | Chapter 1 or 2 has no `outro` (the ending is chapter 3's payoff). |
 
 **Output** (stdout, CI and PR body): `levels/play/foo.level  OK  3 chapters · 61 steps · threads 2–3 · secrets 2 · beats 19 · states 4,812`. On failure: the code, the chapter and the opaque ids involved, never text.
 

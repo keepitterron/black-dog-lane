@@ -21,7 +21,7 @@ const BEAT_PAUSE = 350
 const messageMs = (text: string) => Math.max(2400, text.length * 55)
 
 type Card =
-  | { kind: 'chapter'; index: number }
+  | { kind: 'chapter'; index: number; outro?: string | undefined }
   | { kind: 'ending'; text: string; secretsFound: number; secretsTotal: number }
 
 function storage(): Storage | null {
@@ -84,12 +84,13 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
             show(`Hint ${event.tier + 1} of 3: ${event.text}`)
             break
           case 'chapterEnd': {
-            const index = (lookup(level).chapters.get(event.chapter)?.index ?? 0) + 1
+            const ended = lookup(level).chapters.get(event.chapter)
+            const index = (ended?.index ?? 0) + 1
             if (index < level.chapters.length) {
               cardPending.current = true
               later(Math.max(t, textFree) + 600, () => {
                 cardPending.current = false
-                setCard({ kind: 'chapter', index })
+                setCard({ kind: 'chapter', index, outro: ended?.chapter.outro })
               })
             }
             break
@@ -234,6 +235,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
           {card.kind === 'chapter' ? (
             <>
               {card.index === 0 && <h1>{level.title}</h1>}
+              {card.outro && <p className={styles.outro}>{card.outro}</p>}
               <h2>Chapter {ORDINALS[card.index] ?? card.index + 1}</h2>
               <p>{level.chapters[card.index]?.intro}</p>
               <button type="button" className={styles.big} onClick={() => setCard(null)}>
