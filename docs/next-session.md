@@ -15,7 +15,8 @@ Milestones 1 to 5 are merged to `main` and deployed to GitHub Pages; the develop
 | 4.1 Dog removed, prototype puzzles restored | #7 | merged |
 | 5 Solver and validator | #9 | merged |
 | 6 Multi-room, level picker, chapter outros | #10 | merged |
-| 7 Asset catalog, palettes, all puzzle widgets, `/dev/assets` | — | on branch `m7-assets` |
+| 7 Asset catalog, palettes, all puzzle widgets, `/dev/assets` | #11 | merged |
+| 8 Generator as the `/new-level` skill + `npm run level` | — | on branch `m8-generator` |
 
 What works today: the title screen (original dog silhouette logo) listing every level with its own Continue / Start over, The Waiting Room playing from `levels/test/waiting-room.json` with the prototype's look, sound and puzzles, split into three chapters in one room, and Two Rooms, a dull fixture with doors between rooms and keys carried between chapters. Saves, hints, chapter cards, the ending card, portrait and landscape layouts and offline install all work. 137 tests pass, and lint (which is also the type check) is clean.
 
@@ -133,7 +134,15 @@ Goal: the furniture, props, close-up templates and palettes listed in the spec's
 - `/dev/assets`: a dev-only route (gate on `import.meta.env.DEV` so it is tree-shaken from production) that renders every asset with a few param presets, so the developer can eyeball the catalog.
 - Make the asset catalog machine-readable for the generator: ids, params with types, named states, and which slot (left, centre, right, floor, ceiling) each asset fits. The M8 prompt needs it.
 
-### M8: Generator
+### M8: Generator (done, as a skill)
+
+- No API script. `/new-level <theme>` (`.claude/skills/new-level/SKILL.md`, `context: fork`) has a subagent write the level as JSON in `.gen/`, loop on `npm run level -- check`, then `pack` and `pr`. Its final message is only the report and the PR link. `/new-level fix <id> …` uses `unpack` and `pack --replace`, and the PR goes up as an update.
+- Draft sugar: wall hotspots may use `on: "<layerId>"` instead of `rect`.
+- `.gen/` is git-ignored but not read-denied, because deny rules also bind the skill's subagent. The main session simply never reads it.
+- The developer runs `/new-level` themselves; real levels are never generated on their behalf.
+
+Original plan:
+
 
 Goal: `npm run gen -- "<theme>"` produces a validated, encoded three-chapter level on branch `level/<id>` and opens a PR, without anyone reading it. Done when three themes generate, validate, merge and deploy unread.
 
