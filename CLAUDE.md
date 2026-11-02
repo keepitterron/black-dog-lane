@@ -17,7 +17,7 @@ The developer plays every real level blind.
 
 ## Stack
 
-Node 24 (`.nvmrc`), npm, Vite 8 (Rolldown + Oxc), React 19, TypeScript 7 (strict, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`), Oxlint type-aware (`oxlint --type-aware --type-check`, no separate `tsc`), Vitest 4 (node env), Valibot, plain CSS Modules with cascade layers. Hand-written PWA (no Workbox). Claude API via plain `fetch`. Scripts in `scripts/*.ts` run with Node's built-in type stripping.
+Node 24 (`.nvmrc`), npm, Vite 8 (Rolldown + Oxc), React 19, TypeScript 7 (strict, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`), Oxlint type-aware (`oxlint --type-aware --type-check`, no separate `tsc`), Vitest 5 (node env), Valibot, plain CSS Modules with cascade layers. Hand-written PWA (no Workbox). Claude API via plain `fetch`. Scripts in `scripts/*.ts` run with Node's built-in type stripping.
 
 Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vitejs/plugin-react`, `typescript`, `@types/react`, `@types/react-dom`, `oxlint`, `oxlint-tsgolint`, `vitest`. Anything new needs a one-line justification in its PR. Pin exact versions.
 
