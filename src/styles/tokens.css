@@ -10,6 +10,7 @@
     --msg: rgb(14 11 9 / 0.88);
     --font-body: 'IM Fell English', Georgia, 'Times New Roman', serif;
     --text-msg: clamp(17px, 4.6vw, 19px);
+    --text-msg-overlay: clamp(15px, 2.4vw, 18px);
     --tap-min: 44px;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-right: env(safe-area-inset-right, 0px);

@@ -1,24 +1,69 @@
 @layer components {
+  /* Default (landscape and short screens): a box over the top of the scene, away from the
+     floor props and puzzle widgets, gone once read or tapped. */
   .message {
     position: absolute;
     inset-inline: 0;
-    inset-block-end: 12px;
+    inset-block-start: 8px;
+    z-index: 2;
     margin-inline: auto;
     inline-size: max-content;
-    max-inline-size: min(92%, 620px);
-    padding: 10px 16px;
+    max-inline-size: min(94%, 620px);
+    padding: 6px 12px;
     background: var(--msg);
     border: 1px solid var(--line);
     border-radius: 6px;
-    font-size: var(--text-msg);
-    line-height: 1.4;
+    font-size: var(--text-msg-overlay);
+    line-height: 1.35;
     text-align: center;
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
 
-    &[data-show] {
+    &[data-show][data-fresh] {
       opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  /* Tall portrait: a strip of its own under the scene, three lines tall so nothing moves when
+     a line appears. The last line stays, dimmed, until the next one. */
+  @container game (max-aspect-ratio: 3 / 4) {
+    .message {
+      position: static;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: auto;
+      max-inline-size: none;
+      min-block-size: calc(3lh + 16px);
+      margin: 8px 12px 0;
+      padding: 8px 14px;
+      font-size: var(--text-msg);
+      line-height: 1.4;
+      background: transparent;
+      border-color: transparent;
+      opacity: 1;
+
+      &:empty {
+        display: flex;
+      }
+
+      &[data-show] {
+        background: var(--msg);
+        border-color: var(--line);
+        pointer-events: auto;
+      }
+
+      &[data-show]:not([data-fresh]) {
+        color: var(--ink-dim);
+        border-color: transparent;
+      }
     }
   }
 }

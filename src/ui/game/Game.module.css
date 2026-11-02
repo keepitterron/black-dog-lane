@@ -65,6 +65,14 @@
     min-block-size: 0;
   }
 
+  /* The scene plus the message box: over the scene, or in a strip under it (Message.module.css). */
+  .view {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
   @container game (min-aspect-ratio: 5 / 4) {
     .play {
       flex-direction: row;
@@ -73,10 +81,15 @@
       gap: 8px;
       padding-inline: 8px;
 
-      & > :first-child {
+      & > .view {
         block-size: 100%;
-        inline-size: auto;
         max-inline-size: calc(100% - 90px);
+
+        & > :first-child {
+          block-size: 100%;
+          inline-size: auto;
+          max-inline-size: 100%;
+        }
       }
 
       & > :last-child {

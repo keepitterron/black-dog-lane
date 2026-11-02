@@ -5,6 +5,7 @@ import { setMuted, isMuted, onAudioReady } from '../../audio/audio.ts'
 import { playSfx, startDrone, stopDrone, type SfxId } from '../../audio/sfx.ts'
 import { test } from '../../engine/conditions.ts'
 import { currentViewId, type GameEvent } from '../../engine/context.ts'
+import { currentObjective, revealedHints } from '../../engine/hints.ts'
 import { lookup } from '../../engine/lookup.ts'
 import { clearSave, saveGame } from '../../engine/save.ts'
 import type { Level } from '../../engine/schema.ts'
@@ -12,13 +13,14 @@ import { newGame, type GameState } from '../../engine/state.ts'
 import { step, type Action } from '../../engine/step.ts'
 import { Inventory } from '../Inventory.tsx'
 import { Message, type MessageItem } from '../Message.tsx'
+import { messageMs } from '../timing.ts'
+import { HintSheet } from './HintSheet.tsx'
 import { useReducedMotion } from '../useReducedMotion.ts'
 import styles from './Game.module.css'
 import { Scene } from './Scene.tsx'
 
 const ORDINALS = ['one', 'two', 'three']
 const BEAT_PAUSE = 350
-const messageMs = (text: string) => Math.max(2400, text.length * 55)
 
 type Card =
   | { kind: 'chapter'; index: number; outro?: string | undefined }
@@ -41,6 +43,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
   const [card, setCard] = useState<Card | null>(fresh ? { kind: 'chapter', index: 0 } : null)
   const [muted, setMutedState] = useState(isMuted)
   const [confirmRestart, setConfirmRestart] = useState(false)
+  const [hintsOpen, setHintsOpen] = useState(false)
   const reducedMotion = useReducedMotion()
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
   const cardPending = useRef(false)
@@ -81,7 +84,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
             later(t, () => playSfx('pick'))
             break
           case 'hint':
-            show(`Hint ${event.tier + 1} of 3: ${event.text}`)
+            // Shown in the hint sheet, where it can be read again.
             break
           case 'chapterEnd': {
             const ended = lookup(level).chapters.get(event.chapter)
@@ -188,7 +191,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
         </button>
         <span className={styles.title}>{level.title}</span>
         <div className={styles.actions}>
-          <button type="button" className={styles.pill} onClick={() => dispatch({ type: 'hint' })}>
+          <button type="button" className={styles.pill} aria-expanded={hintsOpen} onClick={() => setHintsOpen(!hintsOpen)}>
             Hint
           </button>
           <button
@@ -214,21 +217,31 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
       </header>
 
       <div className={styles.play}>
-        <Scene
-          level={level}
-          state={state}
-          onHotspot={id => dispatch({ type: 'tapHotspot', id })}
-          onPuzzle={(puzzle, input) => {
-            playSfx('click')
-            dispatch({ type: 'puzzleInput', puzzle, input })
-          }}
-          onTurn={dir => dispatch({ type: 'turn', dir })}
-          onBack={() => dispatch({ type: 'back' })}
-        >
+        <div className={styles.view}>
+          <Scene
+            level={level}
+            state={state}
+            onHotspot={id => dispatch({ type: 'tapHotspot', id })}
+            onPuzzle={(puzzle, input) => {
+              playSfx('click')
+              dispatch({ type: 'puzzleInput', puzzle, input })
+            }}
+            onTurn={dir => dispatch({ type: 'turn', dir })}
+            onBack={() => dispatch({ type: 'back' })}
+          />
           <Message message={message} />
-        </Scene>
+        </div>
         <Inventory items={items} selected={state.selected} onTap={id => dispatch({ type: 'tapItem', id })} />
       </div>
+
+      {hintsOpen && !card && (
+        <HintSheet
+          hints={revealedHints(level, state)}
+          open={currentObjective(level, state) !== null}
+          onMore={() => dispatch({ type: 'hint' })}
+          onClose={() => setHintsOpen(false)}
+        />
+      )}
 
       {card && (
         <div className={styles.card} role="dialog" aria-modal="true">
