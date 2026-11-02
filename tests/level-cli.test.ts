@@ -66,6 +66,21 @@ describe('drafts', () => {
     expect(resolveDraft(draftOf(level, { [hotspot.id]: 'nope' }))).toEqual([{ code: 'DRAFT_ON', ids: [`${room.id}/n`, hotspot.id] }])
   })
 
+  test('on: also resolves to own art', () => {
+    const level = twoRooms()
+    const wall = level.chapters[0].rooms[1]?.walls.w
+    if (!wall) throw new Error('fixture changed')
+    wall.layers.push({ id: 'ownArt', asset: 'a01', params: { atX: 400, atY: 300 } })
+    wall.hotspots.push({ id: 'ownTap', rect: [0, 0, 1, 1], rules: [] })
+    const draft = draftOf(level, { ownTap: 'ownArt' })
+    expect(resolveDraft(draft)).toEqual([])
+    expect(JSON.stringify(draft)).toContain('"id":"ownTap","rules":[],"rect":[360,220,80,160]')
+  })
+
+  test('a draft on an older schema is refused', () => {
+    expect(resolveDraft({ ...twoRooms(), schema: 1 })).toEqual([{ code: 'SCHEMA', ids: ['schema'] }])
+  })
+
   test('check reports OK on a clean draft and CORRUPT on bad JSON', () => {
     const dir = tmp()
     expect(checkDraft(writeDraft(dir, draftOf(twoRooms()))).report.ok).toBe(true)

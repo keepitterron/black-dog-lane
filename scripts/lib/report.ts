@@ -16,6 +16,7 @@ export function summary({ stats }: Report): string {
     `threads ${lo}–${hi}`,
     `secrets ${stats.secrets}`,
     `beats ${stats.beats}`,
+    `own art ${stats.art}`,
     `states ${n(stats.states)}`,
   ].join(' · ')
 }

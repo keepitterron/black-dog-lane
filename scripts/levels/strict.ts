@@ -5,7 +5,8 @@
 //
 // Every chapter is one room with two parallel threads of taps (A on the north and east walls,
 // B on the south and west walls), a dial lock behind the door that needs both threads and two
-// clue close-ups, and a door that leaves once the lock is open.
+// clue close-ups, and a door that leaves once the lock is open. The south wall shows a piece of
+// the level's own decor, clear of every hotspot.
 import type { Beat, Chapter, Cond, Effect, Hotspot, Level, Objective, Room, View } from '../../src/engine/schema.ts'
 
 export const F = (flag: string): Cond => ({ op: 'flag', flag })
@@ -66,7 +67,7 @@ export function strictChapter(ch: string, { steps = 6 }: StrictOptions = {}): Ch
         ...aWall1,
       ]),
       e: view([opener(`${ch}note`, `${ch}noteC`), ...aWall2]),
-      s: view(bWall1),
+      s: { ...view(bWall1), layers: [{ asset: 'roomShell' }, { asset: 'a01', params: { atX: 265, atY: 280 } }] },
       w: view([opener(`${ch}sign`, `${ch}signC`), ...bWall2]),
     },
     closeUps: {
@@ -116,10 +117,22 @@ export function strict(): Level {
   south?.hotspots.push({ id: 'c1odd', rect: slot(TOP_LEFT), visibleWhen: NOT(F('c1found')), rules: [{ do: [set('c1found'), say('Found it.')] }] })
   return {
     id: 'strict',
-    schema: 1,
+    schema: 2,
     title: 'Strict Test Level',
     theme: 'test fixture that passes the strict profile',
-    palette: 'plain',
+    palette: { base: 'plain', colours: { wall: '#5c5850' } },
+    art: {
+      a01: {
+        kind: 'wall',
+        bbox: [0, 0, 60, 80],
+        anchor: 'wall',
+        decor: true,
+        shapes: [
+          { el: 'rect', x: 0, y: 0, w: 60, h: 80, fill: 'woodDark' },
+          { el: 'circle', cx: 30, cy: 40, r: 14, fill: 'wallMotif', unless: 'c1found' },
+        ],
+      },
+    },
     items: {},
     combos: [],
     chapters,

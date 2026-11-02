@@ -4,7 +4,8 @@
 // Every chapter has two rooms joined by a door that is always open. Thread A runs in the first
 // room and thread B in the second, the dial lock by the exit needs both threads and a clue
 // close-up from each room, and a key found at the end of one chapter opens the first step of
-// the next, so the inventory has to carry over. Every tap target is drawn as a frame.
+// the next, so the inventory has to carry over. Every tap target is drawn as a frame. The level
+// brings two drawings of its own: a piece of decor on each west wall and the brass key's icon.
 import type { Chapter, Hotspot, Level, Room, View } from '../../src/engine/schema.ts'
 import { ALL, F, hints, NOT, say, set, slot, thread, TOP_LEFT } from './strict.ts'
 
@@ -60,7 +61,7 @@ function chapter(ch: string, solution: [string, string], { needs, gives, secret 
       },
       e: wall([opener(`${ch}note`, `${ch}noteC`), ...a.spots.slice(0, 3)]),
       s: wall(a.spots.slice(3)),
-      w: { layers: [{ asset: 'roomShell' }, { asset: 'doorway' }], hotspots: [{ id: `${ch}toB`, rect: DOOR, rules: [{ do: [{ do: 'goto', room: rb, wall: 'e' }] }] }] },
+      w: { layers: [{ asset: 'roomShell' }, { asset: 'doorway' }, { asset: 'a01', params: { atX: 130, atY: 300 } }], hotspots: [{ id: `${ch}toB`, rect: DOOR, rules: [{ do: [{ do: 'goto', room: rb, wall: 'e' }] }] }] },
     },
     closeUps: {
       [`${ch}lockC`]: { layers: [{ asset: 'lockPlateClose' }], hotspots: [], puzzle: `${ch}dial` },
@@ -74,7 +75,7 @@ function chapter(ch: string, solution: [string, string], { needs, gives, secret 
       n: wall([opener(`${ch}sign`, `${ch}signC`), ...b.spots.slice(0, 3)]),
       e: { layers: [{ asset: 'roomShell' }, { asset: 'doorway' }], hotspots: [{ id: `${ch}toA`, rect: DOOR, rules: [{ do: [{ do: 'goto', room: ra, wall: 'w' }] }] }] },
       s: wall(b.spots.slice(3)),
-      w: { layers: [{ asset: 'roomShell' }, { asset: 'rug' }], hotspots: [] },
+      w: { layers: [{ asset: 'roomShell' }, { asset: 'rug' }, { asset: 'a01', params: { slot: 'right' } }], hotspots: [] },
     },
     closeUps: { [`${ch}signC`]: clue(`${ch}sign`, solution[1]) },
   }
@@ -126,14 +127,35 @@ export function twoRooms(): Level {
   delete chapters[2].outro
   const items: Level['items'] = {
     ironKey: { name: 'Iron key', desc: 'A key from chapter one.', icon: 'ironKey' },
-    brassKey: { name: 'Brass key', desc: 'A key from chapter two.', icon: 'brassKey' },
+    brassKey: { name: 'Brass key', desc: 'A key from chapter two.', icon: 'a02' },
   }
   return {
     id: 'two-rooms',
-    schema: 1,
+    schema: 2,
     title: 'Two Rooms',
     theme: 'test fixture with doors between rooms',
     palette: 'plain',
+    art: {
+      // A tall dark panel with a faint ring, swaying a little.
+      a01: {
+        kind: 'wall',
+        bbox: [0, 0, 80, 160],
+        anchor: 'wall',
+        decor: true,
+        shapes: [
+          { el: 'rect', x: 0, y: 0, w: 80, h: 160, r: 6, fill: 'woodDark', stroke: 'woodEdge', width: 4 },
+          { el: 'circle', cx: 40, cy: 60, r: 18, fill: 'none', stroke: 'wallMotif', width: 3, anim: 'breathe' },
+        ],
+      },
+      // A plain key drawn in the 60×60 prop box.
+      a02: {
+        kind: 'prop',
+        shapes: [
+          { el: 'circle', cx: -14, cy: 0, r: 9, fill: 'none', stroke: 'brass', width: 5 },
+          { el: 'path', d: 'M-5 0 H22 M14 0 V8 M20 0 V6', stroke: 'brass', width: 5 },
+        ],
+      },
+    },
     items,
     combos: [],
     chapters,

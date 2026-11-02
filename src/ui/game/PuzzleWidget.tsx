@@ -1,23 +1,22 @@
 // The interactive part of a puzzle close-up, drawn on top of the view's art. Each widget
 // kind has a fixed layout on the 800×600 close-up template.
-import { ASSETS } from '../../art/assets/index.ts'
-import { sym, SYMBOLS } from '../../art/kit.ts'
-import type { Palette } from '../../art/palettes.ts'
-import { isAssetId } from '../../catalog/assets.ts'
+import { drawProp } from '../../art/assets/index.ts'
+import { sym, SYMBOLS, type AssetCtx } from '../../art/kit.ts'
 import { MIN_TAP_UNITS } from '../../engine/layout.ts'
 import { dialValues, patternCells, progress, sliderTiles } from '../../engine/puzzles.ts'
 import type { PuzzleInput } from '../../engine/puzzles.ts'
 import type { Puzzle } from '../../engine/schema.ts'
-import type { GameState } from '../../engine/state.ts'
 
-type Props = { puzzle: Puzzle; flags: GameState['flags']; pal: Palette; onInput: (input: PuzzleInput) => void }
+type Props = { puzzle: Puzzle; ctx: AssetCtx; onInput: (input: PuzzleInput) => void }
 
 const isSymbol = (id: string) => (SYMBOLS as readonly string[]).includes(id)
 
-// A target's face: a code symbol, a prop drawing, or failing both its position number.
-function face(id: string, i: number, x: number, y: number, size: number, flags: GameState['flags'], pal: Palette): string {
+// A target's face: a code symbol, a prop drawing (the catalog's or the level's own), or
+// failing both its position number.
+function face(id: string, i: number, x: number, y: number, size: number, ctx: AssetCtx): string {
   if (isSymbol(id)) return sym(id, x, y, size * 0.32, '#d8ccb2', false, 3.5)
-  if (isAssetId(id)) return `<g transform="translate(${x} ${y}) scale(${(size / 70).toFixed(2)})">${ASSETS[id]({}, { flags, pal })}</g>`
+  const prop = drawProp(id, ctx)
+  if (prop) return `<g transform="translate(${x} ${y}) scale(${(size / 70).toFixed(2)})">${prop}</g>`
   return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.4}" fill="#d8ccb2">${i + 1}</text>`
 }
 
@@ -28,7 +27,8 @@ function grid(rows: number, cols: number, cell: number, gap: number) {
   return (i: number) => ({ x: 400 - w / 2 + (i % cols) * (cell + gap), y: 280 - h / 2 + Math.floor(i / cols) * (cell + gap) })
 }
 
-export function PuzzleWidget({ puzzle, flags, pal, onInput }: Props) {
+export function PuzzleWidget({ puzzle, ctx, onInput }: Props) {
+  const { flags } = ctx
   switch (puzzle.kind) {
     case 'dialLock': {
       const values = dialValues(puzzle, flags)
@@ -79,7 +79,7 @@ export function PuzzleWidget({ puzzle, flags, pal, onInput }: Props) {
             return (
               <g key={target} className="hs" onClick={() => onInput({ kind: 'tap', target })} role="button" aria-label={`Target ${i + 1}`}>
                 <rect x={x} y={y} width={130} height={130} rx={10} fill="#1e1712" stroke="#5a4220" strokeWidth={3} />
-                <g dangerouslySetInnerHTML={{ __html: face(target, i, x + 65, y + 65, 130, flags, pal) }} />
+                <g dangerouslySetInnerHTML={{ __html: face(target, i, x + 65, y + 65, 130, ctx) }} />
               </g>
             )
           })}

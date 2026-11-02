@@ -1,13 +1,14 @@
 // Shared drawing helpers and the asset contract. An asset is a pure function from its params
 // and the current flags to an SVG fragment in the 800×600 scene.
-import { SYMBOLS } from '../catalog/assets.ts'
+import { SYMBOLS, type ArtSet } from '../catalog/assets.ts'
 import type { GameState } from '../engine/state.ts'
 import type { Palette } from './palettes.ts'
 
 export { SYMBOLS }
 export type Params = Record<string, number | string>
-// `pal` is the level's palette: room colours come from it, never from literals.
-export type AssetCtx = { flags: GameState['flags']; pal: Palette }
+// `pal` is the level's palette: room colours come from it, never from literals. `art` is the
+// level's own art, for assets that draw a prop the level brought.
+export type AssetCtx = { flags: GameState['flags']; pal: Palette; art?: ArtSet | undefined }
 export type Asset = (p: Params, ctx: AssetCtx) => string
 
 export const FONT = 'IM Fell English, Georgia, serif'

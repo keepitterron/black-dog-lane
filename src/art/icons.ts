@@ -1,8 +1,8 @@
 // Inventory icons, in a 60×60 box centred on the origin. Item `icon` fields name one of
-// these or a prop (props are drawn in the same box).
-import { PROP_IDS, type AssetId } from '../catalog/assets.ts'
-import { ASSETS } from './assets/index.ts'
-import { birdKey, cuttersArt, sym } from './kit.ts'
+// these, a prop, or a prop the level drew itself (props are drawn in the same box).
+import { ownArt, PROP_IDS, type AssetId } from '../catalog/assets.ts'
+import { ASSETS, drawProp } from './assets/index.ts'
+import { birdKey, cuttersArt, sym, type AssetCtx } from './kit.ts'
 import { PALETTES } from './palettes.ts'
 
 const ITEM_ONLY: Record<string, string> = {
@@ -20,7 +20,9 @@ export const ICONS: Record<string, string> = {
   ...Object.fromEntries(PROP_IDS.map((id: AssetId) => [id, ASSETS[id]({}, { flags: {}, pal: PALETTES.waiting })])),
 }
 
-export function iconSvg(icon: string): string | null {
-  const inner = Object.hasOwn(ICONS, icon) ? ICONS[icon] : undefined
+// `ctx` carries the level's own art and palette, for icons the level drew.
+export function iconSvg(icon: string, ctx?: AssetCtx): string | null {
+  const own = ctx && ownArt(ctx.art, icon)?.kind === 'prop' ? drawProp(icon, ctx) : undefined
+  const inner = own ?? (Object.hasOwn(ICONS, icon) ? ICONS[icon] : undefined)
   return inner ? `<svg viewBox="-30 -30 60 60" aria-hidden="true">${inner}</svg>` : null
 }

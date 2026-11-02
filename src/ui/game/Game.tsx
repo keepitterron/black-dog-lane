@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { setMuted, isMuted, onAudioReady } from '../../audio/audio.ts'
 import { playSfx, startDrone, stopDrone, type SfxId } from '../../audio/sfx.ts'
+import { paletteFor } from '../../art/palettes.ts'
 import { test } from '../../engine/conditions.ts'
 import { currentViewId, type GameEvent } from '../../engine/context.ts'
 import { currentObjective, revealedHints } from '../../engine/hints.ts'
@@ -231,7 +232,7 @@ export function Game({ level, initial, fresh, onQuit }: Props) {
           />
           <Message message={message} />
         </div>
-        <Inventory items={items} selected={state.selected} onTap={id => dispatch({ type: 'tapItem', id })} />
+        <Inventory items={items} selected={state.selected} onTap={id => dispatch({ type: 'tapItem', id })} art={{ flags: {}, pal: paletteFor(level.palette), art: level.art }} />
       </div>
 
       {hintsOpen && !card && (

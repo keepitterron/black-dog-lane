@@ -1,7 +1,8 @@
 // The drawing behind every catalog entry (src/catalog/assets.ts says what each one is and
 // takes). Generated levels can only name assets listed there.
-import { isAssetId, meta, placement, type AssetId } from '../../catalog/assets.ts'
+import { assetMeta, isAssetId, ownArt, placement, type AssetId } from '../../catalog/assets.ts'
 import type { Asset, AssetCtx, Params } from '../kit.ts'
+import { drawShapes } from '../levelArt.ts'
 import * as closeUps from './closeUps.ts'
 import * as furniture from './furniture.ts'
 import * as props from './props.ts'
@@ -69,14 +70,27 @@ export const ASSETS: Record<AssetId, Asset> = {
   musicBoxClose: templates.musicBoxClose,
 }
 
-// Draws a layer, moved into its slot or anchor point when it has one. Unknown ids draw
-// nothing (the validator rejects them).
+// Draws a layer, moved into its slot or anchor point when it has one: a catalog asset, or one
+// of the level's own (`ctx.art`), which is drawn quieter when it is only decor. Unknown ids
+// draw nothing (the validator rejects them).
 const r = (n: number) => +n.toFixed(2)
 
-export function renderAsset(id: string, params: Params, ctx: AssetCtx): string {
-  if (!isAssetId(id)) return ''
-  const art = ASSETS[id](params, ctx)
-  const at = placement(meta(id), params)
+export function renderAsset(id: string, params: Params, ctx: AssetCtx, depth = 0): string {
+  const m = assetMeta(id, ctx.art)
+  if (!m) return ''
+  const art = unplaced(id, params, ctx, depth)
+  const at = placement(m, params)
   if (!at || !art) return art
   return `<g transform="translate(${r(at.dx)} ${r(at.dy)}) scale(${r(at.s)})">${art}</g>`
 }
+
+// An asset's drawing in its own coordinates (how props look in a hand or a container).
+function unplaced(id: string, params: Params, ctx: AssetCtx, depth = 0): string {
+  if (isAssetId(id)) return ASSETS[id](params, ctx)
+  const own = ownArt(ctx.art, id)
+  if (!own) return ''
+  const art = drawShapes(own.shapes, ctx, renderAsset, depth)
+  return own.decor ? `<g class="art-decor">${art}</g>` : art
+}
+
+export const drawProp = (id: string, ctx: AssetCtx): string => unplaced(id, {}, ctx)

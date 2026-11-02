@@ -2,7 +2,7 @@
 // blocks a tap, then the puzzle widget's controls on top of everything. Swipe or arrows turn; Back leaves a close-up.
 import { useEffect, useRef } from 'react'
 import { renderAsset } from '../../art/assets/index.ts'
-import { isAssetId, placedRect } from '../../catalog/assets.ts'
+import { placedRect } from '../../catalog/assets.ts'
 import { sceneDefs } from '../../art/kit.ts'
 import { paletteFor } from '../../art/palettes.ts'
 import { test } from '../../engine/conditions.ts'
@@ -44,7 +44,7 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
 
   if (!entry) return null
   const pal = paletteFor(level.palette)
-  const ctx = { flags: state.flags, pal }
+  const ctx = { flags: state.flags, pal, art: level.art }
   const art = entry.view.layers
     .filter(layer => test(layer.visibleWhen, state))
     .map(layer => renderAsset(layer.asset, layer.params ?? {}, ctx))
@@ -55,7 +55,7 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
     const id = layer.params?.['puzzle']
     const trail = typeof id === 'string' ? idx.puzzles.get(id)?.puzzle : undefined
     if (layer.asset !== 'trailMark' || trail?.kind !== 'trail' || !trail.trail.includes(viewId) || !test(layer.visibleWhen, state)) return []
-    const rect = isAssetId(layer.asset) ? placedRect(layer.asset, layer.params ?? {}) : null
+    const rect = placedRect(layer.asset, layer.params ?? {})
     return rect ? [{ puzzle: trail.id, rect }] : []
   })
 
@@ -91,7 +91,7 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
           const [x, y, w, height] = padRect(rect)
           return <rect key={id} className="hs" data-trail={id} x={x} y={y} width={w} height={height} fill="transparent" onClick={() => onPuzzle(id, { kind: 'trail', view: viewId })} />
         })}
-        {puzzle && <PuzzleWidget puzzle={puzzle} flags={state.flags} pal={pal} onInput={input => onPuzzle(puzzle.id, input)} />}
+        {puzzle && <PuzzleWidget puzzle={puzzle} ctx={ctx} onInput={input => onPuzzle(puzzle.id, input)} />}
       </svg>
       {children}
       {closeUp ? (

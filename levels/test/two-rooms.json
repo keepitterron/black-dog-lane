@@ -1,9 +1,65 @@
 {
   "id": "two-rooms",
-  "schema": 1,
+  "schema": 2,
   "title": "Two Rooms",
   "theme": "test fixture with doors between rooms",
   "palette": "plain",
+  "art": {
+    "a01": {
+      "kind": "wall",
+      "bbox": [
+        0,
+        0,
+        80,
+        160
+      ],
+      "anchor": "wall",
+      "decor": true,
+      "shapes": [
+        {
+          "el": "rect",
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 160,
+          "r": 6,
+          "fill": "woodDark",
+          "stroke": "woodEdge",
+          "width": 4
+        },
+        {
+          "el": "circle",
+          "cx": 40,
+          "cy": 60,
+          "r": 18,
+          "fill": "none",
+          "stroke": "wallMotif",
+          "width": 3,
+          "anim": "breathe"
+        }
+      ]
+    },
+    "a02": {
+      "kind": "prop",
+      "shapes": [
+        {
+          "el": "circle",
+          "cx": -14,
+          "cy": 0,
+          "r": 9,
+          "fill": "none",
+          "stroke": "brass",
+          "width": 5
+        },
+        {
+          "el": "path",
+          "d": "M-5 0 H22 M14 0 V8 M20 0 V6",
+          "stroke": "brass",
+          "width": 5
+        }
+      ]
+    }
+  },
   "items": {
     "ironKey": {
       "name": "Iron key",
@@ -13,7 +69,7 @@
     "brassKey": {
       "name": "Brass key",
       "desc": "A key from chapter two.",
-      "icon": "brassKey"
+      "icon": "a02"
     }
   },
   "combos": [],
@@ -505,6 +561,13 @@
                 },
                 {
                   "asset": "doorway"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "atX": 130,
+                    "atY": 300
+                  }
                 }
               ],
               "hotspots": [
@@ -1095,6 +1158,12 @@
                 },
                 {
                   "asset": "rug"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "slot": "right"
+                  }
                 }
               ],
               "hotspots": []
@@ -1869,6 +1938,13 @@
                 },
                 {
                   "asset": "doorway"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "atX": 130,
+                    "atY": 300
+                  }
                 }
               ],
               "hotspots": [
@@ -2410,6 +2486,12 @@
                 },
                 {
                   "asset": "rug"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "slot": "right"
+                  }
                 }
               ],
               "hotspots": []
@@ -3183,6 +3265,13 @@
                 },
                 {
                   "asset": "doorway"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "atX": 130,
+                    "atY": 300
+                  }
                 }
               ],
               "hotspots": [
@@ -3720,6 +3809,12 @@
                 },
                 {
                   "asset": "rug"
+                },
+                {
+                  "asset": "a01",
+                  "params": {
+                    "slot": "right"
+                  }
                 }
               ],
               "hotspots": []

@@ -33,7 +33,12 @@ const dial = (ch: Chapter) => {
 }
 
 const bareWall = () => ({ layers: [{ asset: 'roomShell' }], hotspots: [] })
-const sideRoom = (id: string): Room => ({ id, walls: { n: bareWall(), e: bareWall(), s: bareWall(), w: bareWall() }, closeUps: {} })
+// A side room with a piece of the level's own decor, so it doesn't also break NOVELTY.
+const sideRoom = (id: string): Room => ({
+  id,
+  walls: { n: bareWall(), e: bareWall(), s: bareWall(), w: { layers: [{ asset: 'roomShell' }, { asset: 'a01', params: { atX: 400, atY: 300 } }], hotspots: [] } },
+  closeUps: {},
+})
 
 const broken = (change: (level: Level) => void) => (): Level => {
   const level = strict()
@@ -121,7 +126,7 @@ export const BROKEN: Record<Code, () => unknown> = {
   ONE_WAY_DOOR: broken(({ chapters: [c1] }) => {
     room(c1).walls.e.hotspots.push({ id: 'c1in', rect: [60, 60, 140, 140], rules: [{ do: [{ do: 'goto', room: 'c1side' }] }] })
     const side = sideRoom('c1side')
-    side.walls.n.hotspots.push({ id: 'c1back', rect: [330, 60, 140, 140], rules: [{ when: F('c1a1'), do: [{ do: 'goto', room: 'c1r', wall: 'e' }] }] })
+    side.walls.n.hotspots.push({ id: 'c1back', rect: [330, 60, 140, 140], rules: [{ when: F('c1a1'), do: [{ do: 'goto', room: 'c1r', wall: 'e' }] }, { do: [{ do: 'say', text: 'Stuck.' }] }] })
     c1.rooms.push(side)
   }),
   // A room in chapter 1 with no door leading in.
@@ -135,6 +140,25 @@ export const BROKEN: Record<Code, () => unknown> = {
   // Chapter 1 has no beats at all.
   BEAT_SPARSE: broken(({ chapters: [c1] }) => {
     c1.beats = []
+  }),
+  // The door in chapter 1 says nothing until the lock is open.
+  SILENT_TAP: broken(({ chapters: [c1] }) => {
+    const door = room(c1).walls.n.hotspots.find(h => h.id === 'c1door')
+    if (door) door.rules = door.rules.slice(0, 1)
+  }),
+  // A jar drawn on chapter 1's east wall that nothing lets you touch.
+  DEAD_PROP: broken(({ chapters: [c1] }) => {
+    room(c1).walls.e.layers.push({ asset: 'jar', params: { atX: 265, atY: 300 } })
+  }),
+  // Chapter 1's decor moved under the secret's hotspot.
+  DECOR_TAP: broken(({ chapters: [c1] }) => {
+    const decor = room(c1).walls.s.layers.find(l => l.asset === 'a01')
+    if (decor) decor.params = { atX: 130, atY: 130 }
+  }),
+  // Chapter 1's room shows none of the level's own art.
+  NOVELTY: broken(({ chapters: [c1] }) => {
+    const s = room(c1).walls.s
+    s.layers = s.layers.filter(l => l.asset !== 'a01')
   }),
   // A wallpaper the catalog doesn't have.
   ASSET_REF: broken(({ chapters: [c1] }) => {

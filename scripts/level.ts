@@ -2,7 +2,8 @@
 // git-ignored .gen/ folder; this script checks them, packs them into encoded levels/play files
 // and opens the level PR. Output is spoiler-free: counts, codes and ids, never level text.
 //
-//   npm run level -- catalog          what a level may use: assets, params, slots, widgets
+//   npm run level -- catalog          what a level may use: assets, params, slots, widgets, own art
+//   npm run level -- usage            what earlier levels already used, to steer away from it
 //   npm run level -- check <draft>    resolve the draft and run the strict validator
 //   npm run level -- pack <draft>     check, encode to levels/play/<id>.level, delete the draft
 //                                     (--replace overwrites an existing level, for fixes)
@@ -12,14 +13,16 @@
 // Draft sugar: a hotspot may give `on: "<layerId>"` instead of `rect`; the rect becomes the
 // placed bbox of that layer in the same view, so drafts never need coordinates for wall pieces.
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import * as v from 'valibot'
 import {
   ASSET_IDS,
   CATALOG,
   ICON_IDS,
   isAssetId,
   PALETTE_IDS,
+  PALETTE_TOKENS,
   PLACEMENT,
   SLOT_BOX,
   SYMBOLS,
@@ -29,8 +32,8 @@ import {
 } from '../src/catalog/assets.ts'
 import { decodeLevel, encodeLevel } from '../src/engine/codec.ts'
 import { MIN_TAP_UNITS, SCENE_H, SCENE_W } from '../src/engine/layout.ts'
-import { MESSAGE_MAX, parseLevel, SFX, WALLS } from '../src/engine/schema.ts'
-import { validate } from '../src/solver/validate.ts'
+import { ANIMS, ArtAsset, ART_TEXT_MAX, FIXED_PAINTS, MESSAGE_MAX, parseLevel, SCHEMA_VERSION, SFX, WALLS, type Level } from '../src/engine/schema.ts'
+import { ART_SHAPES_MAX, validate } from '../src/solver/validate.ts'
 import { reportLines, type Report } from './lib/report.ts'
 
 type Finding = Report['codes'][number]
@@ -67,6 +70,21 @@ const PUZZLES = [
   'trail      trail: wall view ids in order (≥2); each of those walls needs a trailMark layer whose puzzle param names it',
 ]
 
+const OWN_ART = [
+  `## own art  level.art: { "<a01>": { kind, bbox?, anchor?, decor?, shapes } }; layers name it like a catalog asset`,
+  '  kind shell|wall|prop|closeUp. wall needs bbox [x,y,w,h] in scene units; prop draws round the origin in a 60×60 box and can be an item icon, a sequence target or a container prop',
+  '  anchor floor|wall|hang (default floor); placed with slot (any) or atX/atY, plus scale, like catalog pieces',
+  '  decor: true draws it quieter and it must never sit under a hotspot (DECOR_TAP)',
+  '  shapes (all take fill, stroke, width, opacity, if:<flag>, unless:<flag>, anim):',
+  '    rect x y w h r? · circle cx cy r · ellipse cx cy rx ry · line x1 y1 x2 y2 · poly points[x,y,…] open?',
+  `    path d (M L H V C S Q T A Z only) · text x y text(≤${ART_TEXT_MAX}) size? italic? · group x? y? scale? rotate? shapes`,
+  '    use asset params? x? y? scale?  (a catalog or own asset nested; no loops)',
+  `  colours: palette tokens ${PALETTE_TOKENS.join(' ')}; fixed ${FIXED_PAINTS.join(' ')}; or #rrggbb`,
+  `  anim ${ANIMS.join(' ')} (off for reduced motion) · at most ${ART_SHAPES_MAX} shapes per piece`,
+  `## own palette  palette: "<catalog id>" or { "base": "<catalog id>", "colours": { "<token>": "#rrggbb" } }`,
+  `## schema  drafts use schema ${SCHEMA_VERSION}`,
+]
+
 export function catalogText(): string {
   const out: string[] = []
   const placeable = Object.entries(PLACEMENT).map(([k, s]) => paramText(k, s)).join('  ')
@@ -97,7 +115,9 @@ export function catalogText(): string {
     `## symbols  ${SYMBOLS.join(' ')}`,
     `## sfx  ${SFX.join(' ')}`,
     `## scene  ${SCENE_W}×${SCENE_H}; walls ${WALLS.join(' ')} with view ids <room>/<wall>; hotspots padded to ${MIN_TAP_UNITS} units; messages ≤${MESSAGE_MAX} chars`,
-    '## draft sugar  a hotspot may give on: "<layerId>" instead of rect (wall pieces and props only)',
+    '## draft sugar  a hotspot may give on: "<layerId>" instead of rect (wall pieces and props, catalog or own)',
+    '',
+    ...OWN_ART,
   )
   return out.join('\n')
 }
@@ -107,9 +127,9 @@ export function catalogText(): string {
 type Json = Record<string, unknown>
 const isRecord = (x: unknown): x is Json => typeof x === 'object' && x !== null && !Array.isArray(x)
 const records = (x: unknown): Json[] => (Array.isArray(x) ? x.filter(isRecord) : [])
-const isParams = (x: unknown): x is Params => isRecord(x) && Object.values(x).every(v => typeof v === 'number' || typeof v === 'string')
+const isParams = (x: unknown): x is Params => isRecord(x) && Object.values(x).every(value => typeof value === 'number' || typeof value === 'string')
 
-function resolveView(viewId: string, view: unknown, problems: Finding[]) {
+function resolveView(viewId: string, view: unknown, problems: Finding[], art: Level['art']) {
   if (!isRecord(view)) return
   const layers = records(view['layers'])
   for (const hotspot of records(view['hotspots'])) {
@@ -119,7 +139,7 @@ function resolveView(viewId: string, view: unknown, problems: Finding[]) {
     const layer = layers.find(l => l['id'] === on)
     const asset = layer?.['asset']
     const params = layer?.['params'] ?? {}
-    const rect = typeof asset === 'string' && isAssetId(asset) && isParams(params) ? placedRect(asset, params) : null
+    const rect = typeof asset === 'string' && isParams(params) ? placedRect(asset, params, art) : null
     if (!rect || 'rect' in hotspot) {
       problems.push({ code: 'DRAFT_ON', ids: [viewId, String(hotspot['id'])] })
       continue
@@ -132,12 +152,16 @@ function resolveView(viewId: string, view: unknown, problems: Finding[]) {
 export function resolveDraft(draft: unknown): Finding[] {
   const problems: Finding[] = []
   if (!isRecord(draft)) return problems
+  if (draft['schema'] !== SCHEMA_VERSION) problems.push({ code: 'SCHEMA', ids: ['schema'] })
+  // Only well-formed own art can say where it stands; the validator reports the rest.
+  const parsedArt = v.safeParse(v.record(v.string(), ArtAsset), draft['art'])
+  const art = parsedArt.success ? parsedArt.output : undefined
   for (const chapter of records(draft['chapters'])) {
     for (const room of records(chapter['rooms'])) {
       const walls = room['walls']
-      if (isRecord(walls)) for (const wall of WALLS) resolveView(`${String(room['id'])}/${wall}`, walls[wall], problems)
+      if (isRecord(walls)) for (const wall of WALLS) resolveView(`${String(room['id'])}/${wall}`, walls[wall], problems, art)
       const closeUps = room['closeUps']
-      if (isRecord(closeUps)) for (const [id, view] of Object.entries(closeUps)) resolveView(id, view, problems)
+      if (isRecord(closeUps)) for (const [id, view] of Object.entries(closeUps)) resolveView(id, view, problems, art)
     }
   }
   return problems
@@ -181,6 +205,48 @@ export async function unpack(id: string, { playDir = 'levels/play', draftDir = '
   const file = join(draftDir, `${id}.json`)
   writeFileSync(file, `${JSON.stringify(decoded.level, null, 2)}\n`)
   return file
+}
+
+// ── usage ────────────────────────────────────────────────────────────────────────────────────
+
+// How often earlier levels (real ones and the test fixtures) used each catalog asset, puzzle
+// kind and palette, so a new level can reach for what hasn't been seen. Catalog ids and counts
+// only: a level's own art and text never show.
+const filesIn = (dir: string, ext: string) => (existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith(ext)).map(f => join(dir, f)) : [])
+const count = (map: Map<string, number>, key: string) => map.set(key, (map.get(key) ?? 0) + 1)
+const countLine = (map: Map<string, number>) => [...map].toSorted((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join('  ')
+
+export async function usage({ playDir = 'levels/play', testDir = 'levels/test' } = {}): Promise<string> {
+  const levels: Level[] = []
+  for (const file of filesIn(playDir, '.level')) {
+    const decoded = await decodeLevel(readFileSync(file, 'utf8'))
+    if (decoded.ok) levels.push(decoded.level)
+  }
+  for (const file of filesIn(testDir, '.json')) {
+    const parsed = parseLevel(JSON.parse(readFileSync(file, 'utf8')))
+    if (parsed.ok) levels.push(parsed.level)
+  }
+  const assets = new Map<string, number>()
+  const puzzles = new Map<string, number>()
+  const palettes = new Map<string, number>()
+  for (const level of levels) {
+    count(palettes, typeof level.palette === 'string' ? level.palette : level.palette.base)
+    const used = new Set<string>()
+    for (const ch of level.chapters) {
+      for (const p of ch.puzzles) count(puzzles, p.kind)
+      for (const room of ch.rooms)
+        for (const view of [...Object.values(room.walls), ...Object.values(room.closeUps)]) for (const layer of view.layers) if (isAssetId(layer.asset)) used.add(layer.asset)
+    }
+    for (const id of used) count(assets, id)
+  }
+  const unused = ASSET_IDS.filter(id => !assets.has(id))
+  return [
+    `${levels.length} levels`,
+    `assets (levels using each)  ${countLine(assets)}`,
+    `assets never used  ${unused.join(' ') || '-'}`,
+    `puzzles (instances)  ${countLine(puzzles)}`,
+    `palettes  ${countLine(palettes)}`,
+  ].join('\n')
 }
 
 // ── pull request ─────────────────────────────────────────────────────────────────────────────
@@ -264,6 +330,8 @@ if (import.meta.main) {
   const [cmd, arg] = process.argv.slice(2)
   if (cmd === 'catalog') {
     console.log(catalogText())
+  } else if (cmd === 'usage') {
+    console.log(await usage())
   } else if (cmd === 'check' && arg) {
     print(arg, checkDraft(arg).report)
   } else if (cmd === 'pack' && arg) {
@@ -279,7 +347,7 @@ if (import.meta.main) {
       process.exitCode = 1
     }
   } else {
-    console.error('usage: npm run level -- catalog | check <draft> | pack <draft> [--replace] | unpack <id> | pr <id>')
+    console.error('usage: npm run level -- catalog | usage | check <draft> | pack <draft> [--replace] | unpack <id> | pr <id>')
     process.exitCode = 2
   }
 }
