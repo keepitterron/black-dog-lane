@@ -7,6 +7,10 @@ updates:
     groups:
       voidzero:
         patterns: [vite, vitest, '@vitejs/*', oxlint, oxlint-tsgolint]
+    ignore:
+      # The runtime is Node 24 (.nvmrc), so the types stay on 24.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:

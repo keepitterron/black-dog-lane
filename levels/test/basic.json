@@ -68,6 +68,11 @@
                       },
                       "do": [
                         {
+                          "do": "setFlag",
+                          "flag": "c1left",
+                          "value": true
+                        },
+                        {
                           "do": "endChapter"
                         }
                       ]
@@ -143,7 +148,14 @@
               "layers": [
                 {
                   "id": "l1",
-                  "asset": "plain"
+                  "asset": "plain",
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "peeked"
+                    }
+                  }
                 }
               ],
               "hotspots": [
@@ -225,6 +237,22 @@
             "Hint 2a.",
             "Hint 2b.",
             "Hint 2c."
+          ]
+        },
+        {
+          "id": "o1Out",
+          "availableWhen": {
+            "op": "flag",
+            "flag": "c1done"
+          },
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c1left"
+          },
+          "hints": [
+            "Hint 3a.",
+            "Hint 3b.",
+            "Hint 3c."
           ]
         }
       ],

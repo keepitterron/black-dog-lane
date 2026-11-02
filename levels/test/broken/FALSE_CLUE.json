@@ -1,0 +1,2697 @@
+{
+  "id": "strict",
+  "schema": 1,
+  "title": "Strict Test Level",
+  "theme": "test fixture that passes the strict profile",
+  "palette": "plain",
+  "items": {},
+  "combos": [],
+  "chapters": [
+    {
+      "id": "c1",
+      "intro": "Chapter c1.",
+      "start": {
+        "room": "c1r",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "c1r",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c1door",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "c1done"
+                      },
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1left",
+                          "value": true
+                        },
+                        {
+                          "do": "endChapter"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c1lockC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1a1",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c1a1"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1a1",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a1."
+                        }
+                      ]
+                    }
+                  ],
+                  "looksLikeClue": true
+                },
+                {
+                  "id": "c1a2",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1a1"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1a2"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1a2",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a2."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1a3",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1a2"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1a3"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1a3",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a3."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c1note",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c1noteC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1a4",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1a3"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1a4"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1a4",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a4."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1a5",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1a4"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1a5"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1a5",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a5."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1a6",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1a5"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1a6"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1a6",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a6."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "id": "c1mark",
+                  "asset": "roomShell",
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c1found"
+                    }
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c1b1",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c1b1"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1b1",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b1."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1b2",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1b1"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1b2"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1b2",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b2."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1b3",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1b2"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1b3"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1b3",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b3."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1odd",
+                  "rect": [
+                    60,
+                    60,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c1found"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1found",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Found it."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c1sign",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c1signC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1b4",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1b3"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1b4"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1b4",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b4."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1b5",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1b4"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1b5"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1b5",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b5."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c1b6",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c1b5"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c1b6"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c1b6",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b6."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {
+            "c1lockC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [],
+              "puzzle": "c1dial"
+            },
+            "c1noteC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c1noteText",
+                  "rect": [
+                    100,
+                    100,
+                    600,
+                    400
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Clue c1note."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "c1signC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c1signText",
+                  "rect": [
+                    100,
+                    100,
+                    600,
+                    400
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Clue c1sign."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "c1dial",
+          "kind": "dialLock",
+          "clues": [
+            "c1noteC",
+            "c1signC"
+          ],
+          "activeWhen": {
+            "op": "all",
+            "conds": [
+              {
+                "op": "flag",
+                "flag": "c1a6"
+              },
+              {
+                "op": "flag",
+                "flag": "c1b6"
+              }
+            ]
+          },
+          "inactiveSay": "Not yet.",
+          "symbols": [
+            "moon",
+            "eye",
+            "key",
+            "bird"
+          ],
+          "initial": [
+            "moon",
+            "moon"
+          ],
+          "solution": [
+            "eye",
+            "key"
+          ],
+          "onSolve": [
+            {
+              "do": "setFlag",
+              "flag": "c1done",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "click"
+            }
+          ]
+        }
+      ],
+      "beats": [
+        {
+          "id": "c1a2Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c1a2"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c1a2."
+            }
+          ]
+        },
+        {
+          "id": "c1a4Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c1a4"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c1a4."
+            }
+          ]
+        },
+        {
+          "id": "c1a6Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c1a6"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c1a6."
+            }
+          ]
+        },
+        {
+          "id": "c1b2Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c1b2"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c1b2."
+            }
+          ]
+        },
+        {
+          "id": "c1b4Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c1b4"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c1b4."
+            }
+          ]
+        },
+        {
+          "id": "c1b6Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c1b6"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c1b6."
+            }
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "c1oA",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c1a6"
+          },
+          "hints": [
+            "Hint c1oA a.",
+            "Hint c1oA b.",
+            "Hint c1oA c."
+          ]
+        },
+        {
+          "id": "c1oB",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c1b6"
+          },
+          "hints": [
+            "Hint c1oB a.",
+            "Hint c1oB b.",
+            "Hint c1oB c."
+          ]
+        },
+        {
+          "id": "c1oLock",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c1done"
+          },
+          "hints": [
+            "Hint c1oLock a.",
+            "Hint c1oLock b.",
+            "Hint c1oLock c."
+          ]
+        },
+        {
+          "id": "c1oOut",
+          "availableWhen": {
+            "op": "flag",
+            "flag": "c1done"
+          },
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c1left"
+          },
+          "hints": [
+            "Hint c1oOut a.",
+            "Hint c1oOut b.",
+            "Hint c1oOut c."
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "c1done"
+      }
+    },
+    {
+      "id": "c2",
+      "intro": "Chapter c2.",
+      "start": {
+        "room": "c2r",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "c2r",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c2door",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "c2done"
+                      },
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2left",
+                          "value": true
+                        },
+                        {
+                          "do": "endChapter"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c2lockC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2a1",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c2a1"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2a1",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a1."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2a2",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2a1"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2a2"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2a2",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a2."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2a3",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2a2"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2a3"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2a3",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a3."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c2note",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c2noteC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2a4",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2a3"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2a4"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2a4",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a4."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2a5",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2a4"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2a5"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2a5",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a5."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2a6",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2a5"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2a6"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2a6",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a6."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c2b1",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c2b1"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2b1",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b1."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2b2",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2b1"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2b2"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2b2",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b2."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2b3",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2b2"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2b3"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2b3",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b3."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c2sign",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c2signC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2b4",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2b3"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2b4"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2b4",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b4."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2b5",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2b4"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2b5"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2b5",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b5."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c2b6",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c2b5"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c2b6"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c2b6",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b6."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {
+            "c2lockC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [],
+              "puzzle": "c2dial"
+            },
+            "c2noteC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c2noteText",
+                  "rect": [
+                    100,
+                    100,
+                    600,
+                    400
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Clue c2note."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "c2signC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c2signText",
+                  "rect": [
+                    100,
+                    100,
+                    600,
+                    400
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Clue c2sign."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "c2dial",
+          "kind": "dialLock",
+          "clues": [
+            "c2noteC",
+            "c2signC"
+          ],
+          "activeWhen": {
+            "op": "all",
+            "conds": [
+              {
+                "op": "flag",
+                "flag": "c2a6"
+              },
+              {
+                "op": "flag",
+                "flag": "c2b6"
+              }
+            ]
+          },
+          "inactiveSay": "Not yet.",
+          "symbols": [
+            "moon",
+            "eye",
+            "key",
+            "bird"
+          ],
+          "initial": [
+            "moon",
+            "moon"
+          ],
+          "solution": [
+            "eye",
+            "key"
+          ],
+          "onSolve": [
+            {
+              "do": "setFlag",
+              "flag": "c2done",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "click"
+            }
+          ]
+        }
+      ],
+      "beats": [
+        {
+          "id": "c2a2Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c2a2"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c2a2."
+            }
+          ]
+        },
+        {
+          "id": "c2a4Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c2a4"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c2a4."
+            }
+          ]
+        },
+        {
+          "id": "c2a6Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c2a6"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c2a6."
+            }
+          ]
+        },
+        {
+          "id": "c2b2Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c2b2"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c2b2."
+            }
+          ]
+        },
+        {
+          "id": "c2b4Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c2b4"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c2b4."
+            }
+          ]
+        },
+        {
+          "id": "c2b6Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c2b6"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c2b6."
+            }
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "c2oA",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c2a6"
+          },
+          "hints": [
+            "Hint c2oA a.",
+            "Hint c2oA b.",
+            "Hint c2oA c."
+          ]
+        },
+        {
+          "id": "c2oB",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c2b6"
+          },
+          "hints": [
+            "Hint c2oB a.",
+            "Hint c2oB b.",
+            "Hint c2oB c."
+          ]
+        },
+        {
+          "id": "c2oLock",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c2done"
+          },
+          "hints": [
+            "Hint c2oLock a.",
+            "Hint c2oLock b.",
+            "Hint c2oLock c."
+          ]
+        },
+        {
+          "id": "c2oOut",
+          "availableWhen": {
+            "op": "flag",
+            "flag": "c2done"
+          },
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c2left"
+          },
+          "hints": [
+            "Hint c2oOut a.",
+            "Hint c2oOut b.",
+            "Hint c2oOut c."
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "c2done"
+      }
+    },
+    {
+      "id": "c3",
+      "intro": "Chapter c3.",
+      "start": {
+        "room": "c3r",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "c3r",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c3door",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "c3done"
+                      },
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3left",
+                          "value": true
+                        },
+                        {
+                          "do": "endChapter"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c3lockC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3a1",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c3a1"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3a1",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a1."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3a2",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3a1"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3a2"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3a2",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a2."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3a3",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3a2"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3a3"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3a3",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a3."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c3note",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c3noteC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3a4",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3a3"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3a4"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3a4",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a4."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3a5",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3a4"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3a5"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3a5",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a5."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3a6",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3a5"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3a6"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3a6",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step a6."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c3b1",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "c3b1"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3b1",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b1."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3b2",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3b1"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3b2"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3b2",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b2."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3b3",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3b2"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3b3"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3b3",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b3."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c3sign",
+                  "rect": [
+                    330,
+                    60,
+                    140,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "c3signC"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3b4",
+                  "rect": [
+                    60,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3b3"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3b4"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3b4",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b4."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3b5",
+                  "rect": [
+                    330,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3b4"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3b5"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3b5",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b5."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "c3b6",
+                  "rect": [
+                    600,
+                    360,
+                    140,
+                    140
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "c3b5"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "c3b6"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "c3b6",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Step b6."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {
+            "c3lockC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [],
+              "puzzle": "c3dial"
+            },
+            "c3noteC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c3noteText",
+                  "rect": [
+                    100,
+                    100,
+                    600,
+                    400
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Clue c3note."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "c3signC": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "c3signText",
+                  "rect": [
+                    100,
+                    100,
+                    600,
+                    400
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Clue c3sign."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "c3dial",
+          "kind": "dialLock",
+          "clues": [
+            "c3noteC",
+            "c3signC"
+          ],
+          "activeWhen": {
+            "op": "all",
+            "conds": [
+              {
+                "op": "flag",
+                "flag": "c3a6"
+              },
+              {
+                "op": "flag",
+                "flag": "c3b6"
+              }
+            ]
+          },
+          "inactiveSay": "Not yet.",
+          "symbols": [
+            "moon",
+            "eye",
+            "key",
+            "bird"
+          ],
+          "initial": [
+            "moon",
+            "moon"
+          ],
+          "solution": [
+            "eye",
+            "key"
+          ],
+          "onSolve": [
+            {
+              "do": "setFlag",
+              "flag": "c3done",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "click"
+            }
+          ]
+        }
+      ],
+      "beats": [
+        {
+          "id": "c3a2Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c3a2"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c3a2."
+            }
+          ]
+        },
+        {
+          "id": "c3a4Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c3a4"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c3a4."
+            }
+          ]
+        },
+        {
+          "id": "c3a6Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c3a6"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c3a6."
+            }
+          ]
+        },
+        {
+          "id": "c3b2Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c3b2"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c3b2."
+            }
+          ]
+        },
+        {
+          "id": "c3b4Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c3b4"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c3b4."
+            }
+          ]
+        },
+        {
+          "id": "c3b6Beat",
+          "on": {
+            "type": "afterFlag",
+            "flag": "c3b6"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Beat c3b6."
+            }
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "c3oA",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c3a6"
+          },
+          "hints": [
+            "Hint c3oA a.",
+            "Hint c3oA b.",
+            "Hint c3oA c."
+          ]
+        },
+        {
+          "id": "c3oB",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c3b6"
+          },
+          "hints": [
+            "Hint c3oB a.",
+            "Hint c3oB b.",
+            "Hint c3oB c."
+          ]
+        },
+        {
+          "id": "c3oLock",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c3done"
+          },
+          "hints": [
+            "Hint c3oLock a.",
+            "Hint c3oLock b.",
+            "Hint c3oLock c."
+          ]
+        },
+        {
+          "id": "c3oOut",
+          "availableWhen": {
+            "op": "flag",
+            "flag": "c3done"
+          },
+          "doneWhen": {
+            "op": "flag",
+            "flag": "c3left"
+          },
+          "hints": [
+            "Hint c3oOut a.",
+            "Hint c3oOut b.",
+            "Hint c3oOut c."
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "c3done"
+      }
+    }
+  ],
+  "secrets": [
+    {
+      "id": "sMark",
+      "foundWhen": {
+        "op": "flag",
+        "flag": "c1found"
+      },
+      "tell": {
+        "view": "c1r/s",
+        "layer": "c1mark"
+      }
+    }
+  ],
+  "endings": [
+    {
+      "id": "endFound",
+      "when": {
+        "op": "flag",
+        "flag": "c1found"
+      },
+      "text": "The end, with the secret."
+    },
+    {
+      "id": "end",
+      "text": "The end."
+    }
+  ]
+}

@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "lint": "oxlint --type-aware --type-check",
     "test": "vitest run",
-    "fixtures": "node scripts/fixtures.ts"
+    "fixtures": "node scripts/fixtures.ts",
+    "validate": "node scripts/validate.ts"
   },
   "dependencies": {
     "react": "19.3.1",
