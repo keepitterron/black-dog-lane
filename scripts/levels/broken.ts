@@ -136,4 +136,8 @@ export const BROKEN: Record<Code, () => unknown> = {
   BEAT_SPARSE: broken(({ chapters: [c1] }) => {
     c1.beats = []
   }),
+  // A wallpaper the catalog doesn't have.
+  ASSET_REF: broken(({ chapters: [c1] }) => {
+    room(c1).walls.e.layers.push({ asset: 'roomShell', params: { pattern: 'tartan' } })
+  }),
 }

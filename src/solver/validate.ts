@@ -2,6 +2,7 @@
 // (docs/handoff.md → Validator and solver). Builds on one solver graph and reports only codes,
 // chapter ids, opaque ids and counts, never level content.
 import { test } from '../engine/conditions.ts'
+import { CATALOG, ICON_IDS, isAssetId, isPaletteId, paramProblems } from '../catalog/assets.ts'
 import { MIN_TAP_UNITS, padRect, SCENE_H, SCENE_W, type Rect } from '../engine/layout.ts'
 import { lookup } from '../engine/lookup.ts'
 import { checkRefs, type RefCode } from '../engine/refs.ts'
@@ -32,6 +33,7 @@ export const CHECK_CODES = [
   'SINGLE_SOURCE',
   'BUSYWORK',
   'BEAT_SPARSE',
+  'ASSET_REF',
 ] as const
 // Hand-built fixtures (the Waiting Room) keep description-only taps and per-chapter room
 // copies, so the rules about what a tap or a clue must lead to only bind real levels.
@@ -86,6 +88,7 @@ export function validate(input: unknown, { profile = 'play', maxStates = 100_000
   secretTells(level, add)
   tapTargets(level, graph, add)
   oneWayDoors(level, add)
+  assetRefs(level, add)
   if (!graph.truncated) unreachableRooms(level, graph, add)
   for (const ch of level.chapters.slice(0, -1)) if (!ch.outro) add('NO_PAYOFF', [ch.id], ch.id)
   for (const id of graph.lostBeats) add('BEAT_LOST', [id], lookup(level).beats.get(id)?.chapter.id)
@@ -245,6 +248,33 @@ function falseClues(level: Level, add: Add): void {
   for (const ch of level.chapters)
     for (const { id, view } of views(ch))
       for (const hotspot of view.hotspots) if (hotspot.looksLikeClue && !clues.has(id)) add('FALSE_CLUE', [hotspot.id], ch.id)
+}
+
+// Art the catalog can't draw: an unknown asset, palette or icon, params the asset doesn't
+// take, a slot it can't stand in, a puzzle param naming no puzzle, or a close-up drawn on a
+// wall. Ids are the view (or item) plus the asset id or the offending param.
+function assetRefs(level: Level, add: Add): void {
+  if (!isPaletteId(level.palette)) add('ASSET_REF', ['palette'])
+  const icons: readonly string[] = ICON_IDS
+  for (const [id, item] of Object.entries(level.items)) if (!icons.includes(item.icon)) add('ASSET_REF', [id, 'icon'])
+  const idx = lookup(level)
+  for (const ch of level.chapters)
+    for (const { id, view } of views(ch))
+      for (const layer of view.layers) {
+        if (!isAssetId(layer.asset)) {
+          add('ASSET_REF', [id, layer.asset], ch.id)
+          continue
+        }
+        const params = layer.params ?? {}
+        const problems = paramProblems(layer.asset, params)
+        const specs = CATALOG[layer.asset].params
+        for (const [key, spec] of Object.entries(specs)) {
+          const value = params[key]
+          if (spec.type === 'puzzle' && value !== undefined && !idx.puzzles.has(String(value))) problems.push(`puzzle:${key}`)
+        }
+        if (CATALOG[layer.asset].kind === 'closeUp' && id.includes('/')) problems.push('kind')
+        for (const problem of problems) add('ASSET_REF', [id, layer.asset, problem], ch.id)
+      }
 }
 
 function hintGaps(level: Level, graph: Graph, add: Add): void {

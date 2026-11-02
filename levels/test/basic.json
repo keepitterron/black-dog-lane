@@ -8,7 +8,7 @@
     "key": {
       "name": "Test key",
       "desc": "A key for testing.",
-      "icon": "key"
+      "icon": "keyRing"
     }
   },
   "combos": [],
@@ -148,7 +148,7 @@
               "layers": [
                 {
                   "id": "l1",
-                  "asset": "plain",
+                  "asset": "roomShell",
                   "visibleWhen": {
                     "op": "not",
                     "cond": {

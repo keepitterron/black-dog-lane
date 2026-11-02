@@ -1,12 +1,20 @@
 // Shared drawing helpers and the asset contract. An asset is a pure function from its params
 // and the current flags to an SVG fragment in the 800×600 scene.
+import { SYMBOLS } from '../catalog/assets.ts'
 import type { GameState } from '../engine/state.ts'
+import type { Palette } from './palettes.ts'
 
+export { SYMBOLS }
 export type Params = Record<string, number | string>
-export type AssetCtx = { flags: GameState['flags'] }
+// `pal` is the level's palette: room colours come from it, never from literals.
+export type AssetCtx = { flags: GameState['flags']; pal: Palette }
 export type Asset = (p: Params, ctx: AssetCtx) => string
 
 export const FONT = 'IM Fell English, Georgia, serif'
+// Fixed colours for things that carry meaning in every palette.
+export const INK = '#2a1c13'
+export const PAPER = '#d8ccb2'
+export const BRASS = '#c9a35a'
 
 export const num = (p: Params, key: string, fallback: number): number => {
   const v = p[key]
@@ -38,8 +46,6 @@ export function clockTimeFrom(p: Params, ctx: AssetCtx): { h: number; m: number 
   const m = ctx.flags[`${id}:m`]
   return { h: typeof h === 'number' ? h : num(p, 'h', 3), m: typeof m === 'number' ? m : num(p, 'm', 45) }
 }
-
-export const SYMBOLS = ['moon', 'eye', 'key', 'bird', 'sun', 'star', 'hand', 'fish', 'tree', 'crown', 'paw', 'bone'] as const
 
 export function sym(n: string, x: number, y: number, s: number, col: string, mir = false, w = 3): string {
   const sw = (w / s).toFixed(3)
@@ -82,12 +88,20 @@ export function birdKey(x: number, y: number, s: number, col: string): string {
   return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-2 0 H22 M16 0 V6 M20 0 V5" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-20 2 Q-14 -12 -6 -4 Q-2 -10 2 -8 Q-2 6 -10 6 Q-18 6 -20 2Z" fill="${col}"/></g>`
 }
 
-// Patterns and gradients every scene can reference by id.
-export const SCENE_DEFS = `<defs>
-<pattern id="wp" width="40" height="56" patternUnits="userSpaceOnUse"><rect width="40" height="56" fill="#56604c"/><rect width="2" height="56" fill="#4b5442"/><path d="M20 10 l6 9 -6 9 -6 -9z" fill="none" stroke="#67715a" stroke-width="1.2"/><circle cx="20" cy="42" r="1.6" fill="#67715a"/></pattern>
-<pattern id="planks" width="120" height="26" patternUnits="userSpaceOnUse"><rect width="120" height="26" fill="#4a3326"/><rect y="24" width="120" height="2" fill="#38261c"/><rect x="80" width="2" height="24" fill="#38261c"/></pattern>
-<radialGradient id="dark" cx="400" cy="290" r="540" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0c0907" stop-opacity=".38"/><stop offset="1" stop-color="#0c0907" stop-opacity=".92"/></radialGradient>
+// Patterns and gradients every scene can reference by id. `wp` is the default wallpaper;
+// `wp-<motif>` the others `roomShell` can pick.
+export function sceneDefs(c: Palette): string {
+  const paper = (id: string, motif: string) =>
+    `<pattern id="${id}" width="40" height="56" patternUnits="userSpaceOnUse"><rect width="40" height="56" fill="${c.wall}"/>${motif}</pattern>`
+  return `<defs>
+${paper('wp', `<rect width="2" height="56" fill="${c.wallDark}"/><path d="M20 10 l6 9 -6 9 -6 -9z" fill="none" stroke="${c.wallMotif}" stroke-width="1.2"/><circle cx="20" cy="42" r="1.6" fill="${c.wallMotif}"/>`)}
+${paper('wp-stripe', `<rect width="12" height="56" fill="${c.wallDark}"/><rect x="18" width="2" height="56" fill="${c.wallMotif}"/>`)}
+${paper('wp-damask', `<path d="M20 6 q10 10 0 22 q-10 -12 0 -22z M20 34 q8 8 0 16 q-8 -8 0 -16z" fill="${c.wallDark}" stroke="${c.wallMotif}" stroke-width="1"/>`)}
+${paper('wp-plain', `<rect y="54" width="40" height="2" fill="${c.wallDark}" opacity=".5"/>`)}
+<pattern id="planks" width="120" height="26" patternUnits="userSpaceOnUse"><rect width="120" height="26" fill="${c.floor}"/><rect y="24" width="120" height="2" fill="${c.floorSeam}"/><rect x="80" width="2" height="24" fill="${c.floorSeam}"/></pattern>
+<radialGradient id="dark" cx="400" cy="290" r="540" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${c.dark}" stop-opacity=".38"/><stop offset="1" stop-color="${c.dark}" stop-opacity=".92"/></radialGradient>
 <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d2630"/><stop offset="1" stop-color="#0d1217"/></linearGradient>
 <linearGradient id="beyond" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070605"/><stop offset="1" stop-color="#46535b"/></linearGradient>
 <radialGradient id="flame" cx=".5" cy=".68" r=".6"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f2b54f"/><stop offset="1" stop-color="#c0571f" stop-opacity="0"/></radialGradient>
 </defs>`
+}

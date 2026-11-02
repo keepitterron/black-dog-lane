@@ -2,7 +2,8 @@
 // blocks a tap, then the puzzle widget's controls on top of everything. Swipe or arrows turn; Back leaves a close-up.
 import { useEffect, useRef } from 'react'
 import { renderAsset } from '../../art/assets/index.ts'
-import { SCENE_DEFS } from '../../art/kit.ts'
+import { sceneDefs } from '../../art/kit.ts'
+import { paletteFor } from '../../art/palettes.ts'
 import { test } from '../../engine/conditions.ts'
 import { currentViewId } from '../../engine/context.ts'
 import { lookup } from '../../engine/lookup.ts'
@@ -41,7 +42,8 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
   }, [onTurn, onBack])
 
   if (!entry) return null
-  const ctx = { flags: state.flags }
+  const pal = paletteFor(level.palette)
+  const ctx = { flags: state.flags, pal }
   const art = entry.view.layers
     .filter(layer => test(layer.visibleWhen, state))
     .map(layer => renderAsset(layer.asset, layer.params ?? {}, ctx))
@@ -69,7 +71,7 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
       }}
     >
       <svg key={viewId} className={styles.scene} viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" aria-label="Scene">
-        <g dangerouslySetInnerHTML={{ __html: SCENE_DEFS + art }} />
+        <g dangerouslySetInnerHTML={{ __html: sceneDefs(pal) + art }} />
         {entry.view.hotspots
           .filter(h => test(h.visibleWhen, state))
           .map(h => {
