@@ -274,9 +274,9 @@ export async function openPr(id: string, { cwd = process.cwd(), remote = 'origin
   const report = validate(decoded.level, { profile: 'play' })
   if (!report.ok) throw new Error(`${file} fails validation`)
 
-  const dirty = run(cwd, 'git', ['status', '--porcelain', '--untracked-files=all'])
-    .split('\n')
-    .filter(line => line && line.slice(3) !== file)
+  // NUL-separated `XY path` entries; not trimmed, since a status of ` M` starts with a space.
+  const status = execFileSync('git', ['status', '--porcelain', '-z', '--untracked-files=all'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+  const dirty = status.split('\0').filter(entry => entry && entry.slice(3) !== file)
   if (dirty.length) throw new Error('working tree is not clean (besides the level file)')
 
   run(cwd, 'git', ['fetch', remote, base])
