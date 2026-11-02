@@ -34,9 +34,9 @@ export const CHECK_CODES = [
 // copies, so the rules about what a tap or a clue must lead to only bind real levels.
 const PLAY_ONLY = new Set<Code>(['ORPHAN_HOTSPOT', 'FALSE_CLUE', 'LENGTH', 'SINGLE_THREAD', 'SINGLE_SOURCE', 'BUSYWORK', 'BEAT_SPARSE'])
 
-// SCHEMA: the file doesn't parse (ids are dot paths). TRUNCATED: the search hit its state cap,
-// so nothing can be proved.
-export type Code = (typeof CHECK_CODES)[number] | RefCode | 'SCHEMA' | 'TRUNCATED'
+// CORRUPT: the file isn't JSON or doesn't decode. SCHEMA: it doesn't parse (ids are dot
+// paths). TRUNCATED: the search hit its state cap, so nothing can be proved.
+export type Code = (typeof CHECK_CODES)[number] | RefCode | 'CORRUPT' | 'SCHEMA' | 'TRUNCATED'
 
 export type Finding = { code: Code; chapter?: string; ids: string[] }
 

@@ -5,7 +5,7 @@
 //   npm run validate -- [--fixture] <file…>
 import { readFileSync } from 'node:fs'
 import { decodeLevel } from '../src/engine/codec.ts'
-import { validate, type ValidateReport } from '../src/solver/validate.ts'
+import { validate, type Finding, type ValidateReport } from '../src/solver/validate.ts'
 
 const args = process.argv.slice(2)
 const profile = args.includes('--fixture') ? 'fixture' : 'play'
@@ -30,21 +30,23 @@ function summary({ stats }: ValidateReport): string {
   ].join(' · ')
 }
 
-async function load(file: string): Promise<unknown> {
+// Decodes `.level` files first; a file that won't decode fails without reaching the validator.
+async function check(file: string): Promise<ValidateReport> {
   const text = readFileSync(file, 'utf8')
-  if (!file.endsWith('.level')) return JSON.parse(text)
+  if (!file.endsWith('.level')) return validate(JSON.parse(text), { profile })
   const decoded = await decodeLevel(text)
-  // Hand the validator the parsed level, or a stand-in it will reject with the same codes.
-  return decoded.ok ? decoded.level : { decodeIssues: decoded.issues }
+  if (decoded.ok) return validate(decoded.level, { profile })
+  const codes = decoded.issues.map((issue): Finding => (issue.code === 'CORRUPT' ? { code: 'CORRUPT', ids: [] } : { code: 'SCHEMA', ids: [issue.path] }))
+  return { ok: false, codes, stats: null }
 }
 
 let failed = 0
 for (const file of files) {
   let report: ValidateReport
   try {
-    report = validate(await load(file), { profile })
+    report = await check(file)
   } catch {
-    report = { ok: false, codes: [{ code: 'SCHEMA', ids: ['unreadable'] }], stats: null }
+    report = { ok: false, codes: [{ code: 'CORRUPT', ids: [] }], stats: null }
   }
   console.log(`${file}  ${report.ok ? 'OK' : 'FAIL'}  ${summary(report)}`.trimEnd())
   for (const f of report.codes) console.log(`  ${f.code}${f.chapter ? `  ${f.chapter}` : ''}${f.ids.length ? `  ${f.ids.join(' ')}` : ''}`)

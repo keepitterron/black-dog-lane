@@ -13,6 +13,7 @@ Milestones 1 to 4.1 are merged to `main` and deployed to GitHub Pages; the devel
 | 3 The dog | #5 | merged, then removed in 4.1 |
 | 4 Waiting Room as level data, scene, game screen, minimal solver | #6 | merged |
 | 4.1 Dog removed, prototype puzzles restored | #7 | merged |
+| 5 Solver and validator | — | on branch `m5-validator` |
 
 What works today: the title screen (original dog silhouette logo, Continue / Start over), and The Waiting Room playing from `levels/test/waiting-room.json` with the prototype's look, sound and puzzles, split into three chapters in one room. Saves, hints, chapter cards, the ending card, portrait and landscape layouts and offline install all work. 80 tests pass, and lint (which is also the type check) is clean.
 
@@ -71,39 +72,28 @@ Open housekeeping:
 
 ## Known gaps to keep in mind
 
-1. If a beat ends a chapter, later `afterFlag` beats from that same step don't fire, because the chapter has already changed. The validator should flag levels that rely on this.
-2. The solver has no solution inputs for `slider` and `pattern`; `solutionInputs` returns `[]` for both. Implement them in M5: a small BFS over tile states for the slider, and for patterns, toggle the cells that differ in `single` mode or solve over GF(2) in `cross` mode.
-3. Only the dial lock and clock have UI widgets. Sequence, slider, pattern and trail need widgets before a level can use them (M7 at the latest, before M8).
-4. There's no level picker yet. `App.tsx` hard-codes the Waiting Room (M6).
-5. The spec says multi-room exists, but the Waiting Room is a single room. `goto` works in the engine and is tested, but no fixture uses doors (M6).
-6. The `palette` field isn't used; colours are hard-coded in the assets (M7).
-7. The landscape layout works but hasn't been tuned on a real device.
-8. `Game.tsx` plays hint text as `Hint N of 3: …`. Fine, but the developer hasn't commented on the wording.
+1. If a beat ends a chapter, later `afterFlag` beats from that same step don't fire, because the chapter has already changed. The validator reports this as `BEAT_LOST`.
+2. Only the dial lock and clock have UI widgets. Sequence, slider, pattern and trail need widgets before a level can use them (M7 at the latest, before M8).
+3. There's no level picker yet. `App.tsx` hard-codes the Waiting Room (M6).
+4. The spec says multi-room exists, but the Waiting Room is a single room. `goto` works in the engine and is tested, but no fixture uses doors (M6).
+5. The `palette` field isn't used; colours are hard-coded in the assets (M7).
+6. The landscape layout works but hasn't been tuned on a real device.
+7. `Game.tsx` plays hint text as `Hint N of 3: …`. Fine, but the developer hasn't commented on the wording.
 
 ## Remaining milestones
 
-### M5: Solver and validator
+### M5: Solver and validator (done)
 
-Goal: `npm run validate -- <file>` prints a spoiler-free report and exits non-zero on failure, and a Vitest suite runs it over every level. Done when the Waiting Room passes and deliberately broken fixtures trigger every error code.
+`npm run validate -- [--fixture] <file…>` and `validate(level, { profile })` in `src/solver/validate.ts`, over one `explore()` graph from `solve.ts`. Decisions made with the developer:
 
-- Build `src/solver/validate.ts` on top of `solve.ts`. Return `{ ok, codes: { code, chapter, ids }[], stats }`. Write `scripts/validate.ts` as a thin CLI around it: it accepts `.json` and `.level`, prints one line per file in the spec's format, and lists failure codes with chapter and ids only. Add `"validate"` to `package.json` scripts.
-- Checks, from the spec's table, minus the two dog checks removed in M4.1:
-  - `UNSOLVABLE`, `DEAD_END`, `CHAPTER_COUNT` (the schema already enforces this; keep the code for the report).
-  - `ORPHAN_HOTSPOT`: a visible hotspot whose rules never change abstract state on any path. Pure-flavour taps that only `say` count as orphans per design rule 1. Note that the Waiting Room has several "look" hotspots that only `say` (soil, glass, note, photo). The note, glass and photo are `looksLikeClue` sources and should count as puzzle inputs. Decide with the developer whether description-only taps are allowed; the prototype has them. The likely answer: allow `say`-only hotspots when they're tagged `looksLikeClue` or their view is a puzzle clue.
-  - `FALSE_CLUE`: anything tagged `looksLikeClue` must sit in a view listed in some puzzle's `clues`.
-  - `SINGLE_THREAD`: count the objectives available at once along the shortest path.
-  - `SINGLE_SOURCE`: a puzzle with fewer than two clue views.
-  - `BUSYWORK`: the same hotspot tapped twice in a row with no state change in between, on the shortest path.
-  - `HINT_GAP`: a reachable, unfinished state with no available objective. The solver has every state, so check them all.
-  - `SECRET_NO_TELL`: the tell layer must have a `visibleWhen`, or params that differ from the other layers in its view.
-  - `BEAT_SPARSE`: fewer than one beat per three progress steps on the shortest path.
-  - `TAP_TARGET`: use `MIN_TAP_UNITS` from `src/ui/game/hitRect.ts`. Move that constant somewhere the engine and solver can import; it's pure.
-  - `LENGTH`: 12 to 25 steps per chapter on the shortest path.
-
-  Per-chapter numbers need the solver to record the shortest path, including where each chapter starts.
-- **Expect the Waiting Room to fail some checks honestly.** It has 20 steps over three chapters, so `LENGTH` fails, and some say-only hotspots will be flagged. Talk to the developer before bending the level or the rules. Options: the test fixture opts out of the authoring-style checks (a `validate` profile of `"fixture"` versus `"play"`), or thresholds become per-profile. Real generated levels must pass the strict profile.
-- Add `levels/test/broken/*.json`, one minimal fixture per error code, and a Vitest table that asserts each one triggers exactly its code. Exclude `broken/` from `tests/solve.test.ts` and from the "every fixture is valid" test.
-- Keep it fast: the Waiting Room solves in about 1 s. Watch the state count when adding per-path analysis, and reuse the BFS graph.
+- **Profiles.** `play` (the default, binds every real level) runs every check. `fixture` skips the rules about what a tap or clue must lead to (`ORPHAN_HOTSPOT`, `FALSE_CLUE`) and the pacing checks (`LENGTH`, `SINGLE_THREAD`, `SINGLE_SOURCE`, `BUSYWORK`, `BEAT_SPARSE`). The Waiting Room keeps its description taps and per-chapter room copies, and passes `fixture` unchanged.
+- **Say-only hotspots** are allowed only when they're tagged `looksLikeClue` or sit in a puzzle's clue view. Hotspots that `open` or `goto` somewhere with content count as navigation, and hotspots that are never visible aren't checked.
+- **`TAP_TARGET`** fails when a padded rect leaves the 800×600 scene, or when hotspots drawn on top of it (and visible at the same time) leave it less than half a minimum tap target of free area. Nesting a small target on a big one is fine.
+- **`BUSYWORK`** flags the same tap (hotspot + item) twice on a chapter's shortest path. Adjacency would depend on which order BFS picks for independent steps.
+- **Extra codes:** `SCHEMA` (parse failures, dot paths only), `TRUNCATED` (state cap hit, nothing proved), `BEAT_LOST` (known gap 1), plus the ref codes from `refs.ts`.
+- `LENGTH` counts every state-changing step on the shortest path, including looking at clue views. `BEAT_SPARSE` counts beats fired by steps, plus arrive and leave beats whose condition holds along the path.
+- Sliders are solved with A* after a parity check, and `cross` patterns over GF(2).
+- The Waiting Room validates in about 1.3 s (2,270 states), and `strict.json` in about 0.4 s.
 
 ### M6: Three chapters, multi-room, level picker
 
