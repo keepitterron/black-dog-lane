@@ -24,11 +24,63 @@
         ]
       }
     ],
-    "unicorn/require-post-message-target-origin": "off"
+    "unicorn/require-post-message-target-origin": "off",
+    "typescript/consistent-return": "off"
   },
   "ignorePatterns": [
     "dist",
     "docs",
     "levels/play"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "src/engine/**",
+        "src/solver/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "message": "The engine must not depend on React."
+              },
+              {
+                "name": "react-dom",
+                "message": "The engine must not depend on React."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "**/ui/**",
+                  "**/audio/**",
+                  "**/art/**"
+                ],
+                "message": "The engine must not depend on UI code."
+              }
+            ]
+          }
+        ],
+        "no-restricted-globals": [
+          "error",
+          "window",
+          "document",
+          "localStorage",
+          "navigator"
+        ]
+      }
+    },
+    {
+      "files": [
+        "**/*.test.ts",
+        "tests/**"
+      ],
+      "rules": {
+        "unicorn/consistent-function-scoping": "off"
+      }
+    }
   ]
 }
