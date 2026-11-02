@@ -57,12 +57,14 @@ describe('puzzle widgets', () => {
     expect(cross.input({ kind: 'toggle', cell: 0 }).state.flags['p1:cells']).toBe('110100000')
   })
 
-  test('trail: follow the marks in order; off-trail taps do nothing', () => {
-    const { input } = setup({ ...base, kind: 'trail', trail: ['c1r/e', 'c1r/s', 'cu'] })
-    const at = (view: string): PuzzleInput => ({ kind: 'trail', view })
-    expect(input(at('c1r/s')).state.flags['p1:progress']).toBeUndefined()
-    expect(input(at('c1r/e'), at('cu')).state.flags['p1:progress']).toBe(1)
-    expect(input(at('c1r/e'), at('c1r/s'), at('cu')).state.flags['won']).toBe(true)
+  test('trail: follow the marks in order across views; off-trail taps do nothing', () => {
+    const { level } = setup({ ...base, kind: 'trail', trail: ['c1r/e', 'c1r/s', 'cu'] })
+    const tap = (view: string) => ({ type: 'puzzleInput', puzzle: 'p1', input: { kind: 'trail', view } }) as const
+    const right = { type: 'turn', dir: 'right' } as const
+    expect(play(level, [right, right, tap('c1r/s')]).state.flags['p1:progress']).toBeUndefined()
+    expect(play(level, [right, tap('c1r/e'), right, tap('c1r/s'), { type: 'open', view: 'cu' }, tap('cu')]).state.flags['won']).toBe(true)
+    // A tap only counts on the view it names.
+    expect(play(level, [tap('c1r/e')]).events).toContainEqual({ type: 'error', code: 'PUZZLE_NOT_IN_VIEW', ids: ['p1'] })
   })
 
   test('a solved puzzle ignores further input and onSolve runs once', () => {

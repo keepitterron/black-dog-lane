@@ -24,7 +24,7 @@ export const chapter = (id: string): Chapter => ({
   exitWhen: { op: 'flag', flag: `${id}done` },
 })
 
-const item = (name: string) => ({ name, desc: `${name} description.`, icon: 'icon' })
+const item = (name: string) => ({ name, desc: `${name} description.`, icon: 'matchbox' })
 
 export function baseLevel(): Level {
   return {

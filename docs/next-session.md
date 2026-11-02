@@ -14,7 +14,8 @@ Milestones 1 to 5 are merged to `main` and deployed to GitHub Pages; the develop
 | 4 Waiting Room as level data, scene, game screen, minimal solver | #6 | merged |
 | 4.1 Dog removed, prototype puzzles restored | #7 | merged |
 | 5 Solver and validator | #9 | merged |
-| 6 Multi-room, level picker, chapter outros | — | on branch `m6-multi-room` |
+| 6 Multi-room, level picker, chapter outros | #10 | merged |
+| 7 Asset catalog, palettes, all puzzle widgets, `/dev/assets` | — | on branch `m7-assets` |
 
 What works today: the title screen (original dog silhouette logo) listing every level with its own Continue / Start over, The Waiting Room playing from `levels/test/waiting-room.json` with the prototype's look, sound and puzzles, split into three chapters in one room, and Two Rooms, a dull fixture with doors between rooms and keys carried between chapters. Saves, hints, chapter cards, the ending card, portrait and landscape layouts and offline install all work. 137 tests pass, and lint (which is also the type check) is clean.
 
@@ -74,10 +75,10 @@ Open housekeeping:
 ## Known gaps to keep in mind
 
 1. If a beat ends a chapter, later `afterFlag` beats from that same step don't fire, because the chapter has already changed. The validator reports this as `BEAT_LOST`.
-2. Only the dial lock and clock have UI widgets. Sequence, slider, pattern and trail need widgets before a level can use them (M7 at the latest, before M8).
+2. ~~Only the dial lock and clock have UI widgets~~ (done in M7).
 3. ~~No level picker~~ (done in M6).
 4. ~~No fixture uses doors~~ (done in M6: `two-rooms.json`). The solver models rooms only through doors that would open in a state; a door that needs an item *selected* (rather than a flag) doesn't count as open, so levels should open doors with a flag.
-5. The `palette` field isn't used; colours are hard-coded in the assets (M7).
+5. ~~The `palette` field isn't used~~ (done in M7).
 6. The landscape layout works but hasn't been tuned on a real device.
 7. `Game.tsx` plays hint text as `Hint N of 3: …`. Fine, but the developer hasn't commented on the wording.
 
@@ -113,7 +114,16 @@ Goal: a three-chapter test fixture with doors between rooms validates and plays,
 - Precache: hashed level files must reach the service worker's precache list. Raw imports are bundled into JS chunks, so they are already covered; check it.
 - Chapter payoffs: the spec wants "each chapter ends with a small payoff". The card currently shows only the next chapter's intro. Consider an optional `outro` text on chapters (a schema addition; mention it in the PR).
 
-### M7: Asset library growth
+### M7: Asset library growth (done)
+
+- `src/catalog/assets.ts` is the machine-readable catalog for M8: per asset its kind, a neutral description, typed params (`ParamSpec`), flags, bbox, anchor and slots. `paramProblems()` and `placedRect()` live there too, so the solver can use them without importing art.
+- Placement: `slot` fits the bbox into a slot's width keeping the drawn height (`floor` and `ceiling` also fix the height); `atX`/`atY` put the anchor point anywhere (props on a desk). Unplaced prototype assets draw exactly as before; a hash test pins the Waiting Room.
+- Seven palettes (`waiting`, `plain`, `attic`, `cellar`, `nursery`, `study`, `ash`) and four wallpaper motifs (`roomShell` `pattern`).
+- New: 11 furniture pieces, 12 props (also icons), 7 close-up templates (book spread, container with up to three props, fog glass, note, mirror, widget panel, music box), and `trailMark`.
+- Widgets for sequence, slider and pattern; trails tap `trailMark` layers on walls. Engine change: a trail tap counts only on the view it names, instead of needing the view to declare the puzzle; the solver walks a trail as one step.
+- `ASSET_REF` (both profiles) with its broken fixture.
+
+Original plan:
 
 Goal: the furniture, props, close-up templates and palettes listed in the spec's "Art and audio" section, plus a preview page at `/dev/assets` in dev builds only.
 

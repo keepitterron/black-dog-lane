@@ -74,6 +74,12 @@ describe('explore', () => {
     expect(path.map(s => s.via.kind)).toContain('puzzle')
   })
 
+  test('a trail across two walls and a close-up is walked as one step', () => {
+    const level = levelWith({ ...base, kind: 'trail', trail: ['c1r/e', 'c1r/s', 'cu'] })
+    expect(solve(level)).toMatchObject({ solvable: true, deadEnds: 0 })
+    expect(shortestPath(explore(level)).filter(s => s.via.kind === 'puzzle')).toHaveLength(1)
+  })
+
   test('an impossible slider makes the level unsolvable', () => {
     const level = levelWith({ ...base, kind: 'slider', size: 2, initial: [2, 1, 3, 0], solution: [1, 2, 3, 0] })
     expect(solve(level).solvable).toBe(false)

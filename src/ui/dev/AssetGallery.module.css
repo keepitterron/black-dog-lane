@@ -1,0 +1,107 @@
+@layer components {
+  .page {
+    block-size: 100dvh;
+    overflow-y: auto;
+    padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(32px + var(--safe-bottom)) calc(16px + var(--safe-left));
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+
+    & h2 {
+      margin-block: 24px 12px;
+      font-weight: 400;
+    }
+  }
+
+  .header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+
+    & h1 {
+      font-weight: 400;
+    }
+
+    & a {
+      color: var(--amber);
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+
+    & figcaption {
+      display: grid;
+      gap: 4px;
+    }
+  }
+
+  .scene {
+    inline-size: 100%;
+    aspect-ratio: 4 / 3;
+    display: block;
+    background: #0c0907;
+  }
+
+  .slot {
+    fill: rgb(227 168 75 / 0.08);
+    stroke: rgb(227 168 75 / 0.6);
+    stroke-dasharray: 8 6;
+    stroke-width: 2;
+  }
+
+  .bbox {
+    fill: none;
+    stroke: #8fd3ff;
+    stroke-dasharray: 6 4;
+    stroke-width: 2;
+  }
+
+  .icon {
+    inline-size: 44px;
+    block-size: 44px;
+    background: var(--chip);
+    border-radius: 8px;
+
+    & svg {
+      inline-size: 100%;
+      block-size: 100%;
+    }
+  }
+
+  .describe {
+    color: var(--ink-dim);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+
+    & button,
+    & select {
+      min-block-size: 32px;
+      padding: 0 10px;
+      background: var(--chip);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: inherit;
+    }
+  }
+
+  .widgets {
+    display: grid;
+    gap: 12px;
+    max-inline-size: 640px;
+  }
+}

@@ -272,6 +272,7 @@ Work in this order; each milestone ends green in CI and deployed, and the develo
 5. **Solver + validator.** All checks in the table, spoiler-free CLI, Vitest suite over `levels/`. Done when: the ported level passes and deliberately broken fixtures trigger each error code.
 6. **Three chapters and multi-room.** Doors between rooms, chapter intros and payoffs, carried-over inventory, level picker. Done when: a three-chapter test fixture validates and plays.
 7. **Asset library growth.** The furniture, props, close-up templates and palettes listed above, with a preview page at `/dev/assets` in dev builds only.
+   - Done with these choices: palettes reach assets through the render context (`ctx.pal`) rather than CSS custom properties, so the same strings work in tests and icons; the dog-related props (bone, collar, lead, food bowl, paw-print trail) were left out; all six puzzle widgets are playable.
 8. **Generator.** `scripts/generate.ts` with caching, JSON-schema output, repair loop, encoding, branch + PR, and a cost report. Done when: three themes generate, validate, merge and deploy without a human reading them.
 9. **First real level.** Generate one from a theme the two of them pick. Blind playtest. Feedback goes into the design rules and validator checks, never into the level by hand.
 

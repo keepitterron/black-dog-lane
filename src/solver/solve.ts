@@ -5,7 +5,7 @@
 // where the player stands never matters. Reports numbers only, never level content.
 import { seenFlag, test } from '../engine/conditions.ts'
 import { lookup } from '../engine/lookup.ts'
-import { isSolved } from '../engine/puzzles.ts'
+import { isSolved, progress } from '../engine/puzzles.ts'
 import type { Chapter, Level, Wall } from '../engine/schema.ts'
 import { newGame, type GameState } from '../engine/state.ts'
 import { step, type Action } from '../engine/step.ts'
@@ -263,12 +263,24 @@ function successors(level: Level, from: GameState, rooms: Set<string>): Successo
       }
       const puzzle = view.puzzle ? idx.puzzles.get(view.puzzle)?.puzzle : undefined
       // Solving needs the clues: every clue view must have been looked at first.
-      if (puzzle && !isSolved(puzzle, at.flags) && puzzle.clues.every(clue => at.flags[seenFlag(clue)] === true)) {
+      if (puzzle && puzzle.kind !== 'trail' && !isSolved(puzzle, at.flags) && puzzle.clues.every(clue => at.flags[seenFlag(clue)] === true)) {
         const inputs = solutionInputs(puzzle, at.flags)
         if (inputs === null) results.push({ state: from, via: { kind: 'puzzle', id: puzzle.id }, solverGaveUp: true })
         else if (inputs.length) run(at, { kind: 'puzzle', id: puzzle.id }, inputs.map(input => ({ type: 'puzzleInput', puzzle: puzzle.id, input })))
       }
     }
+  }
+  // A trail is one step: walk to each remaining mark in turn and tap it there.
+  for (const puzzle of chapter.puzzles) {
+    if (puzzle.kind !== 'trail' || isSolved(puzzle, from.flags) || !puzzle.clues.every(clue => from.flags[seenFlag(clue)] === true)) continue
+    let state = from
+    for (const viewId of puzzle.trail.slice(progress(puzzle, from.flags))) {
+      const entry = idx.views.get(viewId)
+      if (!entry || !rooms.has(entry.room.id)) break
+      const location = { chapter: chapter.id, room: entry.room.id, wall: entry.wall ?? 'n', closeUps: entry.wall ? [] : [viewId] }
+      state = step(level, { ...state, location }, { type: 'puzzleInput', puzzle: puzzle.id, input: { kind: 'trail', view: viewId } }).state
+    }
+    if (state !== from) results.push({ state: { ...state, selected: null, hint: { objective: null, tier: 0 } }, via: { kind: 'puzzle', id: puzzle.id } })
   }
   const anywhere: GameState = { ...from, location: { ...from.location, closeUps: [] } }
   for (const a of items) {
