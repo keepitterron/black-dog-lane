@@ -29,9 +29,21 @@
   }
 
   .dog {
-    width: clamp(120px, 40cqi, 220px);
-    aspect-ratio: 1;
-    filter: drop-shadow(0 0 18px color-mix(in srgb, var(--amber) 25%, transparent));
+    width: clamp(200px, 62cqi, 340px);
+    filter: drop-shadow(0 0 18px color-mix(in srgb, var(--amber) 18%, transparent));
+  }
+
+  .link {
+    margin-top: 14px;
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+    padding: 0 20px;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 18px;
   }
 
   .version {

@@ -1,0 +1,24 @@
+@layer components {
+  .message {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 12px;
+    margin-inline: auto;
+    inline-size: max-content;
+    max-inline-size: min(92%, 620px);
+    padding: 10px 16px;
+    background: var(--msg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: var(--text-msg);
+    line-height: 1.4;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+
+    &[data-show] {
+      opacity: 1;
+    }
+  }
+}

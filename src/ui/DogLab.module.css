@@ -1,0 +1,116 @@
+@layer components {
+  .lab {
+    container: lab / inline-size;
+    block-size: 100dvh;
+    overflow-y: auto;
+    max-inline-size: 880px;
+    margin-inline: auto;
+    padding: calc(8px + var(--safe-top)) calc(16px + var(--safe-right)) calc(24px + var(--safe-bottom))
+      calc(16px + var(--safe-left));
+    user-select: none;
+  }
+
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-block: 6px 10px;
+
+    & h1 {
+      font-weight: 400;
+      font-size: clamp(20px, 6cqi, 28px);
+    }
+  }
+
+  .pill {
+    min-block-size: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 6px;
+    background: #0c0907;
+  }
+
+  .room {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .shadow {
+    opacity: 0;
+    transition: opacity 0.4s, translate 1.2s ease-in;
+
+    &[data-state='there'] {
+      opacity: 1;
+    }
+
+    &[data-state='leaving'] {
+      opacity: 0;
+      translate: -30px 0;
+    }
+  }
+
+  .dog {
+    position: absolute;
+    inset-block-end: 3%;
+    inline-size: 48%;
+    translate: -50% 0;
+    transition: left 1.3s linear;
+
+    & svg {
+      display: block;
+      inline-size: 100%;
+      overflow: visible;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  .panel {
+    & h2 {
+      font-weight: 400;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--ink-dim);
+      margin: 14px 0 6px;
+    }
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    & button {
+      min-block-size: var(--tap-min);
+      padding: 0 14px;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 16px;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        border-color: var(--amber);
+      }
+    }
+  }
+}
