@@ -28,9 +28,10 @@
     }
   }
 
-  .dog {
-    width: clamp(200px, 62cqi, 340px);
-    filter: drop-shadow(0 0 18px color-mix(in srgb, var(--amber) 18%, transparent));
+  .logo {
+    width: clamp(120px, 40cqi, 220px);
+    aspect-ratio: 1;
+    filter: drop-shadow(0 0 18px color-mix(in srgb, var(--amber) 25%, transparent));
   }
 
   .buttons {
@@ -43,15 +44,6 @@
 
   .note {
     font-size: 15px !important;
-  }
-
-  .quiet {
-    margin-top: 18px;
-    color: var(--ink-dim);
-    font-size: 17px;
-    min-height: var(--tap-min);
-    display: inline-flex;
-    align-items: center;
   }
 
   .link {

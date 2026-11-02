@@ -1,10 +1,10 @@
 // Builds levels/test/waiting-room.json: the prototype room (docs/reference/prototype.html)
-// as level data, split into three chapters in the same room, with Pino added. This is a
+// as level data, split into three chapters in the same room. This is a
 // test fixture, not a secret level. Run `npm run fixtures` after editing.
 //
 // Each chapter has its own copy of the room (ids must be unique), but all copies draw from
 // the same flags, so the room looks continuous.
-import type { Beat, Chapter, Cond, DogMoment, Effect, Hotspot, Level, Objective, Puzzle, Room, View } from '../../src/engine/schema.ts'
+import type { Beat, Chapter, Cond, Effect, Hotspot, Level, Objective, Puzzle, Room, View } from '../../src/engine/schema.ts'
 
 type Ch = 1 | 2 | 3
 type Layer = View['layers'][number]
@@ -43,7 +43,7 @@ function room(ch: Ch): Room {
     ch < 3
       ? [{ do: [say('The door won’t open. There’s a dial lock, and a keyhole under it.')] }]
       : [
-          { when: F('unlocked'), do: [say('The door is open a crack. It’s very dark out there. You don’t want to go first.')] },
+          { when: F('doorOpen'), do: [set('left'), { do: 'endChapter' }] },
           { when: SEL('brassKey'), do: [open(id('lock')), take('brassKey'), set('keyIn'), sound('unlock')] },
           { do: [open(id('lock'))] },
         ]
@@ -53,13 +53,16 @@ function room(ch: Ch): Room {
       [
         layer('roomShell'),
         layer('portrait', faceFlags),
-        layer('door', { litFlag: LIT, keyFlag: 'keyIn', openFlag: 'doorOpen', feetFlag: 'feet', feetGoneFlag: 'feetGone' }),
+        layer('door', { litFlag: LIT, keyFlag: 'keyIn', openFlag: 'doorOpen', feetFlag: LIT, feetGoneFlag: 'shadowGone' }),
         layer('caseClock', { ...CLOCK, woundFlag: 'wound', caseOpenFlag: 'timeSet', cuttersGoneFlag: 'cuttersGone' }),
         lights(),
       ],
       [
         spot(id('portrait'), [100, 120, 160, 200], [{ do: [open(id('portraitC'))] }]),
-        spot(id('door'), [322, 142, 190, 312], doorRules, { accepts: ch === 3 ? ['brassKey', 'dog'] : [] }),
+        spot(id('door'), [322, 142, 190, 312], doorRules, { accepts: ch === 3 ? ['brassKey'] : [] }),
+        spot(id('shadow'), [340, 430, 120, 85], [{ do: [set('shadowGone'), sound('steps'), say('The shadows step away from the door. Slowly.')] }], {
+          visibleWhen: ALL(F(LIT), NOT(F('doorOpen')), NOT(F('shadowGone'))),
+        }),
         spot(id('clock'), [575, 150, 90, 96], [
           { when: SEL('birdKey'), do: [open(id('clockC')), take('birdKey'), set('wound'), sound('click'), say('You wind it. The clock starts ticking, very loudly.')] },
           { do: [open(id('clockC'))] },
@@ -98,11 +101,10 @@ function room(ch: Ch): Room {
       ],
     ),
     s: view(
-      [layer('roomShell'), layer('rug'), layer('bookshelf', { glintFlag: 'keyUnder' }), layer('birdcage', { keyGoneFlag: 'cageOpen', openFlag: 'cageOpen' }), lights()],
+      [layer('roomShell'), layer('rug'), layer('bookshelf'), layer('birdcage', { keyGoneFlag: 'brassKeyGone', openFlag: 'cageOpen' }), lights()],
       [
         spot(id('book'), [286, 192, 50, 80], [{ do: [open(id('bookC'))] }]),
         spot(id('cage'), [530, 130, 140, 190], [{ do: [open(id('cageC'))] }]),
-        spot(id('gap'), [146, 452, 268, 30], [{ do: [open(id('underC'))] }], { visibleWhen: F('keyUnder') }),
       ],
     ),
     w: view(
@@ -183,10 +185,7 @@ function room(ch: Ch): Room {
           { when: F('stringGone'), do: [say('You don’t want to put your hand in there again.')] },
           { do: [say('Dry soil. A loop of string pokes out of it.')] },
         ]),
-        spot(id('string'), [300, 190, 90, 70], [{ do: [say('You pull, but it won’t come. Something deep in the soil is holding on.')] }], {
-          accepts: ['dog'],
-          visibleWhen: NOT(F('stringGone')),
-        }),
+        spot(id('string'), [300, 190, 90, 70], [{ do: [give('ironKey'), set('stringGone')] }], { visibleWhen: NOT(F('stringGone')) }),
       ],
     ),
     [id('coatC')]: view(
@@ -195,31 +194,25 @@ function room(ch: Ch): Room {
         spot(id('pocket'), [255, 285, 125, 115], [
           { when: NOT(F('sand')), do: [set('sand'), sound('sand')] },
           { do: [say('The pocket is empty now. It’s still cold inside.')] },
-        ], { accepts: ['dog'] }),
+        ]),
         spot(id('windKey'), [240, 505, 130, 70], [{ do: [give('birdKey'), set('birdKeyGone')] }], { visibleWhen: ALL(F('sand'), NOT(F('birdKeyGone'))) }),
       ],
     ),
     [id('cageC')]: view(
-      [layer('cageClose', { openFlag: 'cageOpen', keyGoneFlag: 'cageOpen' }), lights()],
+      [layer('cageClose', { openFlag: 'cageOpen', keyGoneFlag: 'brassKeyGone' }), lights()],
       [
         spot(id('cageBody'), [190, 80, 420, 450], [
-          { when: ALL(SEL('cutters'), NOT(F('cageOpen'))), do: [take('cutters'), set('cageOpen'), set('keyUnder'), sound('click')] },
+          { when: ALL(SEL('cutters'), NOT(F('cageOpen'))), do: [take('cutters'), set('cageOpen'), sound('click')] },
           { when: F('cageOpen'), do: [say('The cage is open now. Whatever lived here is gone.')] },
           { do: [say('A heavy key hangs from the perch, out of reach.')] },
         ], { accepts: ['cutters'] }),
         spot(id('cageDoor'), [320, 290, 160, 210], [
-          { when: SEL('cutters'), do: [take('cutters'), set('cageOpen'), set('keyUnder'), sound('click')] },
+          { when: SEL('cutters'), do: [take('cutters'), set('cageOpen'), sound('click')] },
           { do: [say('The little door is wired shut. Twisted tight, from the inside.')] },
         ], { accepts: ['cutters'], visibleWhen: NOT(F('cageOpen')) }),
-      ],
-    ),
-    [id('underC')]: view(
-      [layer('underShelfClose', { keyGoneFlag: 'brassKeyGone' }), lights()],
-      [
-        spot(id('reach'), [300, 330, 240, 180], [
-          { when: ANY(F('brassKeyGone'), NOT(F('keyUnder'))), do: [say('Only dust under here.')] },
-          { do: [say('It’s too far back. Your arm won’t fit under the shelf.')] },
-        ], { accepts: ['dog'] }),
+        spot(id('cageKey'), [350, 410, 100, 60], [{ do: [give('brassKey'), set('brassKeyGone'), say('A heavy brass key. It’s warm, as if someone was holding it.')] }], {
+          visibleWhen: ALL(F('cageOpen'), NOT(F('brassKeyGone'))),
+        }),
       ],
     ),
     [id('windowC')]: view(
@@ -252,39 +245,42 @@ function room(ch: Ch): Room {
 
 const hints = (a: string, b: string, c: string): Objective['hints'] => [a, b, c]
 
-function beat(id: string, on: Beat['on'], effects: Effect[], extra: Partial<Beat> = {}): Beat {
-  return { id, on, once: true, ...extra, do: effects }
+function beat(id: string, on: Beat['on'], effects: Effect[]): Beat {
+  return { id, on, once: true, do: effects }
 }
 
 const after = (flag: string, when?: Cond): Beat['on'] => ({ type: 'afterFlag', flag, ...(when ? { when } : {}) })
 const arrive = (at: string, when?: Cond): Beat['on'] => ({ type: 'arrive', view: at, ...(when ? { when } : {}) })
 const leave = (at: string, when?: Cond): Beat['on'] => ({ type: 'leave', view: at, ...(when ? { when } : {}) })
-const moment = (id: string, role: DogMoment['role'], at: string, effects: Effect[], when?: Cond): DogMoment => ({ id, role, at, ...(when ? { when } : {}), do: effects })
+
+// Someone outside the door, seen once on arriving at the north wall after the candle is lit.
+const shadowBeat = (id: string, roomId: string) =>
+  beat(id, arrive(`${roomId}/n`, ALL(F(LIT), NOT(F('doorOpen')), NOT(F('shadowGone')), NOT(F('shadowSeen')))), [
+    set('shadowSeen'),
+    sound('steps'),
+    say('There’s someone standing just outside the door.'),
+  ])
 
 const chapter1: Chapter = {
   id: 'ch1',
-  intro: 'A small room. The door won’t open, and it’s very dark. {dog} presses close against your leg.',
+  intro: 'A small room. The door won’t open, and it’s very dark.',
   start: { room: 'room1', wall: 'n' },
   rooms: [room(1)],
   puzzles: [],
   beats: [
-    beat('b1Soil', after('stringGone'), [sound('sting'), say('Just before it came free, something under the soil pulled back.')], { threat: true, dogResponse: 'standGuard' }),
-    beat('b1Knock', after('drawerOpen'), [sound('knock'), say('Three knocks. From the other side of the door.')], { threat: true, dogResponse: 'standGuard' }),
+    beat('b1Soil', after('stringGone'), [sound('sting'), say('A small iron key on a string. Just before it came free, something under the soil pulled back.')]),
+    beat('b1Knock', after('drawerOpen'), [sound('knock'), say('Three knocks. From the other side of the door.')]),
     beat('b1Sand', after('sand'), [sound('sting'), say('Sand pours out. Far more sand than a pocket could hold. Something fell out with it.')]),
     // Two threads (drawer and coat) must both be done, in either order.
     beat('b1EndKeyLast', after('birdKeyGone', F('drawerOpen')), [say('A winding key with a little bird for a handle. Somewhere, a clock has been waiting for it.'), { do: 'endChapter' }]),
     beat('b1EndDrawerLast', after('drawerOpen', F('birdKeyGone')), [say('Somewhere in the room, a clock has been waiting for that winding key.'), { do: 'endChapter' }]),
   ],
   objectives: [
-    { id: 'o1Pot', doneWhen: F('stringGone'), hints: hints('{dog} keeps sniffing at the plant pot by the window.', 'There’s a string in the soil. It won’t pull free by hand.', 'Tap {dog}, then tap the string in the pot. {dog} can dig.'), dogPoints: 'room1/w' },
-    { id: 'o1Drawer', doneWhen: F('drawerOpen'), hints: hints('That little iron key fits a keyhole somewhere.', '{dog} sits by the desk and looks at the drawer.', 'Select the iron key, then tap the desk drawer.'), dogPoints: 'room1/e' },
-    { id: 'o1Photo', doneWhen: F('photoSeen'), hints: hints('There’s a photograph in the drawer.', '{dog} paws at the drawer. Look at the photograph up close.', 'Open the drawer and tap the photograph.'), dogPoints: 'room1/e' },
-    { id: 'o1Matchbox', doneWhen: F('matchboxGone'), hints: hints('Something else is in the drawer.', 'A matchbox could be useful later.', 'Tap the matchbox in the drawer to take it.'), dogPoints: 'room1/e' },
-    { id: 'o1Coat', doneWhen: F('birdKeyGone'), hints: hints('Someone left their coat behind.', '{dog} sniffs at the coat’s pocket.', 'Tap the coat, tap the pocket, then pick up what falls out.'), dogPoints: 'room1/e' },
-  ],
-  dogMoments: [
-    moment('m1Dig', 'fetch', 'string1', [{ do: 'dog', act: 'fetch' }, give('ironKey'), set('stringGone'), say('{dog} digs, grabs the string and tugs. A small iron key comes up out of the soil.')]),
-    moment('m1Sniff', 'sniff', 'pocket1', [{ do: 'dog', act: 'sniff' }, say('{dog} sniffs the pocket and sneezes. Something gritty is in there.'), set('sand'), sound('sand')], NOT(F('sand'))),
+    { id: 'o1Pot', doneWhen: F('stringGone'), hints: hints('Something is hidden in the plant pot.', 'Look closely at the soil by the window.', 'Pull the string poking out of the soil.') },
+    { id: 'o1Drawer', doneWhen: F('drawerOpen'), hints: hints('That iron key fits a small keyhole somewhere.', 'Look at the desk.', 'Select the iron key, then tap the drawer.') },
+    { id: 'o1Photo', doneWhen: F('photoSeen'), hints: hints('There’s a photograph in the drawer.', 'Look at it up close.', 'Tap the photograph in the drawer.') },
+    { id: 'o1Matchbox', doneWhen: F('matchboxGone'), hints: hints('The drawer is open now.', 'Look inside it.', 'Take the matchbox.') },
+    { id: 'o1Coat', doneWhen: F('birdKeyGone'), hints: hints('Someone left their coat behind.', 'Check the coat’s pocket.', 'Tap the pocket, then pick up what falls out.') },
   ],
   exitWhen: ALL(F('birdKeyGone'), F('drawerOpen')),
 }
@@ -311,22 +307,19 @@ const chapter2: Chapter = {
     beat('b2CoatMoves', leave('room2/e'), [set('coatMoved')]),
     beat('b2CoatSeen', arrive('room2/e', F('coatMoved')), [sound('sting'), say('The coat is hanging on the other hook now.')]),
     beat('b2Head', arrive('room2/n', F('wound')), [sound('sting'), say('Her head has turned. She’s facing the clock now.')]),
-    beat('b2Candle', after(LIT), [sound('sting'), say('The wick catches. Behind you, something in the room moves.'), sound('knock')], { threat: true, dogResponse: 'standGuard' }),
+    beat('b2Candle', after(LIT), [sound('sting'), say('The wick catches. Behind you, something in the room moves.'), sound('knock')]),
+    shadowBeat('b2Shadow', 'room2'),
     // Two threads (clock and candle) must both be done, in either order.
     beat('b2EndCandleLast', after(LIT, F('cuttersGone')), [{ do: 'endChapter' }]),
     beat('b2EndCuttersLast', after('cuttersGone', F(LIT)), [say('Everything in the room is waiting now. Even the clock.'), { do: 'endChapter' }]),
   ],
   objectives: [
-    { id: 'o2Wind', doneWhen: F('wound'), hints: hints('The clock has stopped.', 'The bird-shaped key belongs to the clock.', 'Select the winding key, then tap the clock.'), dogPoints: 'room2/n' },
-    { id: 'o2Time', doneWhen: F('timeSet'), hints: hints('The clock wants a particular time.', '{dog} sits by the clock and stares at the drawer. The photograph shows the same clock.', 'Quarter past nine. The left hole turns the hours, the right hole the minutes.'), dogPoints: 'room2/n' },
-    { id: 'o2Cutters', doneWhen: F('cuttersGone'), hints: hints('Something opened below the clock.', '{dog} paws at the pendulum case.', 'Tap the open pendulum case.'), dogPoints: 'room2/n' },
-    { id: 'o2Match', doneWhen: F('matchGone'), hints: hints('A matchbox is no use without a match.', '{dog} sniffs along the bookshelf and stops at one book.', 'Open the red book on the shelf and take the match.'), dogPoints: 'room2/s' },
-    { id: 'o2Strike', doneWhen: ANY(HAS('litMatch'), F(LIT)), hints: hints('Two things you’re carrying belong together.', 'The match and the matchbox.', 'Tap one of them, then tap the other.'), dogPoints: 'room2/e' },
-    { id: 'o2Candle', doneWhen: F(LIT), hints: hints('It’s very dark in here.', '{dog} sits by the candle on the desk.', 'Select the lit match, then tap the candle.'), dogPoints: 'room2/e' },
-  ],
-  dogMoments: [
-    moment('m2Book', 'sniff', 'book2', [{ do: 'dog', act: 'sniff' }, say('{dog} sniffs along the shelf and stops at the red book. It smells of old flowers.')]),
-    moment('m2Case', 'guard', 'case2', [{ do: 'dog', act: 'standGuard' }, say('{dog} stands by the clock, very still, listening to it tick.')], F('wound')),
+    { id: 'o2Wind', doneWhen: F('wound'), hints: hints('The clock has stopped.', 'The bird-shaped key belongs to the clock.', 'Select the winding key, then tap the clock face.') },
+    { id: 'o2Time', doneWhen: F('timeSet'), hints: hints('The clock wants a particular time.', 'The photograph shows the same clock.', 'Quarter past nine. The left hole turns the hours, the right hole the minutes.') },
+    { id: 'o2Cutters', doneWhen: F('cuttersGone'), hints: hints('Something opened below the clock.', 'Look at the pendulum case.', 'Tap the open pendulum case.') },
+    { id: 'o2Match', doneWhen: F('matchGone'), hints: hints('A matchbox is no use without a match.', 'One of the books looks different.', 'Open the red book on the shelf.') },
+    { id: 'o2Strike', doneWhen: ANY(HAS('litMatch'), F(LIT)), hints: hints('Two things you’re carrying belong together.', 'The match and the matchbox.', 'Tap one of them, then tap the other.') },
+    { id: 'o2Candle', doneWhen: F(LIT), hints: hints('It’s very dark in here.', 'The candle on the desk.', 'Select the lit match, then tap the candle.') },
   ],
   exitWhen: ALL(F(LIT), F('cuttersGone')),
 }
@@ -348,31 +341,25 @@ const chapter3: Chapter = {
   rooms: [room(3)],
   puzzles: [dialPuzzle],
   beats: [
-    beat('b3Feet', arrive('room3/n', ALL(NOT(F('doorOpen')), NOT(F('feet')))), [set('feet'), sound('steps'), say('Shadows under the door. Someone is standing just outside.')], { threat: true, dogResponse: 'standGuard' }),
-    beat('b3FeetGo', leave('room3/n', F('feet')), [set('feetGone')]),
-    beat('b3FeetGone', arrive('room3/n', F('feetGone')), [say('The shadows have gone. {dog} gives one short, proud wag.')]),
-    beat('b3Whisper', arrive('room3/w'), [sound('whisper'), say('Whispering, close to the window. It stops when {dog} growls.')], { threat: true, dogResponse: 'standGuard' }),
+    shadowBeat('b3Shadow', 'room3'),
+    beat('b3Whisper', arrive('room3/w'), [sound('whisper'), say('Whispering, close to the window. It stops when you listen.')]),
     beat('b3Music', arrive('room3/s'), [sound('musicbox')]),
     beat('b3WindowSeen', arrive('windowC3'), [set('windowSeen'), sound('eerie')]),
-    beat('b3TurnAround', leave('windowC3'), [sound('sting'), say('You turn around quickly. Nobody there. {dog} is still beside you.')]),
-    beat('b3Cage', after('cageOpen'), [sound('sting'), say('The wire snaps. The key drops, bounces and skitters under the bookshelf.')]),
+    beat('b3TurnAround', leave('windowC3'), [sound('sting'), say('You turn around quickly. Nobody there.')]),
+    beat('b3Cage', after('cageOpen'), [sound('sting'), say('The wire snaps. It was twisted shut from the inside.')]),
     beat('b3KeyNoDials', after('keyIn', NOT(F('dialsRight'))), [say('The key goes in, but it won’t turn. The dials aren’t right yet.')]),
     beat('b3DialsNoKey', after('dialsRight', NOT(F('keyIn'))), [say('The dials settle into place, but the door is still locked.')]),
-    beat('b3KeyLast', after('keyIn', F('dialsRight')), [set('unlocked')]),
-    beat('b3DialsLast', after('dialsRight', F('keyIn')), [set('unlocked')]),
-    beat('b3Unlocked', after('unlocked'), [sound('unlock'), say('The key turns. The door opens a crack onto the dark. {dog}’s ears go up.')]),
+    beat('b3KeyLast', after('keyIn', F('dialsRight')), [set('doorOpen')]),
+    beat('b3DialsLast', after('dialsRight', F('keyIn')), [set('doorOpen')]),
+    beat('b3DoorOpens', after('doorOpen'), [sound('unlock'), say('The key turns. The door swings open by itself.')]),
   ],
   objectives: [
-    { id: 'o3Cage', doneWhen: F('cageOpen'), hints: hints('Something is hanging inside the birdcage.', 'The cage door is wired shut.', 'Select the cutters, then tap the cage door.'), dogPoints: 'room3/s' },
-    { id: 'o3Fetch', doneWhen: F('brassKeyGone'), hints: hints('The key went under the bookshelf.', '{dog} lies flat and stares into the gap under the shelf.', 'Tap {dog}, then tap the gap under the shelf. {dog} can squeeze in.'), dogPoints: 'room3/s' },
-    { id: 'o3Keyhole', doneWhen: F('keyIn'), hints: hints('The door has a keyhole as well as dials.', 'The heavy brass key.', 'Select the brass key, then tap the door.'), dogPoints: 'room3/n' },
-    { id: 'o3Window', doneWhen: F('windowSeen'), hints: hints('Light makes reflections.', '{dog} sits by the window and looks at the glass.', 'Look closely at the window now that the candle is lit.'), dogPoints: 'room3/w' },
-    { id: 'o3Dials', doneWhen: F('dialsRight'), hints: hints('The dials want four symbols.', 'Read the note on the desk, then look at the window again.', 'Moon, eye, key, bird.'), dogPoints: 'room3/n' },
-    { id: 'o3Out', doneWhen: F('doorOpen'), hints: hints('The door is open a crack, but it’s dark out there.', '{dog} stands by the door, tail going.', 'Tap {dog}, then tap the door. {dog} will go first.'), dogPoints: 'room3/n' },
-  ],
-  dogMoments: [
-    moment('m3Fetch', 'fetch', 'reach3', [{ do: 'dog', act: 'fetch' }, give('brassKey'), set('brassKeyGone'), say('{dog} squeezes flat under the shelf and comes back with the heavy brass key.')], ALL(F('keyUnder'), NOT(F('brassKeyGone')))),
-    moment('m3Hero', 'hero', 'door3', [{ do: 'dog', act: 'trot' }, set('doorOpen'), say('{dog} noses the door wide and trots out into the dark. A happy bark comes back: it’s safe.'), { do: 'endChapter' }], F('unlocked')),
+    { id: 'o3Cage', doneWhen: F('cageOpen'), hints: hints('Something is hanging inside the birdcage.', 'The cage door is wired shut.', 'Select the cutters, then tap the cage door.') },
+    { id: 'o3CageKey', doneWhen: F('brassKeyGone'), hints: hints('The cage is open.', 'Take what’s inside it.', 'Tap the key hanging from the perch.') },
+    { id: 'o3Keyhole', doneWhen: F('keyIn'), hints: hints('The door has a keyhole as well as dials.', 'The heavy brass key.', 'Select the brass key, then tap the door.') },
+    { id: 'o3Window', doneWhen: F('windowSeen'), hints: hints('Light makes reflections.', 'Look closely at the window.', 'Look at the window now that the candle is lit.') },
+    { id: 'o3Dials', doneWhen: F('dialsRight'), hints: hints('The dials want four symbols.', 'Read the note on the desk, then look at the window again.', 'Moon, eye, key, bird.') },
+    { id: 'o3Out', doneWhen: F('left'), hints: hints('The door is open.', 'Go through it.', 'Tap the open door.') },
   ],
   exitWhen: F('doorOpen'),
 }
@@ -398,8 +385,8 @@ export function waitingRoom(): Level {
     chapters: [chapter1, chapter2, chapter3],
     secrets: [{ id: 'sEye', foundWhen: HAS('glassEye'), tell: { view: 'portraitC3', layer: 'portraitFace3' } }],
     endings: [
-      { id: 'endEye', when: HAS('glassEye'), text: 'Behind you, the clock strikes quarter past nine again. In your pocket, the glass eye has gone warm. {dog} led you out.' },
-      { id: 'endOut', text: 'Behind you, the clock strikes quarter past nine again. Someone is still watching, but {dog} led you out.' },
+      { id: 'endEye', when: HAS('glassEye'), text: 'Behind you, the clock strikes quarter past nine again. In your pocket, the glass eye has gone warm.' },
+      { id: 'endOut', text: 'Behind you, the clock strikes quarter past nine again. You have the feeling someone is still watching.' },
     ],
   }
 }

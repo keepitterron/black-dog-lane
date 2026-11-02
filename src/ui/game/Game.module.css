@@ -99,24 +99,6 @@
     }
   }
 
-  .dog {
-    position: absolute;
-    inset-inline-start: 1%;
-    inset-block-end: 0;
-    inline-size: 22%;
-    pointer-events: none;
-
-    &[data-closeup] {
-      inline-size: 26%;
-    }
-
-    & svg {
-      display: block;
-      inline-size: 100%;
-      overflow: visible;
-    }
-  }
-
   .card {
     position: fixed;
     inset: 0;

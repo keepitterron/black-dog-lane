@@ -1,34 +1,19 @@
-// The inventory strip. The dog is a permanent first slot: select it, then tap something to
-// send the dog there.
-import { dogHeadSvgInner } from '../art/dog.ts'
+// The inventory strip: tap once to select an item, again to read it.
 import { iconSvg } from '../art/icons.ts'
-import { DOG, DOG_SLOT } from '../engine/dog.ts'
 import styles from './Inventory.module.css'
-
-const dogHead = dogHeadSvgInner()
 
 type Props = {
   items: { id: string; name: string; icon?: string }[]
   selected: string | null
   onTap: (id: string) => void
-  // Briefly highlights the dog slot, e.g. while the dog is giving a hint.
-  dogBusy?: boolean
 }
 
-export function Inventory({ items, selected, onTap, dogBusy = false }: Props) {
+// Empty slots keep the strip a steady size, as in the prototype.
+const SLOTS = 6
+
+export function Inventory({ items, selected, onTap }: Props) {
   return (
     <div className={styles.strip} role="toolbar" aria-label="Inventory">
-      <button
-        type="button"
-        className={styles.slot}
-        data-dog=""
-        aria-pressed={selected === DOG_SLOT}
-        data-busy={dogBusy || undefined}
-        aria-label={DOG.name}
-        onClick={() => onTap(DOG_SLOT)}
-      >
-        <svg viewBox="0 0 100 100" aria-hidden="true" dangerouslySetInnerHTML={{ __html: dogHead }} />
-      </button>
       {items.map(item => (
         <button
           key={item.id}
@@ -40,6 +25,9 @@ export function Inventory({ items, selected, onTap, dogBusy = false }: Props) {
         >
           <ItemIcon name={item.name} icon={item.icon} />
         </button>
+      ))}
+      {Array.from({ length: Math.max(0, SLOTS - items.length) }, (_, i) => (
+        <span key={`empty${i}`} className={styles.slot} data-empty="" aria-hidden="true" />
       ))}
     </div>
   )

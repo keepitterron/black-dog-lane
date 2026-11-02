@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
 import { addHotspot, baseLevel, play } from '../../tests/fixture.ts'
-import { DOG } from './dog.ts'
 import type { Effect, Level } from './schema.ts'
 import { newGame } from './state.ts'
 
@@ -15,9 +14,9 @@ function withEffects(effects: Effect[], tweak?: (level: Level) => void): Level {
 const tap = { type: 'tapHotspot', id: 'h' } as const
 
 describe('effects', () => {
-  test('say emits the text with the dog name filled in', () => {
-    const { said } = play(withEffects([{ do: 'say', text: 'Hello {dog}.' }]), [tap])
-    expect(said).toEqual([`Hello ${DOG.name}.`])
+  test('say emits the text', () => {
+    const { said } = play(withEffects([{ do: 'say', text: 'Hello.' }]), [tap])
+    expect(said).toEqual(['Hello.'])
   })
 
   test('give adds an item once', () => {
@@ -83,15 +82,13 @@ describe('effects', () => {
     expect(play(withEffects([{ do: 'sound', sfx: 'knock' }]), [tap]).events).toContainEqual({ type: 'sound', sfx: 'knock' })
   })
 
-  test('beat fires a beat once, with its dog response', () => {
+  test('beat fires a beat once', () => {
     const level = withEffects([{ do: 'beat', id: 'b1' }], l => {
       l.chapters[0].beats.push({
         id: 'b1',
         on: { type: 'arrive', view: 'c1r/s' },
         once: true,
-        threat: true,
         do: [{ do: 'say', text: 'Beat.' }],
-        dogResponse: 'standGuard',
       })
     })
     const { state, events } = play(level, [tap, tap])
@@ -99,7 +96,6 @@ describe('effects', () => {
     expect(events).toEqual([
       { type: 'beat', id: 'b1' },
       { type: 'say', text: 'Beat.' },
-      { type: 'dog', act: 'standGuard' },
     ])
   })
 
@@ -124,7 +120,7 @@ describe('effects', () => {
     const level = baseLevel()
     level.endings = [
       { id: 'best', when: { op: 'flag', flag: 'never' }, text: 'Best.' },
-      { id: 'good', when: { op: 'flag', flag: 'c3done' }, text: '{dog} did it.' },
+      { id: 'good', when: { op: 'flag', flag: 'c3done' }, text: 'Good.' },
       { id: 'plain', text: 'Plain.' },
     ]
     level.secrets = [
@@ -135,12 +131,9 @@ describe('effects', () => {
     const start = { ...newGame(level), location: { chapter: 'c3', room: 'c3r', wall: 'n' as const, closeUps: [] }, flags: { found1: true } }
     const { state, events, said } = play(level, [tap, tap], start)
     expect(state.ended).toBe('good')
-    expect(events).toContainEqual({ type: 'ending', id: 'good', text: `${DOG.name} did it.`, secretsFound: 1, secretsTotal: 2 })
+    expect(events).toContainEqual({ type: 'ending', id: 'good', text: 'Good.', secretsFound: 1, secretsTotal: 2 })
     // Nothing runs after the ending, and later actions are ignored.
     expect(said).toEqual([])
   })
 
-  test('dog plays a dog act', () => {
-    expect(play(withEffects([{ do: 'dog', act: 'wag' }]), [tap]).events).toContainEqual({ type: 'dog', act: 'wag' })
-  })
 })

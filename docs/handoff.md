@@ -4,11 +4,11 @@ Nov 2, 2026 · @Claude Semeraro
 
 ## Context and goals
 
-Build **Black Dog Lane**: a data-driven, Rusty Lake-style point-and-click puzzle game as a Vite + React PWA, plus a local pipeline that generates new themed levels whose story and puzzles stay a surprise to the developer. A faithful black dog is the hero of every level.
+Build **Black Dog Lane**: a data-driven, Rusty Lake-style point-and-click puzzle game as a Vite + React PWA, plus a local pipeline that generates new themed levels whose story and puzzles stay a surprise to the developer. The black dog is the game's logo, not a character in it (see The logo).
 
-**Who it's for.** A parent (the developer) and a 9-year-old playing together, mostly on a phone (tablet second). One taps, the other spots clues. They loved Samsara Room and Little Nightmares: unsettling, implied threat, no gore. She loves dogs, so the dog is always on her side. Language is English.
+**Who it's for.** A parent (the developer) and a 9-year-old playing together, mostly on a phone (tablet second). One taps, the other spots clues. They loved Samsara Room and Little Nightmares: unsettling, implied threat, no gore. Language is English.
 
-**What the prototype proved.** A single-file HTML test room ("The Waiting Room") validated the mechanics and tone. Copy it into the repo at `docs/reference/prototype.html` and treat it as the behavioural spec for the engine: four walls, close-ups, inventory with select-then-tap and item combining, room-wide state changes, three-tier hints, a secret with a visible tell, scripted creepy beats, synthesized audio, autosave. It has no dog yet; the dog is new.
+**What the prototype proved.** A single-file HTML test room ("The Waiting Room") validated the mechanics and tone. Copy it into the repo at `docs/reference/prototype.html` and treat it as the behavioural spec for the engine: four walls, close-ups, inventory with select-then-tap and item combining, room-wide state changes, three-tier hints, a secret with a visible tell, scripted creepy beats, synthesized audio, autosave.
 
 **Goals**
 
@@ -75,10 +75,10 @@ black-dog-lane/
 │  ├─ generate.ts          theme → validated level → branch + PR
 │  └─ prices.ts            token price table for the cost report
 ├─ src/
-│  ├─ engine/              pure TS: types, schema, reducer, conditions, effects, hints, dog
+│  ├─ engine/              pure TS: types, schema, reducer, conditions, effects, hints
 │  ├─ solver/              state-graph search used by validate.ts and tests
-│  ├─ art/                 parametric SVG asset library (incl. the dog) + palettes
-│  ├─ audio/               Web Audio synth: drone, sfx, beats, dog sounds
+│  ├─ art/                 parametric SVG asset library + palettes
+│  ├─ audio/               Web Audio synth: drone, sfx, beats
 │  ├─ ui/                  React: Scene, Inventory, Hud, Title, LevelPicker, Ending
 │  ├─ styles/              layers.css, tokens.css, base.css
 │  ├─ sw.ts                service worker
@@ -101,7 +101,7 @@ The engine is a pure reducer: `step(level, state, action) → { state, events }`
 - `fired`: ids of beats and one-shot effects already triggered.
 - `hint`: current objective id + tier.
 
-**Actions:** `turn(dir)`, `open(viewId)`, `back()`, `tapHotspot(id)`, `tapItem(id)`, `puzzleInput(puzzleId, input)`, `arrive()` (emitted after navigation so arrival beats can fire), `askDog()` (the hint system, see The dog).
+**Actions:** `turn(dir)`, `open(viewId)`, `back()`, `tapHotspot(id)`, `tapItem(id)`, `puzzleInput(puzzleId, input)`, `arrive()` (emitted after navigation so arrival beats can fire), `hint()` (asks for the next hint tier).
 
 **Interaction model** (from the prototype, keep it exactly):
 
@@ -113,7 +113,7 @@ The engine is a pure reducer: `step(level, state, action) → { state, events }`
 
 **Rendering:** a `Scene` component builds one SVG per view from the level's layer list (asset id + params + an optional `visibleWhen` condition), then overlays the lighting layer and transparent hotspot rects last so art never blocks taps. Fade 150 ms between views; respect `prefers-reduced-motion`.
 
-**Phone-first layout.** Portrait: the 4:3 scene full width at the top, the inventory strip and HUD below it, the dog's slot first in the strip. Landscape: the scene fills the height, inventory as a vertical strip at the side. Use container queries on the app shell, `dvh` units and safe-area insets. Every hotspot gets invisible padding up to 44 CSS px at a 360 px-wide screen; the validator enforces it. Text messages sit over the bottom of the scene, 17–19 px.
+**Phone-first layout.** Portrait: the 4:3 scene full width at the top, the inventory strip and HUD below it. Landscape: the scene fills the height, inventory as a vertical strip at the side. Use container queries on the app shell, `dvh` units and safe-area insets. Every hotspot gets invisible padding up to 44 CSS px at a 360 px-wide screen; the validator enforces it. Text messages sit over the bottom of the scene, 17–19 px.
 
 **Saving:** `localStorage` keyed by level id and save schema version, wrapped in try/catch, with Continue / Start over on the title screen. A version mismatch offers Start over rather than crashing.
 
@@ -132,27 +132,25 @@ type Level = {
   endings: { id: string; when: Cond; text: string }[]
 }
 type Chapter = { id: string; intro: string; rooms: Room[]; puzzles: Puzzle[]
-                 beats: Beat[]; objectives: Objective[]; dogMoments: DogMoment[]
+                 beats: Beat[]; objectives: Objective[]
                  exitWhen: Cond }
 type Room = { id: string; walls: Record<'n'|'e'|'s'|'w', View>; closeUps: Record<ViewId, View> }
 type View = { layers: Layer[]; hotspots: Hotspot[] }
 type Layer = { asset: AssetRef; params?: Record<string, number|string>; visibleWhen?: Cond }
 type Hotspot = { id: string; rect: [x: number, y: number, w: number, h: number]
-                 accepts?: (ItemId | 'dog')[]; rules: { when?: Cond; do: Effect[] }[] }
+                 accepts?: ItemId[]; rules: { when?: Cond; do: Effect[] }[] }
 type Puzzle = DialLock | ClockSet | Sequence | Slider | Pattern | Scent   // typed widgets
-type Beat = { id: string; on: Trigger; once: true; do: Effect[]; dogResponse?: DogAct }
-type DogMoment = { id: string; role: 'fetch' | 'sniff' | 'guard' | 'hero'; at: HotspotId; when: Cond; do: Effect[] }
+type Beat = { id: string; on: Trigger; once: true; do: Effect[] }
 type Objective = { id: string; doneWhen: Cond; availableWhen: Cond
-                   hints: [string, string, string]; dogPoints: ViewId }
+                   hints: [string, string, string] }
 ```
 
-**Puzzle widgets** are a closed library so the generator can't invent unplayable mechanics: dial lock (N dials over a symbol set), clock set (hours + minutes), sequence (tap objects in order), sliding tiles, pattern match (light up a grid), and scent (the dog follows a trail across walls to a hidden spot). Each declares its solution in data so the solver can check it.
+**Puzzle widgets** are a closed library so the generator can't invent unplayable mechanics: dial lock (N dials over a symbol set), clock set (hours + minutes), sequence (tap objects in order), sliding tiles, pattern match (light up a grid), and trail (follow marks across walls, in order, to a hidden spot). Each declares its solution in data so the solver can check it.
 
 **Beats** fire on `afterEffect` (immediately after a given flag flips, in view), `arrive` (first arrival on a wall after a condition) or `leave` (when you turn away from a wall, the change is seen on return). A beat is always loud: a sound sting plus a line of text.
 
-**Objectives** drive the hints. Several can be available at once (parallel threads); asking the dog picks the first available, unfinished one in declared order and escalates through its three tiers.
+**Objectives** drive the hints. Several can be available at once (parallel threads); asking for a hint picks the first available, unfinished one in declared order and escalates through its three tiers.
 
-**Dog data.** The dog's look, sounds and name are global (`src/engine/dog.ts`), not per level. Levels only say what the dog does: `dogMoments` for fetch, sniff, guard and hero roles, `dogResponse` on beats, `dogPoints` on objectives. Effects add `dog` (play a dog act: `trot`, `paw`, `sniff`, `fetch`, `bark`, `wag`, `standGuard`, `nuzzle`).
 
 ## Validator and solver
 
@@ -175,12 +173,10 @@ The validator replaces human playtesting: it proves a level can be finished, can
 | `HINT_GAP` | Some reachable, unfinished state has no available objective. |
 | `SECRET_NO_TELL` | A secret's object has no layer whose visibility or look differs from its neighbours. |
 | `BEAT_SPARSE` | Fewer than 1 beat per \~3 progress steps, or a beat that can fire off-screen. |
-| `DOG_ROLES` | A chapter uses fewer than 2 dog roles, or chapter 3's final step isn't a `hero` moment. |
-| `DOG_SAFE` | The dog is the target or cause of a beat, is ever separated from the player unresolved, or a beat that names a threat lacks a `dogResponse`. |
 | `TAP_TARGET` | A hotspot is smaller than 44 CSS px at a 360 px-wide screen. |
 | `LENGTH` | A chapter outside 12–25 steps on the shortest path. |
 
-**Output** (stdout, CI and PR body): `levels/play/foo.level  OK  3 chapters · 61 steps · threads 2–3 · secrets 2 · beats 19 · dog moments 8 · states 4,812`. On failure: the code, the chapter and the opaque ids involved, never text.
+**Output** (stdout, CI and PR body): `levels/play/foo.level  OK  3 chapters · 61 steps · threads 2–3 · secrets 2 · beats 19 · states 4,812`. On failure: the code, the chapter and the opaque ids involved, never text.
 
 A Vitest suite runs the validator over every file in `levels/`, so CI fails on a broken level the same way it fails on broken code.
 
@@ -192,16 +188,15 @@ Art comes from a hand-built library of parametric SVG assets, never generated pe
 
 **Assets** are pure functions `(params, state) → SVG string`, each with a typed param schema and a list of named states. Start with what the prototype already draws, then grow:
 
-- **The dog** (the most important asset, built first): see The dog section for look and poses.
 - Room shell: wallpaper (pattern, tint), floor, skirting, window, door (closed, ajar, open-to-dark), curtains.
-- Furniture: desk with drawer, bookshelf (seeded books + one marked book), wall clock with pendulum case, birdcage, coat hook + coat, plant pot, rug, chair, mirror, cabinet, bed, wardrobe, piano, dog bed, kennel.
+- Furniture: desk with drawer, bookshelf (seeded books + one marked book), wall clock with pendulum case, birdcage, coat hook + coat, plant pot, rug, chair, mirror, cabinet, bed, wardrobe, piano.
 - Props: candle, photograph (renders a mini scene), note, matchbox, keys, portrait (face with eye states, head tilt), music box, jar, dolls, masks, toys, ball, bone, collar, lead, food bowl, paw-print trail.
 - Close-up templates: lock plate with N dials + keyhole, clock face with winding holes, open book spread, drawer interior, fogged glass with symbols.
 - Symbol set for codes: moon, eye, key, bird, sun, star, hand, fish, tree, crown, paw, bone.
 
 **Palettes** are token sets (wall, wood, metal, cloth, light, ink) chosen per level theme; components read them as CSS custom properties.
 
-**Audio** stays synthesized with Web Audio (no files): a low drone per room, SFX (turn, pick up, click, unlock, strike, sand, chime, knock, footsteps, whisper, music box, sting) and a warm dog set (happy bark, sniffing, panting, tail thump on the floor, a short protective growl aimed at the dark). Dog sounds are always major-key and warm against the cold room sounds, so she can hear the dog is safe. Beats reference SFX by id; volume and mute in the HUD. Start audio only after the first user gesture; on iOS, resume the `AudioContext` on every tap until it reports `running`.
+**Audio** stays synthesized with Web Audio (no files): a low drone per room, SFX (turn, pick up, click, unlock, strike, sand, chime, knock, footsteps, whisper, music box, sting) Beats reference SFX by id; volume and mute in the HUD. Start audio only after the first user gesture; on iOS, resume the `AudioContext` on every tap until it reports `running`.
 
 ## Level generator
 
@@ -209,9 +204,9 @@ Art comes from a hand-built library of parametric SVG assets, never generated pe
 
 **Pipeline**
 
-1. **Design the puzzle graph.** One call to `claude-sonnet-5-5` with the theme, the asset catalog, the puzzle-widget library, the dog roles and the design rules. It returns structured JSON: three chapters, their rooms, which assets go on which wall, objectives and dependencies, puzzle instances with solutions, clue sources, beats with dog responses, dog moments, and secrets. No prose yet.
+1. **Design the puzzle graph.** One call to `claude-sonnet-5-5` with the theme, the asset catalog, the puzzle-widget library and the design rules. It returns structured JSON: three chapters, their rooms, which assets go on which wall, objectives and dependencies, puzzle instances with solutions, clue sources, beats and secrets. No prose yet.
 2. **Validate the graph.** Run the solver on the abstract graph. If any check fails, send the error codes and ids back for a repair pass (max 3 rounds, then abort with the codes).
-3. **Write the words.** One call to `claude-haiku-5-5` fills every `say`, item name and description, note text, chapter intros, endings and the three hint tiers per objective, keeping the tone and dog rules. Messages are length-checked (≤ 140 characters, so they fit a phone).
+3. **Write the words.** One call to `claude-haiku-5-5` fills every `say`, item name and description, note text, chapter intros, endings and the three hint tiers per objective, keeping the tone rules. Messages are length-checked (≤ 140 characters, so they fit a phone).
 4. **Lay out the rooms.** Deterministic code places assets into wall slots (left, centre, right, floor, ceiling) and derives hotspot rects from each asset's bounding box, padded to the tap-target minimum. Seeded, so re-running is reproducible.
 5. **Final validation** of the full level, then gzip + base64 it to `levels/play/<id>.level`.
 6. **Open the PR.** Create branch `level/<id>`, commit only that file with message `Add level <id>`, push, and run `gh pr create` with the title `Add level: <title>` and the validator report as the body. Without the GitHub CLI installed, print the branch name and stop.
@@ -226,24 +221,11 @@ Art comes from a hand-built library of parametric SVG assets, never generated pe
 
 **Running it without seeing it.** Put `ANTHROPIC_API_KEY` in a git-ignored `.env` and run the script via `node --env-file=.env scripts/generate.ts`. CI validates the PR again; merging to `main` deploys. The new level appears in the in-game level picker by its title. Don't open the PR's Files tab; there's nothing readable in it anyway.
 
-## The dog
+## The logo
 
-Every level has the same faithful black dog, and the dog is always a helper and a hero, never a source of fear. The rooms can be as creepy as the rules allow; the dog is the warm, safe thing in them.
+The black dog is the game's logo and nothing more: the silhouette on the title screen and in the app icons (`src/art/dogMark.ts`, rendered to `public/icons` by `scripts/icons.ts`). It isn't a character in levels and has no mechanics.
 
-**Look.** A big half-pitbull, half-labrador: shiny black coat, floppy ears, hazel eyes, a white stripe down the muzzle, a white chest patch and white paw tips. Drawn rounder and softer than anything else in the room, with a warm rim light so the dog stays clearly visible in the darkest scene. Poses: sit, lie down, trot, sniff (nose down, tail up), paw at something, fetch (item in mouth), wag, play bow, stand guard (front of the player, facing the dark), nuzzle. There are no scared, hurt, sad-alone, ghostly or menacing poses at all, so the generator can't ask for one.
-
-**Roles** (each a `dogMoment` or engine feature):
-
-- **Hint giver.** The hint button is the dog. Tier 1: the dog looks or trots towards the right wall. Tier 2: the dog paws at the right object. Tier 3: a short line from the dog's point of view gives the answer ("The dog sits by the clock and stares at the photo. Quarter past nine?").
-- **Fetcher.** The dog is a permanent first slot in the inventory. Select it and tap a hotspot to send the dog: it reaches things people can't (under the bed, through the bars, down a hole) and brings them back.
-- **Sniffer.** Selecting the dog on an item with a smell starts a scent puzzle: paw prints appear across walls and lead to a hidden spot.
-- **Guard.** Every beat that names a threat (shadows under the door, knocking, whispers) has a `dogResponse`: the dog stands in front of the player and gives one short growl at the dark, and the threat retreats. The dog is never scared and never loses.
-- **Hero.** The last step of chapter 3 is always the dog's: it finds the way out, opens the final door, or brings the last piece. The ending says so.
-- **Secret sense.** The dog wags its tail near a secret, as a second, friendly tell.
-
-**Never:** the dog in danger, hurt, lost, trapped without being freed in the same step, scared, possessed, ghostly, a red herring, or the cause of a scare. No beat targets the dog. Death is never mentioned in connection with the dog.
-
-**Name.** Global and configurable in `src/engine/dog.ts` (see Open questions); levels refer to it as `{dog}` in text so the name is filled in at runtime.
+An animated, posable helper dog was built in Milestone 3 and wired into the engine in Milestone 4. Playtesting showed it made the rooms goofy and less unsettling, so Milestone 4.1 removed it. If a dog ever returns to the levels it will be designed from scratch, most likely as quiet background art in the same style as the rooms, not as a helper.
 
 ## Puzzle design rules
 
@@ -256,10 +238,9 @@ These came out of playtesting the prototype; they go verbatim into the generator
 5. **12–25 meaningful steps per chapter, three chapters per level.** No busywork: no repeated taps, no pixel hunting, no long walks between walls for nothing. Each chapter ends with a small payoff; chapter 3 resolves the story.
 6. **One transforming moment per chapter.** A light, a time shift, a mirror: the room changes and old objects mean something new.
 7. **Creepiness is scripted and obvious.** Beats fire right after progress, in view or on the next wall you turn to, always with a sound sting and a line of text. Things move when you look away. Unsettling and implied, never gory or violent; nobody is hurt on screen. Benchmark: Little Nightmares and Rusty Lake.
-8. **The dog is always safe and always on your side.** It helps in at least two roles per chapter, answers every threat, and is the hero of the finale. Scares happen around the dog, never to it or because of it.
-9. **Secrets have tells.** A small visible oddity (an eye that catches the light, a slightly different colour) plus the dog's wag rewards curiosity; the ending acknowledges secrets found.
-10. **Hints in three tiers, delivered by the dog:** a look, a paw at the object, then the answer.
-11. **Readable for a 9-year-old on a phone.** Plain English, messages ≤ 140 characters, no wordplay that depends on adult vocabulary; visual clues over riddles; no maths-heavy puzzles; big tap targets.
+8. **Secrets have tells.** A small visible oddity (an eye that catches the light, a slightly different colour) rewards curiosity; the ending acknowledges secrets found.
+9. **Hints in three tiers:** a nudge, a pointer to the object, then the answer.
+10. **Readable for a 9-year-old on a phone.** Plain English, messages ≤ 140 characters, no wordplay that depends on adult vocabulary; visual clues over riddles; no maths-heavy puzzles; big tap targets.
 
 ## CI/CD, GitHub Pages and PWA
 
@@ -271,7 +252,7 @@ Two workflows: CI on every PR and push, deploy on `main`. The repo is private; t
 
 **PWA** (hand-written, no plugin):
 
-- `manifest.webmanifest`: name "Black Dog Lane", short name, `display: standalone`, `orientation: any`, dark `theme_color` and `background_color`, 192/512 and maskable icons with the dog's silhouette; `start_url` and `scope` `/black-dog-lane/`.
+- `manifest.webmanifest`: name "Black Dog Lane", short name, `display: standalone`, `orientation: any`, dark `theme_color` and `background_color`, 192/512 and maskable icons with the black dog silhouette; `start_url` and `scope` `/black-dog-lane/`.
 - `sw.ts`: precache the app shell and all levels with a cache named by build hash; cache-first for assets, network-first for `index.html`; delete old caches on activate. Show an "Update available" toast instead of reloading mid-puzzle.
 - Phone details: `viewport-fit=cover`, safe-area insets, `apple-mobile-web-app-capable` and a 180 px `apple-touch-icon` for iOS home-screen installs, `touch-action: manipulation`, no text selection on the scene.
 - Saves survive updates because they're keyed by level id and save schema version.
@@ -282,8 +263,9 @@ Work in this order; each milestone ends green in CI and deployed, and the develo
 
 1. **Scaffold and deploy.** Vite 8 + React 19 + TS 7, Oxlint type-aware, Vitest, CSS layers, hand-written PWA, both workflows, `CLAUDE.md`, `.claude/settings.json`. Done when: a placeholder page installs to a phone home screen from the Pages URL and opens offline.
 2. **Engine + schema.** Types, Valibot schema, reducer, conditions, effects, hints, saves, level decoding. Done when: unit tests cover every effect and condition, and a save round-trips.
-3. **The dog.** Dog asset with all poses, dog sounds, the dog inventory slot, `askDog` hints, fetch and guard. Done when: the dog renders well on a phone and every act plays.
-4. **Port the prototype as `levels/test/waiting-room.json`**, adding the dog (hint giver, fetches the cage key, guards at the door shadows). Done when: it plays like `docs/reference/prototype.html` on a phone. Developer + child playtest (this level isn't secret).
+3. ~~**The dog.**~~ Built, then removed in 4.1 (see The logo).
+4. **Port the prototype as `levels/test/waiting-room.json`.** Done when: it plays like `docs/reference/prototype.html` on a phone. Developer + child playtest (this level isn't secret).
+   - **4.1 Remove the dog.** The playtest showed the animated helper dog broke the creepy tone. The dog leaves the engine, levels, art and audio; the Waiting Room goes back to the prototype's puzzles; the original silhouette stays as the logo.
 5. **Solver + validator.** All checks in the table, spoiler-free CLI, Vitest suite over `levels/`. Done when: the ported level passes and deliberately broken fixtures trigger each error code.
 6. **Three chapters and multi-room.** Doors between rooms, chapter intros and payoffs, carried-over inventory, level picker. Done when: a three-chapter test fixture validates and plays.
 7. **Asset library growth.** The furniture, props, close-up templates and palettes listed above, with a preview page at `/dev/assets` in dev builds only.
@@ -292,6 +274,5 @@ Work in this order; each milestone ends green in CI and deployed, and the develo
 
 ## Open questions
 
-- [x] The dog's name: Pino.
 - [ ] Which phone and browser (iOS Safari or Android Chrome)? It decides which install and audio quirks to test first.
 - [ ] Budget ceiling per generated level, once the first cost reports are in.

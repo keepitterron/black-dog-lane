@@ -57,8 +57,8 @@ describe('puzzle widgets', () => {
     expect(cross.input({ kind: 'toggle', cell: 0 }).state.flags['p1:cells']).toBe('110100000')
   })
 
-  test('scent: the dog follows the trail in order; off-trail taps do nothing', () => {
-    const { input } = setup({ ...base, kind: 'scent', trail: ['c1r/e', 'c1r/s', 'cu'] })
+  test('trail: follow the marks in order; off-trail taps do nothing', () => {
+    const { input } = setup({ ...base, kind: 'trail', trail: ['c1r/e', 'c1r/s', 'cu'] })
     const at = (view: string): PuzzleInput => ({ kind: 'trail', view })
     expect(input(at('c1r/s')).state.flags['p1:progress']).toBeUndefined()
     expect(input(at('c1r/e'), at('cu')).state.flags['p1:progress']).toBe(1)

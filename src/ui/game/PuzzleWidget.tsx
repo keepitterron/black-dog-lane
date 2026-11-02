@@ -49,7 +49,7 @@ export function PuzzleWidget({ puzzle, flags, onInput }: Props) {
     case 'sequence':
     case 'slider':
     case 'pattern':
-    case 'scent':
+    case 'trail':
       // Not used by any level yet; their widgets arrive with the levels that need them.
       return null
   }

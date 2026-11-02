@@ -36,7 +36,7 @@ describe('conditions', () => {
     expect(test({ op: 'seen', view: 'c1r/e' }, state())).toBe(false)
   })
 
-  it('fired: beat or dog moment already ran', () => {
+  it('fired: beat already ran', () => {
     expect(test({ op: 'fired', id: 'b1' }, state({ fired: ['b1'] }))).toBe(true)
     expect(test({ op: 'fired', id: 'b1' }, state())).toBe(false)
   })

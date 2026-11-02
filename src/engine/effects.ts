@@ -1,6 +1,5 @@
 import { test } from './conditions.ts'
 import { currentChapter, emit, fail, setFlag, type Ctx } from './context.ts'
-import { fillText } from './dog.ts'
 import type { Effect } from './schema.ts'
 
 export function runEffects(ctx: Ctx, effects: readonly Effect[]): void {
@@ -14,7 +13,7 @@ function runEffect(ctx: Ctx, effect: Effect): void {
   const { state } = ctx
   switch (effect.do) {
     case 'say':
-      return emit(ctx, { type: 'say', text: fillText(effect.text) })
+      return emit(ctx, { type: 'say', text: effect.text })
     case 'give':
       if (!state.inventory.includes(effect.item)) state.inventory.push(effect.item)
       return emit(ctx, { type: 'give', item: effect.item })
@@ -42,8 +41,6 @@ function runEffect(ctx: Ctx, effect: Effect): void {
       return fireBeat(ctx, effect.id)
     case 'endChapter':
       return endChapter(ctx)
-    case 'dog':
-      return emit(ctx, { type: 'dog', act: effect.act })
   }
 }
 
@@ -54,7 +51,6 @@ export function fireBeat(ctx: Ctx, id: string): void {
   ctx.state.fired.push(id)
   emit(ctx, { type: 'beat', id })
   runEffects(ctx, entry.beat.do)
-  if (entry.beat.dogResponse) emit(ctx, { type: 'dog', act: entry.beat.dogResponse })
 }
 
 // Fires `afterFlag` beats for flags changed during this step, until nothing new fires.
@@ -98,7 +94,7 @@ function endChapter(ctx: Ctx): void {
   emit(ctx, {
     type: 'ending',
     id: ending.id,
-    text: fillText(ending.text),
+    text: ending.text,
     secretsFound: level.secrets.filter(s => test(s.foundWhen, state)).length,
     secretsTotal: level.secrets.length,
   })

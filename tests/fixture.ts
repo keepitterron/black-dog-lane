@@ -21,7 +21,6 @@ export const chapter = (id: string): Chapter => ({
   puzzles: [],
   beats: [],
   objectives: [],
-  dogMoments: [],
   exitWhen: { op: 'flag', flag: `${id}done` },
 })
 

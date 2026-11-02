@@ -1,11 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import { addHotspot, baseLevel, play } from '../../tests/fixture.ts'
-import { DOG, DOG_SLOT } from './dog.ts'
 import { newGame } from './state.ts'
 import { step } from './step.ts'
 import { NO_COMBINE, NOTHING_HAPPENS } from './text.ts'
-
-const fill = (text: string) => text.replaceAll('{dog}', DOG.name)
 
 describe('navigation', () => {
   test('turning walks the four walls; left and right are inverses', () => {
@@ -120,43 +117,6 @@ describe('hotspots', () => {
   })
 })
 
-describe('the dog', () => {
-  function level() {
-    const l = baseLevel()
-    addHotspot(l, 'c1r/n', { id: 'hole', accepts: [DOG_SLOT], rules: [{ do: [{ do: 'say', text: 'Too deep to reach.' }] }] })
-    l.chapters[0].dogMoments.push(
-      { id: 'fetch1', role: 'fetch', at: 'hole', do: [{ do: 'dog', act: 'fetch' }, { do: 'give', item: 'key' }] },
-      { id: 'sniff1', role: 'sniff', at: 'a', do: [{ do: 'dog', act: 'sniff' }] },
-    )
-    return l
-  }
-
-  test('the dog slot selects and deselects without being an inventory item', () => {
-    const once = play(level(), [{ type: 'tapItem', id: DOG_SLOT }])
-    expect(once.state.selected).toBe(DOG_SLOT)
-    expect(once.state.inventory).toEqual([])
-    expect(play(level(), [{ type: 'tapItem', id: DOG_SLOT }], once.state).state.selected).toBeNull()
-  })
-
-  test('sending the dog to a hotspot runs its dog moment once', () => {
-    const send = [{ type: 'tapItem', id: DOG_SLOT }, { type: 'tapHotspot', id: 'hole' }] as const
-    const first = play(level(), [...send])
-    expect(first.state.inventory).toEqual(['key'])
-    expect(first.state.fired).toEqual(['fetch1'])
-    expect(first.events).toContainEqual({ type: 'dog', act: 'fetch' })
-    const again = play(level(), [...send], first.state)
-    expect(again.said.at(-1)).toBe(fill('{dog} sniffs it, then looks back at you.'))
-  })
-
-  test('the dog can sniff an item, from either selection order', () => {
-    const start = { ...newGame(level()), inventory: ['a'] }
-    for (const order of [['dog', 'a'], ['a', 'dog']]) {
-      const { state, events } = play(level(), order.map(id => ({ type: 'tapItem', id })), start)
-      expect(state.fired).toEqual(['sniff1'])
-      expect(events).toContainEqual({ type: 'dog', act: 'sniff' })
-    }
-  })
-})
 
 describe('beats', () => {
   function level() {
