@@ -1,6 +1,8 @@
 // Puzzle widgets. Their state lives in flags under `<puzzleId>:<part>`; until a part is set,
 // the widget shows its declared initial value.
+import { test } from './conditions.ts'
 import { emit, fail, setFlag, type Ctx } from './context.ts'
+import { fillText } from './dog.ts'
 import { runEffects } from './effects.ts'
 import type { Puzzle } from './schema.ts'
 import type { GameState } from './state.ts'
@@ -55,6 +57,10 @@ export function patternCells(puzzle: Extract<Puzzle, { kind: 'pattern' }>, flags
 export function applyPuzzleInput(ctx: Ctx, puzzle: Puzzle, input: PuzzleInput): void {
   const { flags } = ctx.state
   if (isSolved(puzzle, flags)) return
+  if (!test(puzzle.activeWhen, ctx.state)) {
+    if (puzzle.inactiveSay) emit(ctx, { type: 'say', text: fillText(puzzle.inactiveSay) })
+    return
+  }
   const solved = apply(ctx, puzzle, input)
   if (solved === null) return fail(ctx, 'BAD_PUZZLE_INPUT', puzzle.id)
   if (!solved) return

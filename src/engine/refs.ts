@@ -69,6 +69,7 @@ export function checkRefs(level: Level): RefIssue[] {
         for (const layer of v.layers) cond(layer.visibleWhen, chapter, fireable)
         if (v.puzzle && idx.puzzles.get(v.puzzle)?.chapter !== chapter) report('UNKNOWN_PUZZLE', v.puzzle)
         for (const hotspot of v.hotspots) {
+          cond(hotspot.visibleWhen, chapter, fireable)
           for (const id of hotspot.accepts ?? []) if (id !== DOG_SLOT) item(id)
           for (const rule of hotspot.rules) {
             cond(rule.when, chapter, fireable)
@@ -77,17 +78,17 @@ export function checkRefs(level: Level): RefIssue[] {
         }
       }
     }
+    for (const room of chapter.rooms) for (const sound of room.ambient ?? []) cond(sound.when, chapter, fireable)
     for (const puzzle of chapter.puzzles) {
       puzzle.clues.forEach(view)
+      cond(puzzle.activeWhen, chapter, fireable)
       effects(puzzle.onSolve, chapter, null)
       if (!puzzleShapeOk(puzzle)) report('PUZZLE_SHAPE', puzzle.id)
       if (puzzle.kind === 'scent') puzzle.trail.forEach(view)
     }
     for (const beat of chapter.beats) {
-      if (beat.on.type !== 'afterFlag') {
-        view(beat.on.view)
-        cond(beat.on.when, chapter, fireable)
-      }
+      if (beat.on.type !== 'afterFlag') view(beat.on.view)
+      cond(beat.on.when, chapter, fireable)
       effects(beat.do, chapter, null)
     }
     for (const moment of chapter.dogMoments) {

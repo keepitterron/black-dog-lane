@@ -64,6 +64,7 @@ export function settle(ctx: Ctx): void {
     again = false
     for (const beat of currentChapter(ctx).beats) {
       if (beat.on.type !== 'afterFlag' || ctx.state.fired.includes(beat.id) || !ctx.changed.has(beat.on.flag)) continue
+      if (!test(beat.on.when, ctx.state)) continue
       fireBeat(ctx, beat.id)
       again = true
     }

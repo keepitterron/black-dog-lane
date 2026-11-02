@@ -33,8 +33,30 @@
     filter: drop-shadow(0 0 18px color-mix(in srgb, var(--amber) 18%, transparent));
   }
 
+  .buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .note {
+    font-size: 15px !important;
+  }
+
+  .quiet {
+    margin-top: 18px;
+    color: var(--ink-dim);
+    font-size: 17px;
+    min-height: var(--tap-min);
+    display: inline-flex;
+    align-items: center;
+  }
+
   .link {
-    margin-top: 14px;
+    background: transparent;
+    cursor: pointer;
     min-height: var(--tap-min);
     display: inline-flex;
     align-items: center;

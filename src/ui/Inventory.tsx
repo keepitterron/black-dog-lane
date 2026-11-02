@@ -1,13 +1,14 @@
 // The inventory strip. The dog is a permanent first slot: select it, then tap something to
 // send the dog there.
 import { dogHeadSvgInner } from '../art/dog.ts'
+import { iconSvg } from '../art/icons.ts'
 import { DOG, DOG_SLOT } from '../engine/dog.ts'
 import styles from './Inventory.module.css'
 
 const dogHead = dogHeadSvgInner()
 
 type Props = {
-  items: { id: string; name: string }[]
+  items: { id: string; name: string; icon?: string }[]
   selected: string | null
   onTap: (id: string) => void
   // Briefly highlights the dog slot, e.g. while the dog is giving a hint.
@@ -37,10 +38,15 @@ export function Inventory({ items, selected, onTap, dogBusy = false }: Props) {
           aria-label={item.name}
           onClick={() => onTap(item.id)}
         >
-          {/* Placeholder until item icons arrive with the asset library. */}
-          <span className={styles.glyph}>{item.name.slice(0, 1)}</span>
+          <ItemIcon name={item.name} icon={item.icon} />
         </button>
       ))}
     </div>
   )
+}
+
+function ItemIcon({ name, icon }: { name: string; icon: string | undefined }) {
+  const svg = icon ? iconSvg(icon) : null
+  if (!svg) return <span className={styles.glyph}>{name.slice(0, 1)}</span>
+  return <span className={styles.icon} dangerouslySetInnerHTML={{ __html: svg }} />
 }

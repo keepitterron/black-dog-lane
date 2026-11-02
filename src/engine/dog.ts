@@ -1,8 +1,7 @@
 // The dog is global: same name, look and sounds in every level. Levels only say what it does.
 
 export const DOG = {
-  // Placeholder until the name is decided (open question in docs/handoff.md).
-  name: 'Spartacus',
+  name: 'Pino',
 }
 
 // The dog's permanent inventory slot. No level item may use this id.

@@ -81,3 +81,20 @@ describe('puzzle widgets', () => {
     expect(outOfView.events).toEqual([{ type: 'error', code: 'PUZZLE_NOT_IN_VIEW', ids: ['p1'] }])
   })
 })
+
+test('an inactive puzzle ignores input and explains why', () => {
+  const { input, level, state } = setup({
+    ...base,
+    kind: 'clockSet',
+    initial: { h: 3, m: 45 },
+    solution: { h: 9, m: 15 },
+    minuteStep: 5,
+    activeWhen: { op: 'flag', flag: 'wound' },
+    inactiveSay: 'Nothing turns.',
+  })
+  const idle = input({ kind: 'clock', hand: 'h', dir: 1 })
+  expect(idle.said).toEqual(['Nothing turns.'])
+  expect(idle.state.flags['p1:h']).toBeUndefined()
+  const wound = play(level, [{ type: 'puzzleInput', puzzle: 'p1', input: { kind: 'clock', hand: 'h', dir: 1 } }], { ...state, flags: { wound: true } })
+  expect(wound.state.flags['p1:h']).toBe(4)
+})

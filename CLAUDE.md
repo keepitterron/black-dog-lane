@@ -35,10 +35,15 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 - `npm run lint`: Oxlint with type checking; this is the only type check.
 - `npm test`: Vitest.
 - `npm run build` then `npm run preview`: production build at `/black-dog-lane/`, with the service worker.
+- `npm run fixtures`: rebuild test levels authored in TypeScript (`scripts/levels/*.ts` → `levels/test/*.json`); a test fails if they drift.
 - `node scripts/icons.ts`: regenerate `public/icons` from `src/art/dogMark.ts` (needs `rsvg-convert`).
 - Later: `npm run validate -- <file>`, `npm run gen -- "<theme>"`.
 
 The service worker lives in `src/sw/` with its own `tsconfig.json` (WebWorker lib, which clashes with DOM). Files in `public/` must be listed in `PUBLIC_FILES` in `vite.config.ts` to be precached.
+
+`levels/test/waiting-room.json` is the prototype ported to level data (three chapters in one room, Pino added), built by `scripts/levels/waiting-room.ts`. Edit the builder, never the JSON. `src/solver/solve.ts` proves every test level can be finished with no dead ends.
+
+Art is a catalog of parametric assets in `src/art/assets` (`(params, { flags }) → SVG`). Params ending in `Flag` name a flag the asset reacts to. Puzzle widgets with fixed close-up layouts live in `src/ui/game/PuzzleWidget.tsx`; only dial lock and clock exist so far.
 
 Engine tests build levels with `tests/fixture.ts` (`baseLevel()` plus only what a test needs). `levels/test/basic.json` is a dull three-chapter fixture played end to end by `tests/walkthrough.test.ts`. Oxlint blocks React, UI imports and DOM globals inside `src/engine` and `src/solver`.
 

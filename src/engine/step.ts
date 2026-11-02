@@ -80,7 +80,7 @@ function say(ctx: Ctx, text: string): void {
 function tapHotspot(ctx: Ctx, id: string): void {
   const { state } = ctx
   const hotspot = ctx.idx.views.get(currentViewId(state))?.view.hotspots.find(h => h.id === id)
-  if (!hotspot) return fail(ctx, 'UNKNOWN_HOTSPOT', id)
+  if (!hotspot || !test(hotspot.visibleWhen, state)) return fail(ctx, 'UNKNOWN_HOTSPOT', id)
   const selected = state.selected
   if (selected === DOG_SLOT) {
     state.selected = null

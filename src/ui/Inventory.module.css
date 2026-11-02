@@ -38,6 +38,10 @@
     }
   }
 
+  .icon {
+    display: contents;
+  }
+
   .glyph {
     font-size: 26px;
     color: var(--ink-dim);
