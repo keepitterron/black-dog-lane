@@ -1,11 +1,12 @@
-// Every level in the repo must parse and have clean references. Real levels are decoded but
-// reported by file and id only, never by content.
+// Every level in the repo must parse and have clean references, and real levels must pass the
+// strict validator. Real levels are decoded but reported by file and id only, never by content.
 import { describe, expect, test } from 'vitest'
 import { isAssetId } from '../src/art/assets/index.ts'
 import { ICONS } from '../src/art/icons.ts'
 import { decodeLevel } from '../src/engine/codec.ts'
 import { checkRefs } from '../src/engine/refs.ts'
 import { parseLevel, type Level } from '../src/engine/schema.ts'
+import { validate } from '../src/solver/validate.ts'
 
 const fixtures = import.meta.glob<unknown>('../levels/test/*.json', { eager: true, import: 'default' })
 const play = import.meta.glob<string>('../levels/play/*.level', { eager: true, query: '?raw', import: 'default' })
@@ -39,5 +40,7 @@ describe.skipIf(Object.keys(play).length === 0)('real levels', () => {
     expect(result.ok ? [] : result.issues).toEqual([])
     if (result.ok) expect(checkRefs(result.level)).toEqual([])
     if (result.ok) expect(missingArt(result.level)).toEqual([])
+    // Codes and ids only, never content.
+    if (result.ok) expect(validate(result.level, { profile: 'play' }).codes).toEqual([])
   })
 })
