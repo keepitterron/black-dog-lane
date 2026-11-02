@@ -1,0 +1,19 @@
+@layer tokens {
+  :root {
+    color-scheme: dark;
+    --bg: #161210;
+    --ink: #d8ccb2;
+    --ink-dim: #9c907a;
+    --line: #5a4c3e;
+    --amber: #e3a84b;
+    --chip: #241f1b;
+    --msg: rgb(14 11 9 / 0.88);
+    --font-body: 'IM Fell English', Georgia, 'Times New Roman', serif;
+    --text-msg: clamp(17px, 4.6vw, 19px);
+    --tap-min: 44px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+  }
+}

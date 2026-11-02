@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./levels/play/**)",
+      "Edit(./levels/play/**)",
+      "Write(./levels/play/**)"
+    ]
+  }
+}
