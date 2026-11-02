@@ -1,6 +1,6 @@
 # Black Dog Lane
 
-A data-driven, Rusty Lake-style point-and-click puzzle game (Vite + React PWA on GitHub Pages) for a parent and a 9-year-old playing together on a phone. The black dog is only the logo (title screen and app icons), not a character in levels. A local generator turns a one-line theme into a validated, encoded three-chapter level and opens a PR.
+A data-driven, Rusty Lake-style point-and-click puzzle game (Vite + React PWA on GitHub Pages) for a parent and a 9-year-old playing together on a phone. The black dog is only the logo (title screen and app icons), not a character in levels. The `/new-level` skill turns a one-line theme into a validated, encoded three-chapter level and opens a PR.
 
 Full spec: [docs/handoff.md](docs/handoff.md). Behavioural reference for the engine: [docs/reference/prototype.html](docs/reference/prototype.html) (the test room, not secret).
 
@@ -10,7 +10,8 @@ The developer plays every real level blind.
 
 - Never print level content (JSON, story text, item names, hints, solutions) into chat, commits, PR descriptions, CI logs or test names. Refer to puzzles and objects by opaque id only (`p07`, `obj12`).
 - Never read `levels/play/**` unless explicitly told to. Develop and debug against `levels/test/` fixtures. `.claude/settings.json` denies reads there.
-- Real levels are `levels/play/*.level`: gzip + base64 JSON, written only by `scripts/generate.ts`, read only by the validator and the build.
+- Real levels are `levels/play/*.level`: gzip + base64 JSON, written only by `scripts/level.ts` (driven by the `/new-level` skill), read only by scripts, the validator and the build.
+- Level drafts live in the git-ignored `.gen/`. Never read `.gen/**` in the main session either; only the `/new-level` subagent works there. (It can't be a deny rule: deny rules also bind the skill's subagent.)
 - Validator and generator output only counts, ids, pass/fail and error codes.
 - Level PRs contain only the encoded file. Title `Add level: <title>`, body = the validator report.
 - Runtime errors and fixes are described by level/chapter/room/puzzle id, never in content terms.
@@ -38,7 +39,7 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 - `npm run fixtures`: rebuild test levels authored in TypeScript (`scripts/levels/*.ts` → `levels/test/*.json`); a test fails if they drift.
 - `node scripts/icons.ts`: regenerate `public/icons` from `src/art/dogMark.ts` (needs `rsvg-convert`).
 - `npm run validate -- [--fixture] <file…>`: spoiler-free validator report for `.json` or `.level` files; exits 1 on failure. The default `play` profile is strict and binds every real level; `--fixture` skips the authoring and pacing checks for hand-built test levels.
-- Later: `npm run gen -- "<theme>"`.
+- `npm run level -- catalog | check <draft> | pack <draft> [--replace] | unpack <id> | pr <id>`: the level authoring tools behind `/new-level` (see below).
 
 The service worker lives in `src/sw/` with its own `tsconfig.json` (WebWorker lib, which clashes with DOM). Files in `public/` must be listed in `PUBLIC_FILES` in `vite.config.ts` to be precached.
 
@@ -49,6 +50,8 @@ The solver ignores where the player stands but only acts in rooms a door current
 The title screen lists levels from `src/ui/levels.ts`: real levels first (decoded at runtime), then the Waiting Room and Two Rooms; `basic` and `strict` are listed in dev builds only. Each level keeps its own save.
 
 The asset catalog is split in two. `src/catalog/assets.ts` is pure metadata (kind, a one-line description, typed params, flags, bbox, anchor and allowed slots) that the validator and the generator read; `src/art/assets` holds one drawing per id (`(params, { flags, pal }) → SVG`), and `ASSETS` must cover every catalog id. Params ending in `Flag` name a flag the asset reacts to. Wall pieces and props can be placed with `slot` (`left | centre | right | floor | ceiling`) or `atX`/`atY`, plus `scale`; without them they draw where they were drawn. `placedRect()` gives the placed bbox. Props are drawn around the origin and double as inventory icons. Room colours come from `ctx.pal` (`src/art/palettes.ts`, one palette per `level.palette`); colours that carry meaning (brass, flame, paper, ink) stay fixed. The validator's `ASSET_REF` rejects unknown assets, palettes and icons, bad params or slots, and close-up art on walls. `/dev/assets` (dev builds only) previews every asset in any palette and plays every puzzle widget. Widgets live in `src/ui/game/PuzzleWidget.tsx`; trail marks are `trailMark` layers that Scene makes tappable, and a trail tap counts on the view it names. `tests/assets.test.ts` pins the Waiting Room's rendered art by hash.
+
+Real levels are written by the `/new-level` skill (`.claude/skills/new-level/SKILL.md`), which runs in a forked subagent so the content never reaches the main conversation; it returns only the report lines and the PR link. `/new-level <theme>` writes a new level; `/new-level fix <id> <problem by ids>` unpacks, fixes and re-packs one. Drafts are plain level JSON in `.gen/`, except that a wall hotspot may give `on: "<layerId>"` instead of a `rect` (resolved to the layer's `placedRect`). `npm run level -- pr` commits only the level file on `level/<id>` (or `level/<id>-<timestamp>` for an update), opens the PR with the validator report and switches back. Ids in real levels are opaque (`c1r1`, `h07`, `p03`) because reports print them. Never invoke `/new-level` on the developer's behalf: they run it.
 
 Engine tests build levels with `tests/fixture.ts` (`baseLevel()` plus only what a test needs). `levels/test/basic.json` is a dull three-chapter fixture played end to end by `tests/walkthrough.test.ts`. Oxlint blocks React, UI imports and DOM globals inside `src/engine` and `src/solver`.
 

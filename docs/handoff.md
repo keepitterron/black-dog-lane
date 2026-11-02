@@ -203,6 +203,8 @@ Art comes from a hand-built library of parametric SVG assets, never generated pe
 
 ## Level generator
 
+> **As built in M8:** the generator became a local Claude Code skill instead of an API script. The developer runs `/new-level <theme>` in a session; the skill runs in a forked subagent that writes a draft to the git-ignored `.gen/`, loops on `npm run level -- check` until the strict validator passes, packs it with `npm run level -- pack` and opens the PR with `npm run level -- pr`, returning only the report and the link. That needs no API key, network code or cost table, and repairs or new assets are agreed in conversation case by case. `/new-level fix <id> …` handles fixes by id. The API pipeline below stays as a possible later step (unattended or batch generation).
+
 `npm run gen -- "<theme>"` runs on the developer's machine and turns a one-line theme into a validated, encoded three-chapter level on its own branch with a PR. It uses the Claude API and prints only a spoiler-free report. The model never writes coordinates or SVG; it designs and writes, code does the rest.
 
 **Pipeline**
@@ -274,6 +276,7 @@ Work in this order; each milestone ends green in CI and deployed, and the develo
 7. **Asset library growth.** The furniture, props, close-up templates and palettes listed above, with a preview page at `/dev/assets` in dev builds only.
    - Done with these choices: palettes reach assets through the render context (`ctx.pal`) rather than CSS custom properties, so the same strings work in tests and icons; the dog-related props (bone, collar, lead, food bowl, paw-print trail) were left out; all six puzzle widgets are playable.
 8. **Generator.** `scripts/generate.ts` with caching, JSON-schema output, repair loop, encoding, branch + PR, and a cost report. Done when: three themes generate, validate, merge and deploy without a human reading them.
+   - Built as the `/new-level` skill plus `scripts/level.ts` instead (see Level generator): the agent in a forked subagent is the designer and the repair loop, the validator is the gate, and the script does layout of wall hotspots, encoding and the PR.
 9. **First real level.** Generate one from a theme the two of them pick. Blind playtest. Feedback goes into the design rules and validator checks, never into the level by hand.
 
 ## Open questions
