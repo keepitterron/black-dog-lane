@@ -1,0 +1,6058 @@
+{
+  "id": "waiting-room",
+  "schema": 1,
+  "title": "The Waiting Room",
+  "theme": "The prototype test room, ported",
+  "palette": "waiting",
+  "items": {
+    "ironKey": {
+      "name": "Small iron key",
+      "desc": "Cold, and still caked with soil.",
+      "icon": "ironKey"
+    },
+    "matchbox": {
+      "name": "Empty matchbox",
+      "desc": "The striking strip is still rough.",
+      "icon": "matchbox"
+    },
+    "match": {
+      "name": "A single match",
+      "desc": "Pressed flat, but the head looks dry.",
+      "icon": "match"
+    },
+    "litMatch": {
+      "name": "Lit match",
+      "desc": "It burns slowly. Unnaturally slowly.",
+      "icon": "litMatch"
+    },
+    "birdKey": {
+      "name": "Winding key",
+      "desc": "A clock key with a little bird for a handle.",
+      "icon": "birdKey"
+    },
+    "cutters": {
+      "name": "Clockmaker’s cutters",
+      "desc": "Tiny, and very sharp.",
+      "icon": "cutters"
+    },
+    "brassKey": {
+      "name": "Heavy brass key",
+      "desc": "Too big for anything in this room except the door.",
+      "icon": "brassKey"
+    },
+    "glassEye": {
+      "name": "Glass eye",
+      "desc": "Grey-green. It seems to be looking at you.",
+      "icon": "glassEye"
+    }
+  },
+  "combos": [
+    {
+      "a": "match",
+      "b": "matchbox",
+      "make": "litMatch",
+      "say": "You strike the match. It burns with a small, very steady flame."
+    }
+  ],
+  "chapters": [
+    {
+      "id": "ch1",
+      "intro": "A small room. The door won’t open, and it’s very dark. {dog} presses close against your leg.",
+      "start": {
+        "room": "room1",
+        "wall": "n"
+      },
+      "rooms": [
+        {
+          "id": "room1",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "portrait",
+                  "params": {
+                    "litFlag": "candle",
+                    "tiltFlag": "wound",
+                    "untiltFlag": "doorOpen",
+                    "missingEyeFlag": "eyeGone"
+                  }
+                },
+                {
+                  "asset": "door",
+                  "params": {
+                    "litFlag": "candle",
+                    "keyFlag": "keyIn",
+                    "openFlag": "doorOpen",
+                    "feetFlag": "feet",
+                    "feetGoneFlag": "feetGone"
+                  }
+                },
+                {
+                  "asset": "caseClock",
+                  "params": {
+                    "puzzle": "clock",
+                    "h": 3,
+                    "m": 45,
+                    "woundFlag": "wound",
+                    "caseOpenFlag": "timeSet",
+                    "cuttersGoneFlag": "cuttersGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "portrait1",
+                  "rect": [
+                    100,
+                    120,
+                    160,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "portraitC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "door1",
+                  "rect": [
+                    322,
+                    142,
+                    190,
+                    312
+                  ],
+                  "accepts": [],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The door won’t open. There’s a dial lock, and a keyhole under it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "clock1",
+                  "rect": [
+                    575,
+                    150,
+                    90,
+                    96
+                  ],
+                  "accepts": [
+                    "birdKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "birdKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "clockC1"
+                        },
+                        {
+                          "do": "take",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "wound",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        },
+                        {
+                          "do": "say",
+                          "text": "You wind it. The clock starts ticking, very loudly."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "clockC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "case1",
+                  "rect": [
+                    588,
+                    246,
+                    66,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "flag",
+                            "flag": "timeSet"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "cuttersGone"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cuttersGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Tiny clockmaker’s cutters, hidden behind the pendulum."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "cuttersGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Just the pendulum now, swinging."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The pendulum case is shut tight. There’s no keyhole, only a tiny catch inside."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "coatOnHook",
+                  "params": {
+                    "movedFlag": "coatMoved",
+                    "sandFlag": "sand"
+                  }
+                },
+                {
+                  "asset": "desk",
+                  "params": {
+                    "drawerOpenFlag": "drawerOpen"
+                  }
+                },
+                {
+                  "asset": "note"
+                },
+                {
+                  "asset": "candle",
+                  "params": {
+                    "litFlag": "candle"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 490,
+                    "cy": 300
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "coat1",
+                  "rect": [
+                    95,
+                    150,
+                    115,
+                    280
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "coatMoved"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "coatC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "coatMoved1",
+                  "rect": [
+                    615,
+                    150,
+                    115,
+                    280
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "coatMoved"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "coatC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "note1",
+                  "rect": [
+                    262,
+                    326,
+                    90,
+                    34
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "“If you’re reading this, the candle has gone out again. Don’t trust the window.”"
+                        },
+                        {
+                          "do": "say",
+                          "text": "“Whatever is written on the glass was written from the outside.”"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "drawer1",
+                  "rect": [
+                    330,
+                    370,
+                    140,
+                    62
+                  ],
+                  "accepts": [
+                    "ironKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "ironKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "drawerC1"
+                        },
+                        {
+                          "do": "take",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "drawerOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "drawerC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "candle1",
+                  "rect": [
+                    462,
+                    260,
+                    56,
+                    100
+                  ],
+                  "accepts": [
+                    "litMatch"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It burns, but it doesn’t get any shorter."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "litMatch"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "litMatch"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "candle",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "strike"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A candle. The wick is still warm, as if someone just blew it out."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "rug"
+                },
+                {
+                  "asset": "bookshelf",
+                  "params": {
+                    "glintFlag": "keyUnder"
+                  }
+                },
+                {
+                  "asset": "birdcage",
+                  "params": {
+                    "keyGoneFlag": "cageOpen",
+                    "openFlag": "cageOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "book1",
+                  "rect": [
+                    286,
+                    192,
+                    50,
+                    80
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "bookC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "cage1",
+                  "rect": [
+                    530,
+                    130,
+                    140,
+                    190
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "cageC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "gap1",
+                  "rect": [
+                    146,
+                    452,
+                    268,
+                    30
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "keyUnder"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "underC1"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "curtainedWindow",
+                  "params": {
+                    "litFlag": "candle"
+                  }
+                },
+                {
+                  "asset": "plantPot",
+                  "params": {
+                    "stringGoneFlag": "stringGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "window1",
+                  "rect": [
+                    290,
+                    110,
+                    220,
+                    240
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "windowC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "pot1",
+                  "rect": [
+                    150,
+                    290,
+                    140,
+                    185
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "potC1"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {
+            "clockC1": {
+              "layers": [
+                {
+                  "asset": "clockFaceClose",
+                  "params": {
+                    "puzzle": "clock",
+                    "h": 3,
+                    "m": 45,
+                    "woundFlag": "wound",
+                    "motto": "Haste is for the living"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "clockFace1",
+                  "rect": [
+                    188,
+                    78,
+                    424,
+                    424
+                  ],
+                  "accepts": [
+                    "birdKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "birdKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "wound",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        },
+                        {
+                          "do": "say",
+                          "text": "You wind it. The clock starts ticking, very loudly."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "wound"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Stopped at quarter to four. There are two winding holes, but nothing to wind it with."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "timeSet"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It’s ticking now. The hands can be turned from the winding holes."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Quarter past nine. It keeps ticking, but the hands don’t move on."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "portraitC1": {
+              "layers": [
+                {
+                  "id": "portraitFace1",
+                  "asset": "portraitClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "tiltFlag": "wound",
+                    "untiltFlag": "doorOpen",
+                    "missingEyeFlag": "eyeGone",
+                    "plaque": "Eleanor, who waited"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "face1",
+                  "rect": [
+                    230,
+                    50,
+                    340,
+                    480
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "candle"
+                            }
+                          },
+                          {
+                            "op": "flag",
+                            "flag": "wound"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Her head has turned towards the clock. Her eyes are still painted shut."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "candle"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Eleanor. Her eyes are painted shut."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "eyeGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "One empty socket. She doesn’t seem to mind."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Her eyes are open now. One of them catches the light oddly."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "takeEye1",
+                  "rect": [
+                    368,
+                    241,
+                    48,
+                    36
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "eyeGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "glassEye"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "eyeGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Her left eye comes loose with a soft click. It’s glass."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "drawerC1": {
+              "layers": [
+                {
+                  "asset": "drawerClosedClose",
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "drawerOpen"
+                    }
+                  }
+                },
+                {
+                  "asset": "drawerOpenClose",
+                  "params": {
+                    "matchboxGoneFlag": "matchboxGone",
+                    "litFlag": "candle"
+                  },
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "drawerOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "drawerFront1",
+                  "rect": [
+                    150,
+                    180,
+                    500,
+                    220
+                  ],
+                  "accepts": [
+                    "ironKey"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "drawerOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "ironKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "drawerOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Locked. The keyhole is very small."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "photo1",
+                  "rect": [
+                    190,
+                    190,
+                    195,
+                    155
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "drawerOpen"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "photoSeen",
+                          "value": true
+                        },
+                        {
+                          "do": "open",
+                          "view": "photoC1"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "matchbox1",
+                  "rect": [
+                    460,
+                    320,
+                    130,
+                    95
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "drawerOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "matchboxGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "matchbox"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "matchboxGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "An empty matchbox. The striking strip is still rough."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "photoC1": {
+              "layers": [
+                {
+                  "asset": "photoClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "caption": "the waiting room"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "photoBig1",
+                  "rect": [
+                    90,
+                    60,
+                    620,
+                    480
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The chair in the photograph is empty now. Someone is standing at the window."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "This room. Someone sits in a chair that isn’t here any more. The clock on the wall says quarter past nine."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookC1": {
+              "layers": [
+                {
+                  "asset": "bookClosedClose",
+                  "params": {
+                    "title": "Pressed Things"
+                  },
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "bookOpen"
+                    }
+                  }
+                },
+                {
+                  "asset": "bookOpenClose",
+                  "params": {
+                    "matchGoneFlag": "matchGone",
+                    "leftCaption": "forget-me-not",
+                    "rightCaption": "for later"
+                  },
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "bookOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "cover1",
+                  "rect": [
+                    250,
+                    90,
+                    300,
+                    420
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "bookOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "bookOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "page"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "match1",
+                  "rect": [
+                    455,
+                    225,
+                    175,
+                    135
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "bookOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "matchGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "match"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "matchGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "A single match, pressed flat between the pages. Someone saved it for later."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "potC1": {
+              "layers": [
+                {
+                  "asset": "potClose",
+                  "params": {
+                    "stringGoneFlag": "stringGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "soil1",
+                  "rect": [
+                    220,
+                    222,
+                    360,
+                    50
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "stringGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "You don’t want to put your hand in there again."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Dry soil. A loop of string pokes out of it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "string1",
+                  "rect": [
+                    300,
+                    190,
+                    90,
+                    70
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "stringGone"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "You pull, but it won’t come. Something deep in the soil is holding on."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "coatC1": {
+              "layers": [
+                {
+                  "asset": "coatClose",
+                  "params": {
+                    "sandFlag": "sand",
+                    "keyGoneFlag": "birdKeyGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "pocket1",
+                  "rect": [
+                    255,
+                    285,
+                    125,
+                    115
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "sand"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "sand",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "sand"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The pocket is empty now. It’s still cold inside."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "windKey1",
+                  "rect": [
+                    240,
+                    505,
+                    130,
+                    70
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "sand"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "birdKeyGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "birdKeyGone",
+                          "value": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "cageC1": {
+              "layers": [
+                {
+                  "asset": "cageClose",
+                  "params": {
+                    "openFlag": "cageOpen",
+                    "keyGoneFlag": "cageOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "cageBody1",
+                  "rect": [
+                    190,
+                    80,
+                    420,
+                    450
+                  ],
+                  "accepts": [
+                    "cutters"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "selected",
+                            "item": "cutters"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "cageOpen"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cageOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyUnder",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "cageOpen"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The cage is open now. Whatever lived here is gone."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A heavy key hangs from the perch, out of reach."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "cageDoor1",
+                  "rect": [
+                    320,
+                    290,
+                    160,
+                    210
+                  ],
+                  "accepts": [
+                    "cutters"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "cageOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "cutters"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cageOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyUnder",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The little door is wired shut. Twisted tight, from the inside."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "underC1": {
+              "layers": [
+                {
+                  "asset": "underShelfClose",
+                  "params": {
+                    "keyGoneFlag": "brassKeyGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "reach1",
+                  "rect": [
+                    300,
+                    330,
+                    240,
+                    180
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "any",
+                        "conds": [
+                          {
+                            "op": "flag",
+                            "flag": "brassKeyGone"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "keyUnder"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Only dust under here."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It’s too far back. Your arm won’t fit under the shelf."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "windowC1": {
+              "layers": [
+                {
+                  "asset": "windowClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "symbols": "bird,key,eye,moon"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "glass1",
+                  "rect": [
+                    80,
+                    40,
+                    640,
+                    480
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Someone has drawn on the glass with a finger. From the outside."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Black glass. You can’t even see your own reflection."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "ambient": [
+            {
+              "sfx": "tick",
+              "everyMs": 1000,
+              "when": {
+                "op": "flag",
+                "flag": "wound"
+              }
+            }
+          ]
+        }
+      ],
+      "puzzles": [],
+      "beats": [
+        {
+          "id": "b1Soil",
+          "on": {
+            "type": "afterFlag",
+            "flag": "stringGone"
+          },
+          "once": true,
+          "threat": true,
+          "dogResponse": "standGuard",
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Just before it came free, something under the soil pulled back."
+            }
+          ]
+        },
+        {
+          "id": "b1Knock",
+          "on": {
+            "type": "afterFlag",
+            "flag": "drawerOpen"
+          },
+          "once": true,
+          "threat": true,
+          "dogResponse": "standGuard",
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "knock"
+            },
+            {
+              "do": "say",
+              "text": "Three knocks. From the other side of the door."
+            }
+          ]
+        },
+        {
+          "id": "b1Sand",
+          "on": {
+            "type": "afterFlag",
+            "flag": "sand"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Sand pours out. Far more sand than a pocket could hold. Something fell out with it."
+            }
+          ]
+        },
+        {
+          "id": "b1EndKeyLast",
+          "on": {
+            "type": "afterFlag",
+            "flag": "birdKeyGone",
+            "when": {
+              "op": "flag",
+              "flag": "drawerOpen"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "say",
+              "text": "A winding key with a little bird for a handle. Somewhere, a clock has been waiting for it."
+            },
+            {
+              "do": "endChapter"
+            }
+          ]
+        },
+        {
+          "id": "b1EndDrawerLast",
+          "on": {
+            "type": "afterFlag",
+            "flag": "drawerOpen",
+            "when": {
+              "op": "flag",
+              "flag": "birdKeyGone"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "say",
+              "text": "Somewhere in the room, a clock has been waiting for that winding key."
+            },
+            {
+              "do": "endChapter"
+            }
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "o1Pot",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "stringGone"
+          },
+          "hints": [
+            "{dog} keeps sniffing at the plant pot by the window.",
+            "There’s a string in the soil. It won’t pull free by hand.",
+            "Tap {dog}, then tap the string in the pot. {dog} can dig."
+          ],
+          "dogPoints": "room1/w"
+        },
+        {
+          "id": "o1Drawer",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "drawerOpen"
+          },
+          "hints": [
+            "That little iron key fits a keyhole somewhere.",
+            "{dog} sits by the desk and looks at the drawer.",
+            "Select the iron key, then tap the desk drawer."
+          ],
+          "dogPoints": "room1/e"
+        },
+        {
+          "id": "o1Photo",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "photoSeen"
+          },
+          "hints": [
+            "There’s a photograph in the drawer.",
+            "{dog} paws at the drawer. Look at the photograph up close.",
+            "Open the drawer and tap the photograph."
+          ],
+          "dogPoints": "room1/e"
+        },
+        {
+          "id": "o1Matchbox",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "matchboxGone"
+          },
+          "hints": [
+            "Something else is in the drawer.",
+            "A matchbox could be useful later.",
+            "Tap the matchbox in the drawer to take it."
+          ],
+          "dogPoints": "room1/e"
+        },
+        {
+          "id": "o1Coat",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "birdKeyGone"
+          },
+          "hints": [
+            "Someone left their coat behind.",
+            "{dog} sniffs at the coat’s pocket.",
+            "Tap the coat, tap the pocket, then pick up what falls out."
+          ],
+          "dogPoints": "room1/e"
+        }
+      ],
+      "dogMoments": [
+        {
+          "id": "m1Dig",
+          "role": "fetch",
+          "at": "string1",
+          "do": [
+            {
+              "do": "dog",
+              "act": "fetch"
+            },
+            {
+              "do": "give",
+              "item": "ironKey"
+            },
+            {
+              "do": "setFlag",
+              "flag": "stringGone",
+              "value": true
+            },
+            {
+              "do": "say",
+              "text": "{dog} digs, grabs the string and tugs. A small iron key comes up out of the soil."
+            }
+          ]
+        },
+        {
+          "id": "m1Sniff",
+          "role": "sniff",
+          "at": "pocket1",
+          "when": {
+            "op": "not",
+            "cond": {
+              "op": "flag",
+              "flag": "sand"
+            }
+          },
+          "do": [
+            {
+              "do": "dog",
+              "act": "sniff"
+            },
+            {
+              "do": "say",
+              "text": "{dog} sniffs the pocket and sneezes. Something gritty is in there."
+            },
+            {
+              "do": "setFlag",
+              "flag": "sand",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "sand"
+            }
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "all",
+        "conds": [
+          {
+            "op": "flag",
+            "flag": "birdKeyGone"
+          },
+          {
+            "op": "flag",
+            "flag": "drawerOpen"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ch2",
+      "intro": "Somewhere in the room, a clock is waiting to be wound.",
+      "start": {
+        "room": "room2",
+        "wall": "e"
+      },
+      "rooms": [
+        {
+          "id": "room2",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "portrait",
+                  "params": {
+                    "litFlag": "candle",
+                    "tiltFlag": "wound",
+                    "untiltFlag": "doorOpen",
+                    "missingEyeFlag": "eyeGone"
+                  }
+                },
+                {
+                  "asset": "door",
+                  "params": {
+                    "litFlag": "candle",
+                    "keyFlag": "keyIn",
+                    "openFlag": "doorOpen",
+                    "feetFlag": "feet",
+                    "feetGoneFlag": "feetGone"
+                  }
+                },
+                {
+                  "asset": "caseClock",
+                  "params": {
+                    "puzzle": "clock",
+                    "h": 3,
+                    "m": 45,
+                    "woundFlag": "wound",
+                    "caseOpenFlag": "timeSet",
+                    "cuttersGoneFlag": "cuttersGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "portrait2",
+                  "rect": [
+                    100,
+                    120,
+                    160,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "portraitC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "door2",
+                  "rect": [
+                    322,
+                    142,
+                    190,
+                    312
+                  ],
+                  "accepts": [],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The door won’t open. There’s a dial lock, and a keyhole under it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "clock2",
+                  "rect": [
+                    575,
+                    150,
+                    90,
+                    96
+                  ],
+                  "accepts": [
+                    "birdKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "birdKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "clockC2"
+                        },
+                        {
+                          "do": "take",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "wound",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        },
+                        {
+                          "do": "say",
+                          "text": "You wind it. The clock starts ticking, very loudly."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "clockC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "case2",
+                  "rect": [
+                    588,
+                    246,
+                    66,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "flag",
+                            "flag": "timeSet"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "cuttersGone"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cuttersGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Tiny clockmaker’s cutters, hidden behind the pendulum."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "cuttersGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Just the pendulum now, swinging."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The pendulum case is shut tight. There’s no keyhole, only a tiny catch inside."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "coatOnHook",
+                  "params": {
+                    "movedFlag": "coatMoved",
+                    "sandFlag": "sand"
+                  }
+                },
+                {
+                  "asset": "desk",
+                  "params": {
+                    "drawerOpenFlag": "drawerOpen"
+                  }
+                },
+                {
+                  "asset": "note"
+                },
+                {
+                  "asset": "candle",
+                  "params": {
+                    "litFlag": "candle"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 490,
+                    "cy": 300
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "coat2",
+                  "rect": [
+                    95,
+                    150,
+                    115,
+                    280
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "coatMoved"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "coatC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "coatMoved2",
+                  "rect": [
+                    615,
+                    150,
+                    115,
+                    280
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "coatMoved"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "coatC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "note2",
+                  "rect": [
+                    262,
+                    326,
+                    90,
+                    34
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "“If you’re reading this, the candle has gone out again. Don’t trust the window.”"
+                        },
+                        {
+                          "do": "say",
+                          "text": "“Whatever is written on the glass was written from the outside.”"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "drawer2",
+                  "rect": [
+                    330,
+                    370,
+                    140,
+                    62
+                  ],
+                  "accepts": [
+                    "ironKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "ironKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "drawerC2"
+                        },
+                        {
+                          "do": "take",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "drawerOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "drawerC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "candle2",
+                  "rect": [
+                    462,
+                    260,
+                    56,
+                    100
+                  ],
+                  "accepts": [
+                    "litMatch"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It burns, but it doesn’t get any shorter."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "litMatch"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "litMatch"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "candle",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "strike"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A candle. The wick is still warm, as if someone just blew it out."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "rug"
+                },
+                {
+                  "asset": "bookshelf",
+                  "params": {
+                    "glintFlag": "keyUnder"
+                  }
+                },
+                {
+                  "asset": "birdcage",
+                  "params": {
+                    "keyGoneFlag": "cageOpen",
+                    "openFlag": "cageOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "book2",
+                  "rect": [
+                    286,
+                    192,
+                    50,
+                    80
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "bookC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "cage2",
+                  "rect": [
+                    530,
+                    130,
+                    140,
+                    190
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "cageC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "gap2",
+                  "rect": [
+                    146,
+                    452,
+                    268,
+                    30
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "keyUnder"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "underC2"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "curtainedWindow",
+                  "params": {
+                    "litFlag": "candle"
+                  }
+                },
+                {
+                  "asset": "plantPot",
+                  "params": {
+                    "stringGoneFlag": "stringGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "window2",
+                  "rect": [
+                    290,
+                    110,
+                    220,
+                    240
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "windowC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "pot2",
+                  "rect": [
+                    150,
+                    290,
+                    140,
+                    185
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "potC2"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {
+            "clockC2": {
+              "layers": [
+                {
+                  "asset": "clockFaceClose",
+                  "params": {
+                    "puzzle": "clock",
+                    "h": 3,
+                    "m": 45,
+                    "woundFlag": "wound",
+                    "motto": "Haste is for the living"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "clockFace2",
+                  "rect": [
+                    188,
+                    78,
+                    424,
+                    424
+                  ],
+                  "accepts": [
+                    "birdKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "birdKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "wound",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        },
+                        {
+                          "do": "say",
+                          "text": "You wind it. The clock starts ticking, very loudly."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "wound"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Stopped at quarter to four. There are two winding holes, but nothing to wind it with."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "timeSet"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It’s ticking now. The hands can be turned from the winding holes."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Quarter past nine. It keeps ticking, but the hands don’t move on."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "puzzle": "clock"
+            },
+            "portraitC2": {
+              "layers": [
+                {
+                  "id": "portraitFace2",
+                  "asset": "portraitClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "tiltFlag": "wound",
+                    "untiltFlag": "doorOpen",
+                    "missingEyeFlag": "eyeGone",
+                    "plaque": "Eleanor, who waited"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "face2",
+                  "rect": [
+                    230,
+                    50,
+                    340,
+                    480
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "candle"
+                            }
+                          },
+                          {
+                            "op": "flag",
+                            "flag": "wound"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Her head has turned towards the clock. Her eyes are still painted shut."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "candle"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Eleanor. Her eyes are painted shut."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "eyeGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "One empty socket. She doesn’t seem to mind."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Her eyes are open now. One of them catches the light oddly."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "takeEye2",
+                  "rect": [
+                    368,
+                    241,
+                    48,
+                    36
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "eyeGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "glassEye"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "eyeGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Her left eye comes loose with a soft click. It’s glass."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "drawerC2": {
+              "layers": [
+                {
+                  "asset": "drawerClosedClose",
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "drawerOpen"
+                    }
+                  }
+                },
+                {
+                  "asset": "drawerOpenClose",
+                  "params": {
+                    "matchboxGoneFlag": "matchboxGone",
+                    "litFlag": "candle"
+                  },
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "drawerOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "drawerFront2",
+                  "rect": [
+                    150,
+                    180,
+                    500,
+                    220
+                  ],
+                  "accepts": [
+                    "ironKey"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "drawerOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "ironKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "drawerOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Locked. The keyhole is very small."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "photo2",
+                  "rect": [
+                    190,
+                    190,
+                    195,
+                    155
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "drawerOpen"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "photoSeen",
+                          "value": true
+                        },
+                        {
+                          "do": "open",
+                          "view": "photoC2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "matchbox2",
+                  "rect": [
+                    460,
+                    320,
+                    130,
+                    95
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "drawerOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "matchboxGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "matchbox"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "matchboxGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "An empty matchbox. The striking strip is still rough."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "photoC2": {
+              "layers": [
+                {
+                  "asset": "photoClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "caption": "the waiting room"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "photoBig2",
+                  "rect": [
+                    90,
+                    60,
+                    620,
+                    480
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The chair in the photograph is empty now. Someone is standing at the window."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "This room. Someone sits in a chair that isn’t here any more. The clock on the wall says quarter past nine."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookC2": {
+              "layers": [
+                {
+                  "asset": "bookClosedClose",
+                  "params": {
+                    "title": "Pressed Things"
+                  },
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "bookOpen"
+                    }
+                  }
+                },
+                {
+                  "asset": "bookOpenClose",
+                  "params": {
+                    "matchGoneFlag": "matchGone",
+                    "leftCaption": "forget-me-not",
+                    "rightCaption": "for later"
+                  },
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "bookOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "cover2",
+                  "rect": [
+                    250,
+                    90,
+                    300,
+                    420
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "bookOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "bookOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "page"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "match2",
+                  "rect": [
+                    455,
+                    225,
+                    175,
+                    135
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "bookOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "matchGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "match"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "matchGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "A single match, pressed flat between the pages. Someone saved it for later."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "potC2": {
+              "layers": [
+                {
+                  "asset": "potClose",
+                  "params": {
+                    "stringGoneFlag": "stringGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "soil2",
+                  "rect": [
+                    220,
+                    222,
+                    360,
+                    50
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "stringGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "You don’t want to put your hand in there again."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Dry soil. A loop of string pokes out of it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "string2",
+                  "rect": [
+                    300,
+                    190,
+                    90,
+                    70
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "stringGone"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "You pull, but it won’t come. Something deep in the soil is holding on."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "coatC2": {
+              "layers": [
+                {
+                  "asset": "coatClose",
+                  "params": {
+                    "sandFlag": "sand",
+                    "keyGoneFlag": "birdKeyGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "pocket2",
+                  "rect": [
+                    255,
+                    285,
+                    125,
+                    115
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "sand"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "sand",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "sand"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The pocket is empty now. It’s still cold inside."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "windKey2",
+                  "rect": [
+                    240,
+                    505,
+                    130,
+                    70
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "sand"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "birdKeyGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "birdKeyGone",
+                          "value": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "cageC2": {
+              "layers": [
+                {
+                  "asset": "cageClose",
+                  "params": {
+                    "openFlag": "cageOpen",
+                    "keyGoneFlag": "cageOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "cageBody2",
+                  "rect": [
+                    190,
+                    80,
+                    420,
+                    450
+                  ],
+                  "accepts": [
+                    "cutters"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "selected",
+                            "item": "cutters"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "cageOpen"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cageOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyUnder",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "cageOpen"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The cage is open now. Whatever lived here is gone."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A heavy key hangs from the perch, out of reach."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "cageDoor2",
+                  "rect": [
+                    320,
+                    290,
+                    160,
+                    210
+                  ],
+                  "accepts": [
+                    "cutters"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "cageOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "cutters"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cageOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyUnder",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The little door is wired shut. Twisted tight, from the inside."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "underC2": {
+              "layers": [
+                {
+                  "asset": "underShelfClose",
+                  "params": {
+                    "keyGoneFlag": "brassKeyGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "reach2",
+                  "rect": [
+                    300,
+                    330,
+                    240,
+                    180
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "any",
+                        "conds": [
+                          {
+                            "op": "flag",
+                            "flag": "brassKeyGone"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "keyUnder"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Only dust under here."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It’s too far back. Your arm won’t fit under the shelf."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "windowC2": {
+              "layers": [
+                {
+                  "asset": "windowClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "symbols": "bird,key,eye,moon"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "glass2",
+                  "rect": [
+                    80,
+                    40,
+                    640,
+                    480
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Someone has drawn on the glass with a finger. From the outside."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Black glass. You can’t even see your own reflection."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "ambient": [
+            {
+              "sfx": "tick",
+              "everyMs": 1000,
+              "when": {
+                "op": "flag",
+                "flag": "wound"
+              }
+            }
+          ]
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "clock",
+          "kind": "clockSet",
+          "clues": [
+            "photoC2"
+          ],
+          "initial": {
+            "h": 3,
+            "m": 45
+          },
+          "solution": {
+            "h": 9,
+            "m": 15
+          },
+          "minuteStep": 5,
+          "activeWhen": {
+            "op": "flag",
+            "flag": "wound"
+          },
+          "inactiveSay": "Nothing turns. The clock hasn’t been wound.",
+          "onSolve": [
+            {
+              "do": "setFlag",
+              "flag": "timeSet",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "chime"
+            },
+            {
+              "do": "say",
+              "text": "The clock chimes. Below it, the pendulum case clicks open."
+            }
+          ]
+        }
+      ],
+      "beats": [
+        {
+          "id": "b2CoatMoves",
+          "on": {
+            "type": "leave",
+            "view": "room2/e"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "coatMoved",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "b2CoatSeen",
+          "on": {
+            "type": "arrive",
+            "view": "room2/e",
+            "when": {
+              "op": "flag",
+              "flag": "coatMoved"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "The coat is hanging on the other hook now."
+            }
+          ]
+        },
+        {
+          "id": "b2Head",
+          "on": {
+            "type": "arrive",
+            "view": "room2/n",
+            "when": {
+              "op": "flag",
+              "flag": "wound"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "Her head has turned. She’s facing the clock now."
+            }
+          ]
+        },
+        {
+          "id": "b2Candle",
+          "on": {
+            "type": "afterFlag",
+            "flag": "candle"
+          },
+          "once": true,
+          "threat": true,
+          "dogResponse": "standGuard",
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "The wick catches. Behind you, something in the room moves."
+            },
+            {
+              "do": "sound",
+              "sfx": "knock"
+            }
+          ]
+        },
+        {
+          "id": "b2EndCandleLast",
+          "on": {
+            "type": "afterFlag",
+            "flag": "candle",
+            "when": {
+              "op": "flag",
+              "flag": "cuttersGone"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "endChapter"
+            }
+          ]
+        },
+        {
+          "id": "b2EndCuttersLast",
+          "on": {
+            "type": "afterFlag",
+            "flag": "cuttersGone",
+            "when": {
+              "op": "flag",
+              "flag": "candle"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "say",
+              "text": "Everything in the room is waiting now. Even the clock."
+            },
+            {
+              "do": "endChapter"
+            }
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "o2Wind",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "wound"
+          },
+          "hints": [
+            "The clock has stopped.",
+            "The bird-shaped key belongs to the clock.",
+            "Select the winding key, then tap the clock."
+          ],
+          "dogPoints": "room2/n"
+        },
+        {
+          "id": "o2Time",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "timeSet"
+          },
+          "hints": [
+            "The clock wants a particular time.",
+            "{dog} sits by the clock and stares at the drawer. The photograph shows the same clock.",
+            "Quarter past nine. The left hole turns the hours, the right hole the minutes."
+          ],
+          "dogPoints": "room2/n"
+        },
+        {
+          "id": "o2Cutters",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "cuttersGone"
+          },
+          "hints": [
+            "Something opened below the clock.",
+            "{dog} paws at the pendulum case.",
+            "Tap the open pendulum case."
+          ],
+          "dogPoints": "room2/n"
+        },
+        {
+          "id": "o2Match",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "matchGone"
+          },
+          "hints": [
+            "A matchbox is no use without a match.",
+            "{dog} sniffs along the bookshelf and stops at one book.",
+            "Open the red book on the shelf and take the match."
+          ],
+          "dogPoints": "room2/s"
+        },
+        {
+          "id": "o2Strike",
+          "doneWhen": {
+            "op": "any",
+            "conds": [
+              {
+                "op": "has",
+                "item": "litMatch"
+              },
+              {
+                "op": "flag",
+                "flag": "candle"
+              }
+            ]
+          },
+          "hints": [
+            "Two things you’re carrying belong together.",
+            "The match and the matchbox.",
+            "Tap one of them, then tap the other."
+          ],
+          "dogPoints": "room2/e"
+        },
+        {
+          "id": "o2Candle",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "candle"
+          },
+          "hints": [
+            "It’s very dark in here.",
+            "{dog} sits by the candle on the desk.",
+            "Select the lit match, then tap the candle."
+          ],
+          "dogPoints": "room2/e"
+        }
+      ],
+      "dogMoments": [
+        {
+          "id": "m2Book",
+          "role": "sniff",
+          "at": "book2",
+          "do": [
+            {
+              "do": "dog",
+              "act": "sniff"
+            },
+            {
+              "do": "say",
+              "text": "{dog} sniffs along the shelf and stops at the red book. It smells of old flowers."
+            }
+          ]
+        },
+        {
+          "id": "m2Case",
+          "role": "guard",
+          "at": "case2",
+          "when": {
+            "op": "flag",
+            "flag": "wound"
+          },
+          "do": [
+            {
+              "do": "dog",
+              "act": "standGuard"
+            },
+            {
+              "do": "say",
+              "text": "{dog} stands by the clock, very still, listening to it tick."
+            }
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "all",
+        "conds": [
+          {
+            "op": "flag",
+            "flag": "candle"
+          },
+          {
+            "op": "flag",
+            "flag": "cuttersGone"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ch3",
+      "intro": "The candle burns without getting any shorter. Now you can see what the dark was hiding.",
+      "start": {
+        "room": "room3",
+        "wall": "e"
+      },
+      "rooms": [
+        {
+          "id": "room3",
+          "walls": {
+            "n": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "portrait",
+                  "params": {
+                    "litFlag": "candle",
+                    "tiltFlag": "wound",
+                    "untiltFlag": "doorOpen",
+                    "missingEyeFlag": "eyeGone"
+                  }
+                },
+                {
+                  "asset": "door",
+                  "params": {
+                    "litFlag": "candle",
+                    "keyFlag": "keyIn",
+                    "openFlag": "doorOpen",
+                    "feetFlag": "feet",
+                    "feetGoneFlag": "feetGone"
+                  }
+                },
+                {
+                  "asset": "caseClock",
+                  "params": {
+                    "puzzle": "clock",
+                    "h": 3,
+                    "m": 45,
+                    "woundFlag": "wound",
+                    "caseOpenFlag": "timeSet",
+                    "cuttersGoneFlag": "cuttersGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "portrait3",
+                  "rect": [
+                    100,
+                    120,
+                    160,
+                    200
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "portraitC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "door3",
+                  "rect": [
+                    322,
+                    142,
+                    190,
+                    312
+                  ],
+                  "accepts": [
+                    "brassKey",
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "unlocked"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The door is open a crack. It’s very dark out there. You don’t want to go first."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "brassKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "lock3"
+                        },
+                        {
+                          "do": "take",
+                          "item": "brassKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyIn",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "lock3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "clock3",
+                  "rect": [
+                    575,
+                    150,
+                    90,
+                    96
+                  ],
+                  "accepts": [
+                    "birdKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "birdKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "clockC3"
+                        },
+                        {
+                          "do": "take",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "wound",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        },
+                        {
+                          "do": "say",
+                          "text": "You wind it. The clock starts ticking, very loudly."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "clockC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "case3",
+                  "rect": [
+                    588,
+                    246,
+                    66,
+                    140
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "flag",
+                            "flag": "timeSet"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "cuttersGone"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cuttersGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Tiny clockmaker’s cutters, hidden behind the pendulum."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "cuttersGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Just the pendulum now, swinging."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The pendulum case is shut tight. There’s no keyhole, only a tiny catch inside."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "e": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "coatOnHook",
+                  "params": {
+                    "movedFlag": "coatMoved",
+                    "sandFlag": "sand"
+                  }
+                },
+                {
+                  "asset": "desk",
+                  "params": {
+                    "drawerOpenFlag": "drawerOpen"
+                  }
+                },
+                {
+                  "asset": "note"
+                },
+                {
+                  "asset": "candle",
+                  "params": {
+                    "litFlag": "candle"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 490,
+                    "cy": 300
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "coat3",
+                  "rect": [
+                    95,
+                    150,
+                    115,
+                    280
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "coatMoved"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "coatC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "coatMoved3",
+                  "rect": [
+                    615,
+                    150,
+                    115,
+                    280
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "coatMoved"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "coatC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "note3",
+                  "rect": [
+                    262,
+                    326,
+                    90,
+                    34
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "“If you’re reading this, the candle has gone out again. Don’t trust the window.”"
+                        },
+                        {
+                          "do": "say",
+                          "text": "“Whatever is written on the glass was written from the outside.”"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "drawer3",
+                  "rect": [
+                    330,
+                    370,
+                    140,
+                    62
+                  ],
+                  "accepts": [
+                    "ironKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "ironKey"
+                      },
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "drawerC3"
+                        },
+                        {
+                          "do": "take",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "drawerOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "drawerC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "candle3",
+                  "rect": [
+                    462,
+                    260,
+                    56,
+                    100
+                  ],
+                  "accepts": [
+                    "litMatch"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It burns, but it doesn’t get any shorter."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "litMatch"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "litMatch"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "candle",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "strike"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A candle. The wick is still warm, as if someone just blew it out."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "s": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "rug"
+                },
+                {
+                  "asset": "bookshelf",
+                  "params": {
+                    "glintFlag": "keyUnder"
+                  }
+                },
+                {
+                  "asset": "birdcage",
+                  "params": {
+                    "keyGoneFlag": "cageOpen",
+                    "openFlag": "cageOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "book3",
+                  "rect": [
+                    286,
+                    192,
+                    50,
+                    80
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "bookC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "cage3",
+                  "rect": [
+                    530,
+                    130,
+                    140,
+                    190
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "cageC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "gap3",
+                  "rect": [
+                    146,
+                    452,
+                    268,
+                    30
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "keyUnder"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "underC3"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "w": {
+              "layers": [
+                {
+                  "asset": "roomShell"
+                },
+                {
+                  "asset": "curtainedWindow",
+                  "params": {
+                    "litFlag": "candle"
+                  }
+                },
+                {
+                  "asset": "plantPot",
+                  "params": {
+                    "stringGoneFlag": "stringGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "window3",
+                  "rect": [
+                    290,
+                    110,
+                    220,
+                    240
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "windowC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "pot3",
+                  "rect": [
+                    150,
+                    290,
+                    140,
+                    185
+                  ],
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "open",
+                          "view": "potC3"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "closeUps": {
+            "clockC3": {
+              "layers": [
+                {
+                  "asset": "clockFaceClose",
+                  "params": {
+                    "puzzle": "clock",
+                    "h": 3,
+                    "m": 45,
+                    "woundFlag": "wound",
+                    "motto": "Haste is for the living"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "clockFace3",
+                  "rect": [
+                    188,
+                    78,
+                    424,
+                    424
+                  ],
+                  "accepts": [
+                    "birdKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "birdKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "wound",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        },
+                        {
+                          "do": "say",
+                          "text": "You wind it. The clock starts ticking, very loudly."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "wound"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Stopped at quarter to four. There are two winding holes, but nothing to wind it with."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "timeSet"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It’s ticking now. The hands can be turned from the winding holes."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Quarter past nine. It keeps ticking, but the hands don’t move on."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "portraitC3": {
+              "layers": [
+                {
+                  "id": "portraitFace3",
+                  "asset": "portraitClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "tiltFlag": "wound",
+                    "untiltFlag": "doorOpen",
+                    "missingEyeFlag": "eyeGone",
+                    "plaque": "Eleanor, who waited"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "face3",
+                  "rect": [
+                    230,
+                    50,
+                    340,
+                    480
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "candle"
+                            }
+                          },
+                          {
+                            "op": "flag",
+                            "flag": "wound"
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Her head has turned towards the clock. Her eyes are still painted shut."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "candle"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Eleanor. Her eyes are painted shut."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "eyeGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "One empty socket. She doesn’t seem to mind."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Her eyes are open now. One of them catches the light oddly."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "takeEye3",
+                  "rect": [
+                    368,
+                    241,
+                    48,
+                    36
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "eyeGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "glassEye"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "eyeGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "Her left eye comes loose with a soft click. It’s glass."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "drawerC3": {
+              "layers": [
+                {
+                  "asset": "drawerClosedClose",
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "drawerOpen"
+                    }
+                  }
+                },
+                {
+                  "asset": "drawerOpenClose",
+                  "params": {
+                    "matchboxGoneFlag": "matchboxGone",
+                    "litFlag": "candle"
+                  },
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "drawerOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "drawerFront3",
+                  "rect": [
+                    150,
+                    180,
+                    500,
+                    220
+                  ],
+                  "accepts": [
+                    "ironKey"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "drawerOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "ironKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "ironKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "drawerOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Locked. The keyhole is very small."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "photo3",
+                  "rect": [
+                    190,
+                    190,
+                    195,
+                    155
+                  ],
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "drawerOpen"
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "photoSeen",
+                          "value": true
+                        },
+                        {
+                          "do": "open",
+                          "view": "photoC3"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "matchbox3",
+                  "rect": [
+                    460,
+                    320,
+                    130,
+                    95
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "drawerOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "matchboxGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "matchbox"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "matchboxGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "An empty matchbox. The striking strip is still rough."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "photoC3": {
+              "layers": [
+                {
+                  "asset": "photoClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "caption": "the waiting room"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "photoBig3",
+                  "rect": [
+                    90,
+                    60,
+                    620,
+                    480
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The chair in the photograph is empty now. Someone is standing at the window."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "This room. Someone sits in a chair that isn’t here any more. The clock on the wall says quarter past nine."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "bookC3": {
+              "layers": [
+                {
+                  "asset": "bookClosedClose",
+                  "params": {
+                    "title": "Pressed Things"
+                  },
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "bookOpen"
+                    }
+                  }
+                },
+                {
+                  "asset": "bookOpenClose",
+                  "params": {
+                    "matchGoneFlag": "matchGone",
+                    "leftCaption": "forget-me-not",
+                    "rightCaption": "for later"
+                  },
+                  "visibleWhen": {
+                    "op": "flag",
+                    "flag": "bookOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "cover3",
+                  "rect": [
+                    250,
+                    90,
+                    300,
+                    420
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "bookOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "bookOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "page"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "match3",
+                  "rect": [
+                    455,
+                    225,
+                    175,
+                    135
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "bookOpen"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "matchGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "match"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "matchGone",
+                          "value": true
+                        },
+                        {
+                          "do": "say",
+                          "text": "A single match, pressed flat between the pages. Someone saved it for later."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "potC3": {
+              "layers": [
+                {
+                  "asset": "potClose",
+                  "params": {
+                    "stringGoneFlag": "stringGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "soil3",
+                  "rect": [
+                    220,
+                    222,
+                    360,
+                    50
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "stringGone"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "You don’t want to put your hand in there again."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Dry soil. A loop of string pokes out of it."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "string3",
+                  "rect": [
+                    300,
+                    190,
+                    90,
+                    70
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "stringGone"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "You pull, but it won’t come. Something deep in the soil is holding on."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "coatC3": {
+              "layers": [
+                {
+                  "asset": "coatClose",
+                  "params": {
+                    "sandFlag": "sand",
+                    "keyGoneFlag": "birdKeyGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "pocket3",
+                  "rect": [
+                    255,
+                    285,
+                    125,
+                    115
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "sand"
+                        }
+                      },
+                      "do": [
+                        {
+                          "do": "setFlag",
+                          "flag": "sand",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "sand"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The pocket is empty now. It’s still cold inside."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "windKey3",
+                  "rect": [
+                    240,
+                    505,
+                    130,
+                    70
+                  ],
+                  "visibleWhen": {
+                    "op": "all",
+                    "conds": [
+                      {
+                        "op": "flag",
+                        "flag": "sand"
+                      },
+                      {
+                        "op": "not",
+                        "cond": {
+                          "op": "flag",
+                          "flag": "birdKeyGone"
+                        }
+                      }
+                    ]
+                  },
+                  "rules": [
+                    {
+                      "do": [
+                        {
+                          "do": "give",
+                          "item": "birdKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "birdKeyGone",
+                          "value": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "cageC3": {
+              "layers": [
+                {
+                  "asset": "cageClose",
+                  "params": {
+                    "openFlag": "cageOpen",
+                    "keyGoneFlag": "cageOpen"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "cageBody3",
+                  "rect": [
+                    190,
+                    80,
+                    420,
+                    450
+                  ],
+                  "accepts": [
+                    "cutters"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "all",
+                        "conds": [
+                          {
+                            "op": "selected",
+                            "item": "cutters"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "cageOpen"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cageOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyUnder",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "cageOpen"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The cage is open now. Whatever lived here is gone."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A heavy key hangs from the perch, out of reach."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "cageDoor3",
+                  "rect": [
+                    320,
+                    290,
+                    160,
+                    210
+                  ],
+                  "accepts": [
+                    "cutters"
+                  ],
+                  "visibleWhen": {
+                    "op": "not",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "cageOpen"
+                    }
+                  },
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "cutters"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "cutters"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "cageOpen",
+                          "value": true
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyUnder",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "click"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The little door is wired shut. Twisted tight, from the inside."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "underC3": {
+              "layers": [
+                {
+                  "asset": "underShelfClose",
+                  "params": {
+                    "keyGoneFlag": "brassKeyGone"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "reach3",
+                  "rect": [
+                    300,
+                    330,
+                    240,
+                    180
+                  ],
+                  "accepts": [
+                    "dog"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "any",
+                        "conds": [
+                          {
+                            "op": "flag",
+                            "flag": "brassKeyGone"
+                          },
+                          {
+                            "op": "not",
+                            "cond": {
+                              "op": "flag",
+                              "flag": "keyUnder"
+                            }
+                          }
+                        ]
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Only dust under here."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "It’s too far back. Your arm won’t fit under the shelf."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "windowC3": {
+              "layers": [
+                {
+                  "asset": "windowClose",
+                  "params": {
+                    "litFlag": "candle",
+                    "symbols": "bird,key,eye,moon"
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "glass3",
+                  "rect": [
+                    80,
+                    40,
+                    640,
+                    480
+                  ],
+                  "looksLikeClue": true,
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "candle"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Someone has drawn on the glass with a finger. From the outside."
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "Black glass. You can’t even see your own reflection."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "lock3": {
+              "layers": [
+                {
+                  "asset": "lockPlateClose",
+                  "params": {
+                    "keyFlag": "keyIn",
+                    "inscription": "Four, in the right order."
+                  }
+                },
+                {
+                  "asset": "lighting",
+                  "params": {
+                    "litFlag": "candle",
+                    "cx": 400,
+                    "cy": 270
+                  }
+                }
+              ],
+              "hotspots": [
+                {
+                  "id": "keyhole3",
+                  "rect": [
+                    360,
+                    355,
+                    80,
+                    110
+                  ],
+                  "accepts": [
+                    "brassKey"
+                  ],
+                  "rules": [
+                    {
+                      "when": {
+                        "op": "flag",
+                        "flag": "keyIn"
+                      },
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "The key is in. It won’t turn until the dials are right."
+                        }
+                      ]
+                    },
+                    {
+                      "when": {
+                        "op": "selected",
+                        "item": "brassKey"
+                      },
+                      "do": [
+                        {
+                          "do": "take",
+                          "item": "brassKey"
+                        },
+                        {
+                          "do": "setFlag",
+                          "flag": "keyIn",
+                          "value": true
+                        },
+                        {
+                          "do": "sound",
+                          "sfx": "unlock"
+                        }
+                      ]
+                    },
+                    {
+                      "do": [
+                        {
+                          "do": "say",
+                          "text": "A big, old keyhole under the dials."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "puzzle": "dials"
+            }
+          },
+          "ambient": [
+            {
+              "sfx": "tick",
+              "everyMs": 1000,
+              "when": {
+                "op": "flag",
+                "flag": "wound"
+              }
+            }
+          ]
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "dials",
+          "kind": "dialLock",
+          "clues": [
+            "windowC3",
+            "room3/e"
+          ],
+          "symbols": [
+            "moon",
+            "eye",
+            "key",
+            "bird",
+            "sun",
+            "star"
+          ],
+          "initial": [
+            "star",
+            "sun",
+            "star",
+            "sun"
+          ],
+          "solution": [
+            "moon",
+            "eye",
+            "key",
+            "bird"
+          ],
+          "onSolve": [
+            {
+              "do": "setFlag",
+              "flag": "dialsRight",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "click"
+            }
+          ]
+        }
+      ],
+      "beats": [
+        {
+          "id": "b3Feet",
+          "on": {
+            "type": "arrive",
+            "view": "room3/n",
+            "when": {
+              "op": "all",
+              "conds": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "doorOpen"
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "feet"
+                  }
+                }
+              ]
+            }
+          },
+          "once": true,
+          "threat": true,
+          "dogResponse": "standGuard",
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "feet",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "steps"
+            },
+            {
+              "do": "say",
+              "text": "Shadows under the door. Someone is standing just outside."
+            }
+          ]
+        },
+        {
+          "id": "b3FeetGo",
+          "on": {
+            "type": "leave",
+            "view": "room3/n",
+            "when": {
+              "op": "flag",
+              "flag": "feet"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "feetGone",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "b3FeetGone",
+          "on": {
+            "type": "arrive",
+            "view": "room3/n",
+            "when": {
+              "op": "flag",
+              "flag": "feetGone"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "say",
+              "text": "The shadows have gone. {dog} gives one short, proud wag."
+            }
+          ]
+        },
+        {
+          "id": "b3Whisper",
+          "on": {
+            "type": "arrive",
+            "view": "room3/w"
+          },
+          "once": true,
+          "threat": true,
+          "dogResponse": "standGuard",
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "whisper"
+            },
+            {
+              "do": "say",
+              "text": "Whispering, close to the window. It stops when {dog} growls."
+            }
+          ]
+        },
+        {
+          "id": "b3Music",
+          "on": {
+            "type": "arrive",
+            "view": "room3/s"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "musicbox"
+            }
+          ]
+        },
+        {
+          "id": "b3WindowSeen",
+          "on": {
+            "type": "arrive",
+            "view": "windowC3"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "windowSeen",
+              "value": true
+            },
+            {
+              "do": "sound",
+              "sfx": "eerie"
+            }
+          ]
+        },
+        {
+          "id": "b3TurnAround",
+          "on": {
+            "type": "leave",
+            "view": "windowC3"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "You turn around quickly. Nobody there. {dog} is still beside you."
+            }
+          ]
+        },
+        {
+          "id": "b3Cage",
+          "on": {
+            "type": "afterFlag",
+            "flag": "cageOpen"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "sting"
+            },
+            {
+              "do": "say",
+              "text": "The wire snaps. The key drops, bounces and skitters under the bookshelf."
+            }
+          ]
+        },
+        {
+          "id": "b3KeyNoDials",
+          "on": {
+            "type": "afterFlag",
+            "flag": "keyIn",
+            "when": {
+              "op": "not",
+              "cond": {
+                "op": "flag",
+                "flag": "dialsRight"
+              }
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "say",
+              "text": "The key goes in, but it won’t turn. The dials aren’t right yet."
+            }
+          ]
+        },
+        {
+          "id": "b3DialsNoKey",
+          "on": {
+            "type": "afterFlag",
+            "flag": "dialsRight",
+            "when": {
+              "op": "not",
+              "cond": {
+                "op": "flag",
+                "flag": "keyIn"
+              }
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "say",
+              "text": "The dials settle into place, but the door is still locked."
+            }
+          ]
+        },
+        {
+          "id": "b3KeyLast",
+          "on": {
+            "type": "afterFlag",
+            "flag": "keyIn",
+            "when": {
+              "op": "flag",
+              "flag": "dialsRight"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "unlocked",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "b3DialsLast",
+          "on": {
+            "type": "afterFlag",
+            "flag": "dialsRight",
+            "when": {
+              "op": "flag",
+              "flag": "keyIn"
+            }
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "setFlag",
+              "flag": "unlocked",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "b3Unlocked",
+          "on": {
+            "type": "afterFlag",
+            "flag": "unlocked"
+          },
+          "once": true,
+          "do": [
+            {
+              "do": "sound",
+              "sfx": "unlock"
+            },
+            {
+              "do": "say",
+              "text": "The key turns. The door opens a crack onto the dark. {dog}’s ears go up."
+            }
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "o3Cage",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "cageOpen"
+          },
+          "hints": [
+            "Something is hanging inside the birdcage.",
+            "The cage door is wired shut.",
+            "Select the cutters, then tap the cage door."
+          ],
+          "dogPoints": "room3/s"
+        },
+        {
+          "id": "o3Fetch",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "brassKeyGone"
+          },
+          "hints": [
+            "The key went under the bookshelf.",
+            "{dog} lies flat and stares into the gap under the shelf.",
+            "Tap {dog}, then tap the gap under the shelf. {dog} can squeeze in."
+          ],
+          "dogPoints": "room3/s"
+        },
+        {
+          "id": "o3Keyhole",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "keyIn"
+          },
+          "hints": [
+            "The door has a keyhole as well as dials.",
+            "The heavy brass key.",
+            "Select the brass key, then tap the door."
+          ],
+          "dogPoints": "room3/n"
+        },
+        {
+          "id": "o3Window",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "windowSeen"
+          },
+          "hints": [
+            "Light makes reflections.",
+            "{dog} sits by the window and looks at the glass.",
+            "Look closely at the window now that the candle is lit."
+          ],
+          "dogPoints": "room3/w"
+        },
+        {
+          "id": "o3Dials",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "dialsRight"
+          },
+          "hints": [
+            "The dials want four symbols.",
+            "Read the note on the desk, then look at the window again.",
+            "Moon, eye, key, bird."
+          ],
+          "dogPoints": "room3/n"
+        },
+        {
+          "id": "o3Out",
+          "doneWhen": {
+            "op": "flag",
+            "flag": "doorOpen"
+          },
+          "hints": [
+            "The door is open a crack, but it’s dark out there.",
+            "{dog} stands by the door, tail going.",
+            "Tap {dog}, then tap the door. {dog} will go first."
+          ],
+          "dogPoints": "room3/n"
+        }
+      ],
+      "dogMoments": [
+        {
+          "id": "m3Fetch",
+          "role": "fetch",
+          "at": "reach3",
+          "when": {
+            "op": "all",
+            "conds": [
+              {
+                "op": "flag",
+                "flag": "keyUnder"
+              },
+              {
+                "op": "not",
+                "cond": {
+                  "op": "flag",
+                  "flag": "brassKeyGone"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "do": "dog",
+              "act": "fetch"
+            },
+            {
+              "do": "give",
+              "item": "brassKey"
+            },
+            {
+              "do": "setFlag",
+              "flag": "brassKeyGone",
+              "value": true
+            },
+            {
+              "do": "say",
+              "text": "{dog} squeezes flat under the shelf and comes back with the heavy brass key."
+            }
+          ]
+        },
+        {
+          "id": "m3Hero",
+          "role": "hero",
+          "at": "door3",
+          "when": {
+            "op": "flag",
+            "flag": "unlocked"
+          },
+          "do": [
+            {
+              "do": "dog",
+              "act": "trot"
+            },
+            {
+              "do": "setFlag",
+              "flag": "doorOpen",
+              "value": true
+            },
+            {
+              "do": "say",
+              "text": "{dog} noses the door wide and trots out into the dark. A happy bark comes back: it’s safe."
+            },
+            {
+              "do": "endChapter"
+            }
+          ]
+        }
+      ],
+      "exitWhen": {
+        "op": "flag",
+        "flag": "doorOpen"
+      }
+    }
+  ],
+  "secrets": [
+    {
+      "id": "sEye",
+      "foundWhen": {
+        "op": "has",
+        "item": "glassEye"
+      },
+      "tell": {
+        "view": "portraitC3",
+        "layer": "portraitFace3"
+      }
+    }
+  ],
+  "endings": [
+    {
+      "id": "endEye",
+      "when": {
+        "op": "has",
+        "item": "glassEye"
+      },
+      "text": "Behind you, the clock strikes quarter past nine again. In your pocket, the glass eye has gone warm. {dog} led you out."
+    },
+    {
+      "id": "endOut",
+      "text": "Behind you, the clock strikes quarter past nine again. Someone is still watching, but {dog} led you out."
+    }
+  ]
+}

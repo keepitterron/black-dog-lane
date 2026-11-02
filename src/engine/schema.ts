@@ -75,6 +75,8 @@ export const Hotspot = v.strictObject({
   rect: v.tuple([v.number(), v.number(), v.number(), v.number()]),
   accepts: v.optional(v.array(Id)),
   looksLikeClue: v.optional(v.boolean()),
+  // Absent (not drawn, not tappable) while this is false.
+  visibleWhen: v.optional(Cond),
   rules: v.array(Rule),
 })
 export type Hotspot = v.InferOutput<typeof Hotspot>
@@ -97,12 +99,21 @@ const Room = v.strictObject({
   id: Id,
   walls: v.strictObject({ n: View, e: View, s: View, w: View }),
   closeUps: v.record(Id, View),
+  // Looping background sounds, e.g. a clock ticking once it has been wound.
+  ambient: v.optional(v.array(v.strictObject({ sfx: v.picklist(SFX), everyMs: Int(200, 60000), when: v.optional(Cond) }))),
 })
 export type Room = v.InferOutput<typeof Room>
 
 // Puzzle widgets are a closed library; each declares its solution so the solver can check it.
 // `clues` lists the views whose contents are needed to work out the answer.
-const puzzleBase = { id: Id, clues: v.array(ViewId), onSolve: Effects }
+// `activeWhen` gates input (a clock that must be wound first); `inactiveSay` explains why.
+const puzzleBase = {
+  id: Id,
+  clues: v.array(ViewId),
+  activeWhen: v.optional(Cond),
+  inactiveSay: v.optional(Message),
+  onSolve: Effects,
+}
 const Bits = v.pipe(v.string(), v.regex(/^[01]+$/))
 const Time = v.strictObject({ h: Int(0, 11), m: Int(0, 59) })
 
@@ -155,7 +166,7 @@ export type Puzzle = v.InferOutput<typeof Puzzle>
 
 const Trigger = v.variant('type', [
   // Right after this flag changes value, in view.
-  v.strictObject({ type: v.literal('afterFlag'), flag: FlagName }),
+  v.strictObject({ type: v.literal('afterFlag'), flag: FlagName, when: v.optional(Cond) }),
   // On arriving at a view while `when` holds.
   v.strictObject({ type: v.literal('arrive'), view: ViewId, when: v.optional(Cond) }),
   // On leaving a view while `when` holds; the change is seen on return.

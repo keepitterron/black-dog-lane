@@ -1,0 +1,189 @@
+@layer components {
+  /* Portrait: the 4:3 scene full width, the inventory and HUD below it.
+     Landscape: HUD on top, the scene fills the height with the inventory down the side. */
+  .shell {
+    container: game / size;
+    block-size: 100dvh;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: center;
+    padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+    overflow: hidden;
+  }
+
+  @media (min-aspect-ratio: 5 / 4) {
+    .shell {
+      flex-direction: column;
+      justify-content: stretch;
+    }
+
+    .play {
+      flex: 1;
+    }
+  }
+
+  .hud {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    min-inline-size: 0;
+  }
+
+  .title {
+    flex: 1;
+    min-inline-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 16px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .pill {
+    min-block-size: var(--tap-min);
+    min-inline-size: var(--tap-min);
+    padding: 0 12px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 15px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .play {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  @container game (min-aspect-ratio: 5 / 4) {
+    .play {
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding-inline: 8px;
+
+      & > :first-child {
+        block-size: 100%;
+        inline-size: auto;
+        max-inline-size: calc(100% - 90px);
+      }
+
+      & > :last-child {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        overflow-y: auto;
+        max-block-size: 100%;
+      }
+    }
+  }
+
+  @container game (max-width: 420px) {
+    .title {
+      display: none;
+    }
+
+    .pill {
+      padding: 0 10px;
+      font-size: 14px;
+    }
+  }
+
+  .dog {
+    position: absolute;
+    inset-inline-start: 1%;
+    inset-block-end: 0;
+    inline-size: 22%;
+    pointer-events: none;
+
+    &[data-closeup] {
+      inline-size: 26%;
+    }
+
+    & svg {
+      display: block;
+      inline-size: 100%;
+      overflow: visible;
+    }
+  }
+
+  .card {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: calc(24px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
+    background: var(--bg);
+    text-align: center;
+    animation: card-in 400ms ease-out;
+
+    & h1 {
+      font-weight: 400;
+      font-size: clamp(36px, 9vw, 72px);
+      line-height: 1.05;
+    }
+
+    & h2 {
+      font-weight: 400;
+      font-style: italic;
+      font-size: 20px;
+      color: var(--amber);
+      margin-block: 10px 4px;
+    }
+
+    & p {
+      color: var(--ink-dim);
+      font-style: italic;
+      font-size: 19px;
+      line-height: 1.55;
+      max-inline-size: 34ch;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .small {
+    font-size: 15px;
+    font-style: normal;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .big {
+    margin-top: 16px;
+    min-block-size: var(--tap-min);
+    padding: 0 26px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+}

@@ -36,6 +36,12 @@ export function installAudioUnlock(): void {
   for (const type of ['pointerdown', 'keydown'] as const) addEventListener(type, unlockAudio, { capture: true, passive: true })
 }
 
+// Runs `run` once audio is running (straight away, or as soon as the context resumes).
+export function onAudioReady(run: () => void): void {
+  if (audio?.ctx.state === 'running') return run()
+  void audio?.ctx.resume().then(run, () => undefined)
+}
+
 export function getAudio(): Audio | null {
   return audio?.ctx.state === 'running' ? audio : null
 }

@@ -213,3 +213,30 @@ test('step never mutates the state it is given', () => {
   step(level, before, { type: 'turn', dir: 'right' })
   expect(before).toEqual(frozen)
 })
+
+describe('conditional pieces', () => {
+  test('a hotspot is absent while its visibleWhen is false', () => {
+    const level = baseLevel()
+    addHotspot(level, 'c1r/n', { id: 'eye', visibleWhen: { op: 'flag', flag: 'lit' }, rules: [{ do: [{ do: 'give', item: 'a' }] }] })
+    const hidden = play(level, [{ type: 'tapHotspot', id: 'eye' }])
+    expect(hidden.events).toEqual([{ type: 'error', code: 'UNKNOWN_HOTSPOT', ids: ['eye'] }])
+    const shown = play(level, [{ type: 'tapHotspot', id: 'eye' }], { ...newGame(level), flags: { lit: true } })
+    expect(shown.state.inventory).toEqual(['a'])
+  })
+
+  test('an afterFlag beat with a condition waits until both hold, whichever flag comes last', () => {
+    const level = baseLevel()
+    addHotspot(level, 'c1r/n', { id: 'k', rules: [{ do: [{ do: 'setFlag', flag: 'keyIn', value: true }] }] })
+    addHotspot(level, 'c1r/n', { id: 'd', rules: [{ do: [{ do: 'setFlag', flag: 'dials', value: true }] }] })
+    level.chapters[0].beats.push(
+      { id: 'viaKey', on: { type: 'afterFlag', flag: 'keyIn', when: { op: 'flag', flag: 'dials' } }, once: true, do: [{ do: 'beat', id: 'opens' }] },
+      { id: 'viaDials', on: { type: 'afterFlag', flag: 'dials', when: { op: 'flag', flag: 'keyIn' } }, once: true, do: [{ do: 'beat', id: 'opens' }] },
+      { id: 'opens', on: { type: 'arrive', view: 'c1r/w' }, once: true, do: [{ do: 'say', text: 'Open.' }] },
+    )
+    for (const order of [['k', 'd'], ['d', 'k']]) {
+      const { said, state } = play(level, order.map(id => ({ type: 'tapHotspot', id })))
+      expect(said).toEqual(['Open.'])
+      expect(state.fired).toContain('opens')
+    }
+  })
+})

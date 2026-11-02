@@ -292,6 +292,6 @@ Work in this order; each milestone ends green in CI and deployed, and the develo
 
 ## Open questions
 
-- [ ] The dog's name: Spartacus, or a name she picks for the game?
+- [x] The dog's name: Pino.
 - [ ] Which phone and browser (iOS Safari or Android Chrome)? It decides which install and audio quirks to test first.
 - [ ] Budget ceiling per generated level, once the first cost reports are in.

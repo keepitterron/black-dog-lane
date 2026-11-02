@@ -40,3 +40,25 @@
     outline-offset: 2px;
   }
 }
+
+@layer base {
+  /* Candlelight flicker used by scene art. */
+  .flicker {
+    animation: flicker 3.2s infinite;
+  }
+
+  @keyframes flicker {
+    0% { opacity: 1; }
+    35% { opacity: 0.86; }
+    50% { opacity: 0.97; }
+    68% { opacity: 0.82; }
+    80% { opacity: 0.95; }
+    100% { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flicker {
+      animation: none;
+    }
+  }
+}
