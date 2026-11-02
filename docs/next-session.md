@@ -4,7 +4,7 @@ A handoff for a fresh Claude Code session picking up Black Dog Lane after Milest
 
 ## Where things stand (2 Nov 2026)
 
-Milestones 1 to 4.1 are merged to `main` and deployed to GitHub Pages; the developer has the PWA installed on their phone.
+Milestones 1 to 5 are merged to `main` and deployed to GitHub Pages; the developer has the PWA installed on their phone.
 
 | Milestone | PR | State |
 | --- | --- | --- |
@@ -13,9 +13,10 @@ Milestones 1 to 4.1 are merged to `main` and deployed to GitHub Pages; the devel
 | 3 The dog | #5 | merged, then removed in 4.1 |
 | 4 Waiting Room as level data, scene, game screen, minimal solver | #6 | merged |
 | 4.1 Dog removed, prototype puzzles restored | #7 | merged |
-| 5 Solver and validator | — | on branch `m5-validator` |
+| 5 Solver and validator | #9 | merged |
+| 6 Multi-room, level picker, chapter outros | — | on branch `m6-multi-room` |
 
-What works today: the title screen (original dog silhouette logo, Continue / Start over), and The Waiting Room playing from `levels/test/waiting-room.json` with the prototype's look, sound and puzzles, split into three chapters in one room. Saves, hints, chapter cards, the ending card, portrait and landscape layouts and offline install all work. 80 tests pass, and lint (which is also the type check) is clean.
+What works today: the title screen (original dog silhouette logo) listing every level with its own Continue / Start over, The Waiting Room playing from `levels/test/waiting-room.json` with the prototype's look, sound and puzzles, split into three chapters in one room, and Two Rooms, a dull fixture with doors between rooms and keys carried between chapters. Saves, hints, chapter cards, the ending card, portrait and landscape layouts and offline install all work. 137 tests pass, and lint (which is also the type check) is clean.
 
 Open housekeeping:
 
@@ -74,8 +75,8 @@ Open housekeeping:
 
 1. If a beat ends a chapter, later `afterFlag` beats from that same step don't fire, because the chapter has already changed. The validator reports this as `BEAT_LOST`.
 2. Only the dial lock and clock have UI widgets. Sequence, slider, pattern and trail need widgets before a level can use them (M7 at the latest, before M8).
-3. There's no level picker yet. `App.tsx` hard-codes the Waiting Room (M6).
-4. The spec says multi-room exists, but the Waiting Room is a single room. `goto` works in the engine and is tested, but no fixture uses doors (M6).
+3. ~~No level picker~~ (done in M6).
+4. ~~No fixture uses doors~~ (done in M6: `two-rooms.json`). The solver models rooms only through doors that would open in a state; a door that needs an item *selected* (rather than a flag) doesn't count as open, so levels should open doors with a flag.
 5. The `palette` field isn't used; colours are hard-coded in the assets (M7).
 6. The landscape layout works but hasn't been tuned on a real device.
 7. `Game.tsx` plays hint text as `Hint N of 3: …`. Fine, but the developer hasn't commented on the wording.
@@ -95,7 +96,14 @@ Open housekeeping:
 - Sliders are solved with A* after a parity check, and `cross` patterns over GF(2).
 - The Waiting Room validates in about 1.3 s (2,270 states), and `strict.json` in about 0.4 s.
 
-### M6: Three chapters, multi-room, level picker
+### M6: Three chapters, multi-room, level picker (done)
+
+- `two-rooms.json` passes the `play` profile: two rooms per chapter, ungated doors both ways, a key from each chapter used in the next, outros on chapters 1 and 2. New positionable assets `doorway` and `frame` (a framed panel, optionally showing a code symbol).
+- `chapter.outro` (optional, ≤140 chars) shows on the card between chapters. The `play` profile requires it on chapters 1 and 2 (`NO_PAYOFF`).
+- The solver acts only in rooms reachable through doors whose rule would fire; `ONE_WAY_DOOR` and `ROOM_UNREACHABLE` keep that honest.
+- The picker lists real levels, then the Waiting Room and Two Rooms; `basic` and `strict` only in dev. Shown fixtures and raw `.level` imports land in the main JS chunk, which the precache plugin lists.
+
+Original plan:
 
 Goal: a three-chapter test fixture with doors between rooms validates and plays, inventory carries over, and a level picker lists levels.
 

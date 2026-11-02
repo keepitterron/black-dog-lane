@@ -2,7 +2,7 @@
 // exactly one validator rule. tests/validate.test.ts checks each file reports only its code.
 // Run `npm run fixtures` after editing.
 import type { CHECK_CODES } from '../../src/solver/validate.ts'
-import type { Chapter, Cond, Hotspot, Level } from '../../src/engine/schema.ts'
+import type { Chapter, Cond, Hotspot, Level, Room } from '../../src/engine/schema.ts'
 import { strict, strictChapter } from './strict.ts'
 
 type Code = (typeof CHECK_CODES)[number]
@@ -31,6 +31,9 @@ const dial = (ch: Chapter) => {
   if (!p) throw new Error(`no puzzle in ${ch.id}`)
   return p
 }
+
+const bareWall = () => ({ layers: [{ asset: 'roomShell' }], hotspots: [] })
+const sideRoom = (id: string): Room => ({ id, walls: { n: bareWall(), e: bareWall(), s: bareWall(), w: bareWall() }, closeUps: {} })
 
 const broken = (change: (level: Level) => void) => (): Level => {
   const level = strict()
@@ -113,6 +116,21 @@ export const BROKEN: Record<Code, () => unknown> = {
     ]
     const n = room(level.chapters[0]).walls.n
     n.hotspots = n.hotspots.filter(h => h.id !== 'c1a2')
+  }),
+  // A door into a side room whose way back only opens after the first tap of thread A.
+  ONE_WAY_DOOR: broken(({ chapters: [c1] }) => {
+    room(c1).walls.e.hotspots.push({ id: 'c1in', rect: [60, 60, 140, 140], rules: [{ do: [{ do: 'goto', room: 'c1side' }] }] })
+    const side = sideRoom('c1side')
+    side.walls.n.hotspots.push({ id: 'c1back', rect: [330, 60, 140, 140], rules: [{ when: F('c1a1'), do: [{ do: 'goto', room: 'c1r', wall: 'e' }] }] })
+    c1.rooms.push(side)
+  }),
+  // A room in chapter 1 with no door leading in.
+  ROOM_UNREACHABLE: broken(({ chapters: [c1] }) => {
+    c1.rooms.push(sideRoom('c1side'))
+  }),
+  // Chapter 2 ends without a payoff.
+  NO_PAYOFF: broken(({ chapters: [, c2] }) => {
+    delete c2.outro
   }),
   // Chapter 1 has no beats at all.
   BEAT_SPARSE: broken(({ chapters: [c1] }) => {

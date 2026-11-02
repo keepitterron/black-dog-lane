@@ -3,11 +3,13 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { BROKEN } from './levels/broken.ts'
 import { strict } from './levels/strict.ts'
+import { twoRooms } from './levels/two-rooms.ts'
 import { waitingRoom } from './levels/waiting-room.ts'
 
 export const FIXTURES: Record<string, () => unknown> = {
   'levels/test/waiting-room.json': waitingRoom,
   'levels/test/strict.json': strict,
+  'levels/test/two-rooms.json': twoRooms,
   ...Object.fromEntries(Object.entries(BROKEN).map(([code, build]) => [`levels/test/broken/${code}.json`, build])),
 }
 

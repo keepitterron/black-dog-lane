@@ -10,6 +10,7 @@ const PROFILES: Record<string, Profile> = {
   '../levels/test/waiting-room.json': 'fixture',
   '../levels/test/basic.json': 'fixture',
   '../levels/test/strict.json': 'play',
+  '../levels/test/two-rooms.json': 'play',
 }
 
 // Solvable, no dead ends, and the search finished, plus whatever else the profile checks.

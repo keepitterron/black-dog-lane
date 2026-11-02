@@ -9,6 +9,8 @@ export const ASSETS = {
   lighting: walls.lighting,
   portrait: walls.portrait,
   door: walls.door,
+  doorway: walls.doorway,
+  frame: walls.frame,
   caseClock: walls.caseClock,
   coatOnHook: walls.coatOnHook,
   desk: walls.desk,

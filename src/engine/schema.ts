@@ -188,6 +188,8 @@ export type Objective = v.InferOutput<typeof Objective>
 const Chapter = v.strictObject({
   id: Id,
   intro: Text,
+  // The small payoff shown on the card when the chapter ends (the ending covers the last one).
+  outro: v.optional(Message),
   start: v.strictObject({ room: Id, wall: Wall }),
   rooms: v.pipe(v.array(Room), v.minLength(1)),
   puzzles: v.array(Puzzle),
