@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      voidzero:
+        patterns: [vite, vitest, '@vitejs/*', oxlint, oxlint-tsgolint]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

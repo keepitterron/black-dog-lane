@@ -31,7 +31,16 @@ Dependencies are limited to: `react`, `react-dom`, `valibot`; dev: `vite`, `@vit
 
 ## Commands
 
-(Filled in once Milestone 1 lands.) Expected: `npm run dev`, `npm run lint`, `npm test`, `npm run build`, `npm run validate -- <file>`, `npm run gen -- "<theme>"`.
+- `npm run dev`: dev server (no service worker in dev).
+- `npm run lint`: Oxlint with type checking; this is the only type check.
+- `npm test`: Vitest.
+- `npm run build` then `npm run preview`: production build at `/black-dog-lane/`, with the service worker.
+- `node scripts/icons.ts`: regenerate `public/icons` from `src/art/dogMark.ts` (needs `rsvg-convert`).
+- Later: `npm run validate -- <file>`, `npm run gen -- "<theme>"`.
+
+The service worker lives in `src/sw/` with its own `tsconfig.json` (WebWorker lib, which clashes with DOM). Files in `public/` must be listed in `PUBLIC_FILES` in `vite.config.ts` to be precached.
+
+`@types/node` is a dev dependency beyond the spec's list: `scripts/*.ts` and `vite.config.ts` need Node types to type-check.
 
 ## Workflow
 
