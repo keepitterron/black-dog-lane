@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Waiting Room (test room)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#231d19; --ink:#d8ccb2; --ink-dim:#9c907a; --line:#5a4c3e; --amber:#e3a84b; --chip:#2e2722; --msg:rgba(22,18,15,.86);
+  color-scheme: dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#161210; --chip:#241f1b; --msg:rgba(14,11,9,.88); }
+}
+:root[data-theme="dark"]{ --bg:#161210; --chip:#241f1b; --msg:rgba(14,11,9,.88); }
+html{ height:100%; scroll-padding-top:env(safe-area-inset-top,0px); }
+body{
+  height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IM Fell English", Georgia, "Times New Roman", serif;
+  overflow:hidden; -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+#app{ height:100%; display:flex; flex-direction:column; }
+.top{ display:flex; justify-content:space-between; align-items:center; padding:8px 14px; gap:8px; }
+.top .name{ font-style:italic; color:var(--ink-dim); font-size:17px; }
+.top .acts{ display:flex; gap:8px; }
+.btn{
+  font:inherit; font-size:16px; background:transparent; color:var(--ink);
+  border:1px solid var(--line); border-radius:999px; padding:6px 14px; min-height:38px; cursor:pointer;
+}
+.btn:hover{ border-color:var(--ink-dim); }
+.btn:focus-visible,.slot:focus-visible,.arrow:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+.btn.big{ font-size:20px; padding:10px 26px; }
+#stage{ flex:1; position:relative; min-height:0; }
+#scene{ position:absolute; inset:0; width:100%; height:100%; display:block; transition:opacity .22s ease; }
+#scene.fade{ opacity:0; }
+.hs{ cursor:pointer; }
+.arrow{
+  position:absolute; top:50%; transform:translateY(-50%); width:56px; height:72px;
+  border:none; background:transparent; color:var(--ink); font-size:46px; line-height:1;
+  opacity:.5; cursor:pointer; font-family:Georgia, serif;
+}
+.arrow:hover{ opacity:1; }
+#left{ left:2px; } #right{ right:2px; }
+#back{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:var(--msg); }
+#msg{
+  position:absolute; left:50%; bottom:68px; transform:translateX(-50%);
+  width:max-content; max-width:min(92%,620px); background:var(--msg); border:1px solid var(--line);
+  padding:10px 18px; border-radius:6px; font-size:19px; line-height:1.45; text-align:center;
+  opacity:0; transition:opacity .3s ease; pointer-events:none;
+}
+#msg.show{ opacity:1; }
+.inv{ display:flex; gap:10px; padding:10px 14px 14px; justify-content:center; align-items:center; }
+.slot{
+  width:62px; height:62px; border:1px solid var(--line); border-radius:8px; background:var(--chip);
+  display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer;
+}
+.slot.sel{ border-color:var(--amber); box-shadow:inset 0 0 0 2px var(--amber); }
+.slot.empty{ opacity:.35; cursor:default; }
+.slot svg{ width:46px; height:46px; }
+.overlay{
+  position:fixed; inset:0; z-index:20; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));
+}
+.overlay h1{ font-weight:400; font-size:clamp(44px,9vw,84px); margin:0 0 4px; line-height:1.05; }
+.overlay p{ color:var(--ink-dim); font-style:italic; font-size:19px; line-height:1.6; max-width:34ch; margin:8px 0; }
+.overlay .row{ display:flex; gap:12px; margin-top:22px; flex-wrap:wrap; justify-content:center; }
+.overlay .small{ font-size:15px; font-style:normal; }
+.hidden{ display:none !important; }
+.flicker{ animation:flk 3.2s infinite; }
+@keyframes flk{ 0%{opacity:1} 35%{opacity:.86} 50%{opacity:.97} 68%{opacity:.82} 80%{opacity:.95} 100%{opacity:1} }
+@media (prefers-reduced-motion: reduce){ .flicker{ animation:none; } #scene{ transition:none; } }
+@media (max-width:560px){ .slot{ width:50px; height:50px; } .slot svg{ width:38px; height:38px; } .top .name{ font-size:15px; } .btn{ font-size:15px; padding:5px 11px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <span class="name">The Waiting Room</span>
+    <div class="acts">
+      <button class="btn" id="hintBtn">Hint</button>
+      <button class="btn" id="soundBtn">Sound on</button>
+      <button class="btn" id="restartBtn">Restart</button>
+    </div>
+  </div>
+  <div id="stage">
+    <svg id="scene" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+    <button class="arrow" id="left" aria-label="Turn left">‹</button>
+    <button class="arrow" id="right" aria-label="Turn right">›</button>
+    <button class="btn" id="back">Back</button>
+    <div id="msg" role="status" aria-live="polite"></div>
+  </div>
+  <div class="inv" id="inv"></div>
+</div>
+
+<div class="overlay" id="title">
+  <h1>The Waiting Room</h1>
+  <p>A test room. Play it with the sound on, ideally with the lights low.</p>
+  <div class="row" id="titleBtns"></div>
+</div>
+
+<div class="overlay hidden" id="end">
+  <h1>You left the room.</h1>
+  <p id="endText"></p>
+  <p class="small" id="endStats"></p>
+  <div class="row">
+    <button class="btn big" id="againBtn">Play again</button>
+    <button class="btn big" id="stayBtn">Stay in the room</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SAVE_KEY = 'waiting-room-v2';
+const WALLS = ['north','east','south','west'];
+const SYMS = ['moon','eye','key','bird','sun','star'];
+const CODE = ['moon','eye','key','bird'];
+const ITEMS = {
+  drawerkey:{ name:'Small iron key', desc:'Cold, and still caked with soil.' },
+  matchbox:{ name:'Empty matchbox', desc:'The striking strip is still rough.' },
+  match:{ name:'A single match', desc:'Pressed flat, but the head looks dry.' },
+  litmatch:{ name:'Lit match', desc:'It burns slowly. Unnaturally slowly.' },
+  windkey:{ name:'Winding key', desc:'A clock key with a little bird for a handle.' },
+  cutters:{ name:'Clockmaker’s cutters', desc:'Tiny, and very sharp.' },
+  doorkey:{ name:'Heavy brass key', desc:'Too big for anything in this room except the door.' },
+  eye:{ name:'Glass eye', desc:'Grey-green. It seems to be looking at you.' }
+};
+const HINTS = {
+  pot:['Something is hidden in the plant pot.','Look closely at the soil by the window.','Pull the string poking out of the soil.'],
+  drawer:['That iron key fits a small keyhole somewhere.','Look at the desk.','Select the iron key, then tap the drawer.'],
+  matchbox:['The drawer is open now.','Look inside it.','Take the matchbox.'],
+  photo:['There’s a photograph in the drawer.','Look at it up close.','Tap the photograph in the drawer.'],
+  coat:['Someone left their coat behind.','Check the coat’s pocket.','Tap the pocket, then pick up what falls out.'],
+  wind:['The clock has stopped.','The bird-shaped key belongs to the clock.','Select the winding key, then tap the clock face.'],
+  time:['The clock wants a particular time.','The photograph shows the same clock.','Quarter past nine. The left hole turns the hours, the right hole the minutes.'],
+  cutters:['Something opened below the clock.','Look at the pendulum case.','Tap the open pendulum case.'],
+  match:['A matchbox is no use without a match.','One of the books looks different.','Open the red book on the shelf.'],
+  combine:['Two things you’re carrying belong together.','The match and the matchbox.','Tap one of them, then tap the other.'],
+  candle:['It’s very dark in here.','The candle on the desk.','Select the lit match, then tap the candle.'],
+  cage:['Something is hanging inside the birdcage.','The cage door is wired shut.','Select the cutters, then tap the cage door.'],
+  cagekey:['The cage is open.','Take what’s inside it.','Tap the key hanging from the perch.'],
+  keyhole:['The door has a keyhole as well as dials.','The heavy brass key.','Select the brass key, then tap the keyhole under the dials.'],
+  window:['Light makes reflections.','Look closely at the window.','Look at the window now that the candle is lit.'],
+  dials:['The dials want four symbols.','Read the note on the desk, then look at the window again.','Moon, eye, key, bird.'],
+  out:['The door is open.','Go through it.','Tap the open door.']
+};
+
+function fresh(){
+  return {
+    view:'north', close:null, parent:null, from:null, inv:[], sel:null,
+    f:{ stringPulled:false, drawerOpen:false, matchboxTaken:false, photoSeen:false,
+        sandPoured:false, windKeyTaken:false, wound:false, hour:3, min:45, timeSet:false, cuttersTaken:false,
+        bookOpen:false, matchTaken:false, candle:false, windowSeen:false,
+        cageOpen:false, doorKeyTaken:false, keyhole:false, dials:['star','sun','star','sun'], door:false,
+        eyeTaken:false, coatMoved:false, shadowGone:false,
+        shadowMsg:false, headMsg:false, coatMsg:false, whisperMsg:false, turnMsg:false, photoChangedMsg:false },
+    hint:{ key:'', tier:0 }, started:false
+  };
+}
+let S = fresh();
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function load(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
+    const d=JSON.parse(raw); S=Object.assign(fresh(), d); S.f=Object.assign(fresh().f, d.f||{});
+    return !!S.started;
+  }catch(e){ return false; }
+}
+function wipe(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
+/* ---------- audio ---------- */
+let AC=null, master=null, muted=false, tickTimer=null;
+function audioInit(){
+  if(AC) return;
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain(); master.gain.value=muted?0:.9; master.connect(AC.destination);
+    const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=300;
+    const g=AC.createGain(); g.gain.value=.06; lp.connect(g); g.connect(master);
+    [[55,'sawtooth',.5],[55.6,'sawtooth',.5],[82.4,'triangle',.3]].forEach(([fr,t,v])=>{
+      const o=AC.createOscillator(); o.type=t; o.frequency.value=fr;
+      const og=AC.createGain(); og.gain.value=v; o.connect(og); og.connect(lp); o.start();
+    });
+    const lfo=AC.createOscillator(); lfo.frequency.value=.06;
+    const lg=AC.createGain(); lg.gain.value=130; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+  }catch(e){ AC=null; }
+}
+function tone(f,d,type,v,f2){
+  if(!AC) return;
+  const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v||.12,t+.015);
+  g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+d+.05);
+}
+function noise(d,v,freq,type){
+  if(!AC) return;
+  const len=Math.max(1,Math.floor(AC.sampleRate*d)), b=AC.createBuffer(1,len,AC.sampleRate), ch=b.getChannelData(0);
+  for(let i=0;i<len;i++) ch[i]=(Math.random()*2-1)*(1-i/len);
+  const s=AC.createBufferSource(); s.buffer=b;
+  const fl=AC.createBiquadFilter(); fl.type=type||'bandpass'; fl.frequency.value=freq||1200;
+  const g=AC.createGain(); g.gain.value=v||.2;
+  s.connect(fl); fl.connect(g); g.connect(master); s.start();
+}
+const SFX={
+  turn:()=>noise(.14,.1,450,'lowpass'),
+  pick:()=>tone(660,.4,'sine',.1,990),
+  click:()=>noise(.05,.3,2600),
+  wrong:()=>tone(150,.4,'triangle',.1,95),
+  page:()=>noise(.3,.12,1800,'highpass'),
+  sand:()=>{ for(let i=0;i<8;i++) setTimeout(()=>noise(.25,.12,2400+Math.random()*1500,'highpass'),i*110); },
+  strike:()=>{ noise(.22,.35,3200,'highpass'); setTimeout(()=>noise(.7,.07,700),110); },
+  unlock:()=>{ noise(.05,.35,2600); setTimeout(()=>noise(.05,.35,2000),150); setTimeout(()=>tone(70,.9,'sine',.25,42),320); },
+  eerie:()=>{ tone(392,2.4,'sine',.045,370); tone(466,2.4,'sine',.03,438); },
+  sting:()=>{ tone(98,1.8,'sawtooth',.07,92); tone(104,1.8,'sawtooth',.06,99); tone(1244,1.3,'sine',.035,1180); noise(.45,.35,90,'lowpass'); },
+  knock:()=>{ [0,420,700].forEach(t=>setTimeout(()=>{ noise(.12,.6,160,'lowpass'); tone(80,.22,'sine',.22,60); },t)); },
+  steps:()=>{ [0,650,1300,1950].forEach((t,i)=>setTimeout(()=>noise(.12,.4-i*.09,140,'lowpass'),t)); },
+  chime:()=>{ [0,1100,2200].forEach(t=>setTimeout(()=>{ tone(196,3,'sine',.16); tone(392,2.4,'sine',.06); tone(587,1.6,'sine',.03); },t)); },
+  whisper:()=>{ if(!AC) return; for(let i=0;i<9;i++) setTimeout(()=>noise(.18+Math.random()*.2,.06,1800+Math.random()*1800,'bandpass'),i*160+Math.random()*90); },
+  musicbox:()=>{ [659,587,523,494,523,440,415,440].forEach((f,i)=>setTimeout(()=>tone(f*2,1.1,'sine',.03),i*420)); },
+  tick:()=>noise(.025,.16,3400)
+};
+function syncTick(){ if(S.f.wound && AC && !tickTimer) tickTimer=setInterval(SFX.tick,1000); }
+
+/* ---------- messages ---------- */
+const msgEl=document.getElementById('msg'); let msgT=null;
+function msg(t){
+  msgEl.textContent=t; msgEl.classList.add('show');
+  clearTimeout(msgT); msgT=setTimeout(()=>msgEl.classList.remove('show'), Math.max(2800, t.length*62));
+}
+function beat(t,delay){ setTimeout(()=>{ SFX.sting(); msg(t); }, delay||350); }
+
+/* ---------- drawing helpers ---------- */
+const FONT='IM Fell English, Georgia, serif';
+const hs=(a,x,y,w,h)=>`<rect class="hs" data-a="${a}" x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(0,0,0,0)"/>`;
+function hand(cx,cy,len,deg,w,col){
+  const r=deg*Math.PI/180;
+  return `<line x1="${cx}" y1="${cy}" x2="${(cx+len*Math.sin(r)).toFixed(1)}" y2="${(cy-len*Math.cos(r)).toFixed(1)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+function hands(cx,cy,hl,ml,hw,mw,col,h,m){ return hand(cx,cy,hl,((h%12)+m/60)*30,hw,col)+hand(cx,cy,ml,m*6,mw,col); }
+function sym(n,x,y,s,col,mir,w){
+  const sw=((w||3)/s).toFixed(3), T=`translate(${x} ${y}) scale(${mir?-s:s} ${s})`;
+  const st=`fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"`;
+  let d='';
+  if(n==='moon') d=`<path d="M0.2,-0.98 A1,1 0 1,0 0.2,0.98 A1.01,1.01 0 0,1 0.2,-0.98Z" fill="${col}"/>`;
+  if(n==='eye') d=`<path d="M-1,0 Q0,-0.78 1,0 Q0,0.78 -1,0Z" ${st}/><circle r="0.3" fill="${col}"/>`;
+  if(n==='key') d=`<circle cx="-0.55" cy="0" r="0.35" ${st}/><path d="M-0.2,0 H1 M0.62,0 V0.36 M0.9,0 V0.3" ${st}/>`;
+  if(n==='bird') d=`<path d="M-1,-0.15 Q-0.55,-0.75 -0.05,0.1 Q0.35,-0.55 0.95,-0.35" ${st}/>`;
+  if(n==='sun'){ d=`<circle r="0.38" ${st}/>`; for(let i=0;i<8;i++){ const a=i*Math.PI/4; d+=`<line x1="${(.6*Math.cos(a)).toFixed(2)}" y1="${(.6*Math.sin(a)).toFixed(2)}" x2="${(.95*Math.cos(a)).toFixed(2)}" y2="${(.95*Math.sin(a)).toFixed(2)}" ${st}/>`; } }
+  if(n==='star'){ const p=[]; for(let i=0;i<10;i++){ const r=i%2?.42:1, a=(-90+i*36)*Math.PI/180; p.push((r*Math.cos(a)).toFixed(2)+','+(r*Math.sin(a)).toFixed(2)); } d=`<polygon points="${p.join(' ')}" ${st}/>`; }
+  return `<g transform="${T}">${d}</g>`;
+}
+function cuttersArt(x,y,s){
+  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-14 -16 L6 8 M14 -16 L-6 8" stroke="#9aa0a0" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="-9" cy="13" r="6" fill="none" stroke="#6e2a2a" stroke-width="3.2"/><circle cx="9" cy="13" r="6" fill="none" stroke="#6e2a2a" stroke-width="3.2"/></g>`;
+}
+function defs(){
+  const c=(!S.close && S.view==='east') ? [490,300] : [400,270];
+  return `<defs>
+  <pattern id="wp" width="40" height="56" patternUnits="userSpaceOnUse">
+    <rect width="40" height="56" fill="#56604c"/><rect width="2" height="56" fill="#4b5442"/>
+    <path d="M20 10 l6 9 -6 9 -6 -9z" fill="none" stroke="#67715a" stroke-width="1.2"/><circle cx="20" cy="42" r="1.6" fill="#67715a"/>
+  </pattern>
+  <pattern id="planks" width="120" height="26" patternUnits="userSpaceOnUse">
+    <rect width="120" height="26" fill="#4a3326"/><rect y="24" width="120" height="2" fill="#38261c"/><rect x="80" width="2" height="24" fill="#38261c"/>
+  </pattern>
+  <radialGradient id="dark" cx="400" cy="290" r="540" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#0c0907" stop-opacity=".38"/><stop offset="1" stop-color="#0c0907" stop-opacity=".92"/>
+  </radialGradient>
+  <radialGradient id="warm" cx="${c[0]}" cy="${c[1]}" r="580" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#e3a84b" stop-opacity=".24"/><stop offset=".45" stop-color="#3a2512" stop-opacity=".18"/><stop offset="1" stop-color="#0c0907" stop-opacity=".78"/>
+  </radialGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d2630"/><stop offset="1" stop-color="#0d1217"/></linearGradient>
+  <linearGradient id="beyond" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070605"/><stop offset="1" stop-color="#46535b"/></linearGradient>
+  <radialGradient id="flame" cx=".5" cy=".68" r=".6"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#f2b54f"/><stop offset="1" stop-color="#c0571f" stop-opacity="0"/></radialGradient>
+  </defs>`;
+}
+function light(){
+  if(!S.f.candle) return `<rect width="800" height="600" fill="url(#dark)" pointer-events="none"/>`;
+  return `<g class="flicker" pointer-events="none"><rect width="800" height="600" fill="url(#warm)"/></g>`;
+}
+function room(){
+  return `<rect width="800" height="470" fill="url(#wp)"/><rect width="800" height="24" fill="#3d3026"/>
+  <rect y="448" width="800" height="24" fill="#3a2a20"/><rect y="472" width="800" height="128" fill="url(#planks)"/>`;
+}
+function pose(){
+  const f=S.f;
+  if(f.door) return { tilt:0, g:6 };
+  if(f.wound) return { tilt:9, g:6 };
+  return { tilt:0, g:S.from==='east'?6:S.from==='west'?-6:0 };
+}
+function face(cx,cy,k){
+  const f=S.f, p=pose(); let eyes='';
+  [-22,22].forEach((ex,i)=>{
+    if(!f.candle) eyes+=`<path d="M${ex-11} -25 q11 7 22 0" stroke="#5a4636" stroke-width="3" fill="none"/>`;
+    else if(i===0 && f.eyeTaken) eyes+=`<ellipse cx="${ex}" cy="-25" rx="11" ry="7" fill="#120c09"/>`;
+    else if(i===0) eyes+=`<ellipse cx="${ex}" cy="-25" rx="11" ry="6.5" fill="#eef0ea"/><circle cx="${ex+p.g}" cy="-25" r="4.6" fill="#6f7e6a"/><circle cx="${ex+p.g}" cy="-25" r="2" fill="#120c09"/><circle cx="${ex+p.g-2}" cy="-27.5" r="1.6" fill="#fff"><animate attributeName="opacity" values="0;0;1;0;0" dur="3.5s" repeatCount="indefinite"/></circle>`;
+    else eyes+=`<ellipse cx="${ex}" cy="-25" rx="11" ry="6.5" fill="#e6dccb"/><circle cx="${ex+p.g}" cy="-25" r="4.2" fill="#2a2a22"/>`;
+  });
+  return `<g transform="translate(${cx} ${cy}) scale(${k})">
+    <path d="M-110 150 Q-90 60 0 55 Q90 60 110 150Z" fill="#2f3a33"/>
+    <path d="M-22 40 L22 40 L18 70 L-18 70Z" fill="#a8947a"/>
+    <path d="M-30 62 L0 86 L30 62 L22 58 L0 73 L-22 58Z" fill="#cfc3aa"/>
+    <g transform="rotate(${p.tilt} 0 40)">
+    <ellipse cx="0" cy="-20" rx="58" ry="74" fill="#b9a58a"/>
+    <path d="M-62 -18 Q-68 -112 0 -102 Q68 -112 62 -18 Q52 -72 0 -74 Q-52 -72 -62 -18Z" fill="#2a1d16"/>
+    ${eyes}
+    <path d="M-4 -4 q7 14 0 18" stroke="#8a7660" fill="none" stroke-width="3"/>
+    <path d="M-15 32 q15 4 30 0" stroke="#6e4a3e" stroke-width="3" fill="none"/></g>
+  </g>`;
+}
+function birdKey(x,y,s,col){
+  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-2 0 H22 M16 0 V6 M20 0 V5" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M-20 2 Q-14 -12 -6 -4 Q-2 -10 2 -8 Q-2 6 -10 6 Q-18 6 -20 2Z" fill="${col}"/></g>`;
+}
+
+/* ---------- walls ---------- */
+const WALL={
+  north(){
+    const f=S.f; let s=room();
+    s+=`<rect x="110" y="130" width="140" height="180" fill="#2e2219"/>`+face(180,218,.55)+
+       `<rect x="110" y="130" width="140" height="180" fill="none" stroke="#7a5b33" stroke-width="10"/>`;
+    s+=`<rect x="322" y="142" width="156" height="312" fill="#2a1c13"/>`;
+    const feet=f.candle && !f.door && !f.shadowGone;
+    if(f.door){
+      s+=`<rect x="330" y="150" width="140" height="300" fill="url(#beyond)"/><path d="M470 150 L506 136 L506 466 L470 450Z" fill="#3b281c" stroke="#24180f" stroke-width="3"/>`;
+    }else{
+      s+=`<rect x="330" y="150" width="140" height="300" fill="#3b281c" stroke="#24180f" stroke-width="4"/>
+          <rect x="348" y="170" width="104" height="110" fill="none" stroke="#2a1c13" stroke-width="4"/>
+          <rect x="348" y="300" width="104" height="128" fill="none" stroke="#2a1c13" stroke-width="4"/>
+          <rect x="434" y="280" width="28" height="50" rx="3" fill="#8c6a35"/><circle cx="448" cy="317" r="3" fill="#120c09"/>`;
+      for(let i=0;i<4;i++) s+=`<circle cx="${441+i*5}" cy="292" r="1.8" fill="#2a1c13"/>`;
+      if(f.keyhole) s+=`<rect x="446" y="314" width="4" height="12" fill="#c9a35a"/>`;
+      if(f.candle){
+        s+=`<rect x="332" y="445" width="136" height="5" fill="#d9c9a0" opacity=".75"/><path d="M332 450 L468 450 L510 510 L290 510Z" fill="#d9c9a0" opacity=".1"/>`;
+        if(feet) s+=`<rect x="366" y="443" width="26" height="8" fill="#0a0705"/><rect x="408" y="443" width="26" height="8" fill="#0a0705"/><path d="M366 450 L392 450 L404 510 L350 510Z" fill="#0a0705" opacity=".6"/><path d="M408 450 L434 450 L452 510 L398 510Z" fill="#0a0705" opacity=".6"/>`;
+      }
+    }
+    s+=`<rect x="590" y="150" width="60" height="230" rx="6" fill="#3b281c" stroke="#24180f" stroke-width="3"/><rect x="602" y="250" width="36" height="110" fill="#1e1510"/>`;
+    if(f.timeSet && !f.cuttersTaken) s+=cuttersArt(620,346,.6);
+    s+=`<g><line x1="620" y1="240" x2="620" y2="325" stroke="#8c6a35" stroke-width="3"/><circle cx="620" cy="330" r="9" fill="#8c6a35"/>
+        ${f.wound?`<animateTransform attributeName="transform" type="rotate" values="-8 620 240;8 620 240;-8 620 240" dur="2s" repeatCount="indefinite"/>`:''}</g>`;
+    if(f.timeSet) s+=`<path d="M602 250 L572 258 L572 368 L602 360Z" fill="#3b281c" stroke="#24180f" stroke-width="2"/>`;
+    else s+=`<rect x="602" y="250" width="36" height="110" fill="#9fb0b8" opacity=".08"/>`;
+    s+=`<circle cx="620" cy="200" r="34" fill="#d8ccb2" stroke="#7a5b33" stroke-width="5"/>`+hands(620,200,18,27,3,2,'#2a1c13',f.hour,f.min);
+    s+=hs('portrait',100,120,160,200)+hs('door',322,142,190,312)+hs('clock',575,150,90,96)+hs('case',588,246,66,140)+(feet?hs('shadow',340,430,120,85):'');
+    return s;
+  },
+  east(){
+    const f=S.f; let s=room();
+    const cx=f.coatMoved?520:0;
+    s+=`<rect x="118" y="158" width="54" height="8" fill="#2a1c13"/><rect x="638" y="158" width="54" height="8" fill="#2a1c13"/>
+        <g transform="translate(${cx} 0)"><path d="M132 166 Q100 260 110 420 L192 420 Q202 260 158 166Z" fill="#2c2a26"/>
+        <path d="M145 166 L140 300 M150 166 L160 300" stroke="#1f1d1a" stroke-width="3" fill="none"/>
+        <path d="M118 320 L150 318 L150 350 Q134 356 120 350Z" fill="#23211e" stroke="#1a1816" stroke-width="2"/></g>`;
+    if(f.sandPoured) s+=`<path d="M${100+cx} 472 Q${135+cx} 446 ${170+cx} 472Z" fill="#a89470"/>`;
+    s+=`<rect x="220" y="350" width="360" height="18" fill="#5a3e2c"/><rect x="230" y="368" width="340" height="62" fill="#4a3326"/>
+        <rect x="236" y="430" width="14" height="44" fill="#3b281c"/><rect x="550" y="430" width="14" height="44" fill="#3b281c"/>`;
+    if(f.drawerOpen) s+=`<rect x="336" y="384" width="128" height="46" fill="#5a3e2c" stroke="#2a1c13" stroke-width="3"/><rect x="340" y="378" width="120" height="8" fill="#1a120c"/>`;
+    else s+=`<rect x="340" y="378" width="120" height="40" fill="#553a29" stroke="#2a1c13" stroke-width="3"/><circle cx="400" cy="396" r="3" fill="#120c09"/><rect x="398.5" y="397" width="3" height="7" fill="#120c09"/>`;
+    s+=`<path d="M268 346 l72 -9 l4 13 l-72 9z" fill="#d8ccb2"/><path d="M278 345 l52 -6 M280 350 l40 -5" stroke="#8b7f69" stroke-width="1.5"/>`;
+    s+=`<ellipse cx="490" cy="350" rx="26" ry="6" fill="#8c6a35"/><rect x="482" y="298" width="16" height="52" fill="#d8ccb2"/><line x1="490" y1="298" x2="490" y2="290" stroke="#1a120c" stroke-width="2"/>`;
+    if(f.candle) s+=`<g class="flicker"><circle cx="490" cy="282" r="70" fill="#e3a84b" opacity=".12"/><ellipse cx="490" cy="279" rx="7" ry="15" fill="url(#flame)"/></g>`;
+    s+=hs('coat',95+cx,150,115,280)+hs('note',262,326,90,34)+hs('drawer',330,370,140,62)+hs('candle',462,260,56,100);
+    return s;
+  },
+  south(){
+    const f=S.f; let s=room();
+    s+=`<ellipse cx="400" cy="545" rx="270" ry="40" fill="#4b2e2e" opacity=".85"/>`;
+    s+=`<rect x="140" y="108" width="280" height="352" fill="#24180f" stroke="#3b281c" stroke-width="8"/>`;
+    const rows=[[118,186],[198,266],[278,346],[358,452]], cols=['#5b3a2e','#38443a','#6b5a3a','#2f3640','#4b2e2e','#5c5246','#3d4a4f'];
+    let seed=11; const rnd=()=>{ seed=(seed*9301+49297)%233280; return seed/233280; };
+    rows.forEach(([top,bot],r)=>{
+      let x=150;
+      while(x<408){
+        const w=14+Math.floor(rnd()*16); if(x+w>410) break;
+        const h=(bot-top)-Math.floor(rnd()*22), c=cols[Math.floor(rnd()*cols.length)];
+        if(!(r===1 && x+w>290 && x<328)) s+=`<rect x="${x}" y="${bot-h}" width="${w}" height="${h}" fill="${c}"/>`;
+        x+=w+1;
+      }
+    });
+    [186,266,346].forEach(y=>{ s+=`<rect x="144" y="${y}" width="272" height="10" fill="#3b281c"/>`; });
+    s+=`<g transform="rotate(-11 310 266)"><rect x="298" y="202" width="24" height="64" fill="#6e2a2a"/><rect x="298" y="212" width="24" height="3" fill="#b08a4a"/><rect x="298" y="252" width="24" height="3" fill="#b08a4a"/></g>`;
+    s+=`<line x1="600" y1="24" x2="600" y2="140" stroke="#8c6a35" stroke-width="3"/>`;
+    for(let x=546;x<=654;x+=12) s+=`<path d="M600 142 Q${x} 148 ${x} 200 V310" fill="none" stroke="#8c6a35" stroke-width="2"/>`;
+    s+=`<line x1="560" y1="268" x2="640" y2="268" stroke="#6b5226" stroke-width="3"/><ellipse cx="600" cy="310" rx="58" ry="8" fill="#6b5226"/>`;
+    if(!f.doorKeyTaken) s+=`<line x1="600" y1="268" x2="600" y2="282" stroke="#cfc3aa" stroke-width="1.5"/>${sym('key',600,290,9,'#c9a35a',false,2.5)}`;
+    if(f.cageOpen) s+=`<rect x="576" y="250" width="22" height="44" fill="#1e1510" opacity=".7"/>`;
+    s+=hs('book',286,192,50,80)+hs('cage',530,130,140,190);
+    return s;
+  },
+  west(){
+    const f=S.f; let s=room();
+    s+=`<rect x="230" y="90" width="340" height="6" fill="#8c6a35"/>
+        <rect x="290" y="110" width="220" height="240" fill="#2a1c13"/><rect x="302" y="122" width="196" height="216" fill="url(#glass)"/>`;
+    if(f.candle){
+      [330,372,428,470].forEach(x=>{ s+=`<ellipse cx="${x}" cy="168" rx="17" ry="14" fill="#c9d3d8" opacity=".16"/>`; });
+      s+=`<circle cx="468" cy="300" r="3" fill="#f2b54f"/><circle cx="468" cy="300" r="16" fill="#e3a84b" opacity=".15"/>
+          <path d="M326 338 L326 300 Q326 282 342 278 Q334 268 335 258 Q337 246 346 246 Q355 246 357 258 Q358 268 350 278 Q366 282 366 300 L366 338Z" fill="#c8d3da" opacity=".12"/>`;
+    }
+    s+=`<rect x="397" y="122" width="6" height="216" fill="#2a1c13"/><rect x="302" y="227" width="196" height="6" fill="#2a1c13"/>
+        <rect x="280" y="350" width="240" height="12" fill="#3b281c"/>
+        <path d="M244 96 Q272 230 254 386 L292 386 L292 96Z" fill="#4b2e2e"/><path d="M556 96 Q528 230 546 386 L508 386 L508 96Z" fill="#4b2e2e"/>`;
+    s+=`<path d="M220 396 L222 330 M221 352 L196 318 M222 340 L246 304 M246 304 L258 296 M196 318 L190 300" stroke="#3a2a20" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M170 400 L270 400 L258 470 L182 470Z" fill="#7a4a33"/><rect x="164" y="392" width="112" height="14" rx="3" fill="#8a563d"/>`;
+    if(!f.stringPulled) s+=`<path d="M236 394 q6 -14 12 -4" stroke="#cfc3aa" stroke-width="1.6" fill="none"/>`;
+    s+=hs('window',290,110,220,240)+hs('pot',150,290,140,185);
+    return s;
+  }
+};
+
+/* ---------- close-ups ---------- */
+const CLOSE={
+  clock(){
+    const f=S.f, rn=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+    let s=`<rect width="800" height="600" fill="#2a1c13"/><circle cx="400" cy="290" r="212" fill="#d8ccb2" stroke="#7a5b33" stroke-width="16"/>`;
+    for(let i=0;i<60;i++){ const a=i*6*Math.PI/180, r1=i%5?192:182; s+=`<line x1="${(400+r1*Math.sin(a)).toFixed(1)}" y1="${(290-r1*Math.cos(a)).toFixed(1)}" x2="${(400+200*Math.sin(a)).toFixed(1)}" y2="${(290-200*Math.cos(a)).toFixed(1)}" stroke="#3a2a20" stroke-width="${i%5?1.5:4}"/>`; }
+    rn.forEach((t,i)=>{ const a=i*30*Math.PI/180; s+=`<text x="${(400+152*Math.sin(a)).toFixed(1)}" y="${(290-152*Math.cos(a)).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="${FONT}" font-size="30" fill="#3a2a20">${t}</text>`; });
+    s+=`<text x="400" y="225" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="17" fill="#6b5a46">Haste is for the living</text>`;
+    [[340,345],[460,345]].forEach(([x,y])=>{ s+=`<circle cx="${x}" cy="${y}" r="13" fill="#b9ab8e" stroke="#6b5a46" stroke-width="2"/><circle cx="${x}" cy="${y}" r="5" fill="#2a1c13"/>`; });
+    s+=`<text x="340" y="378" text-anchor="middle" font-family="${FONT}" font-size="13" fill="#6b5a46">hours</text><text x="460" y="378" text-anchor="middle" font-family="${FONT}" font-size="13" fill="#6b5a46">minutes</text>`;
+    s+=hands(400,290,95,150,10,6,'#2a1c13',f.hour,f.min);
+    if(f.wound) s+=`<line x1="400" y1="312" x2="400" y2="112" stroke="#6e2a2a" stroke-width="2.5"><animateTransform attributeName="transform" type="rotate" from="0 400 290" to="360 400 290" dur="60s" repeatCount="indefinite"/></line>`;
+    else s+=hand(400,290,178,72,2.5,'#6e2a2a');
+    s+=`<circle cx="400" cy="290" r="9" fill="#2a1c13"/>`+hs('clockface',188,78,424,424)+hs('hourhole',315,320,50,50)+hs('minhole',435,320,50,50);
+    return s;
+  },
+  portrait(){
+    const f=S.f;
+    let s=`<rect width="800" height="600" fill="#2a1c13"/><rect x="220" y="40" width="360" height="500" fill="#2e2219"/>`+face(400,295,1.35)+
+          `<rect x="220" y="40" width="360" height="500" fill="none" stroke="#7a5b33" stroke-width="22"/>
+           <rect x="330" y="550" width="140" height="32" rx="3" fill="#8c6a35"/><text x="400" y="571" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="17" fill="#3a2a18">Eleanor, who waited</text>`;
+    s+=hs('face',230,50,340,480);
+    if(f.candle && !f.eyeTaken){
+      const p=pose(), a=p.tilt*Math.PI/180, lx=-22+p.g, ly=-25-40;
+      const X=400+(lx*Math.cos(a)-ly*Math.sin(a))*1.35, Y=295+(lx*Math.sin(a)+ly*Math.cos(a)+40)*1.35;
+      s+=hs('takeeye',X-24,Y-18,48,36);
+    }
+    return s;
+  },
+  drawer(){
+    const f=S.f;
+    if(!f.drawerOpen){
+      return `<rect width="800" height="600" fill="#4a3326"/><rect y="80" width="800" height="40" fill="#5a3e2c"/>
+        <rect x="150" y="180" width="500" height="220" fill="#553a29" stroke="#2a1c13" stroke-width="8"/>
+        <ellipse cx="400" cy="290" rx="30" ry="44" fill="#8c6a35"/><circle cx="400" cy="280" r="10" fill="#120c09"/><path d="M394 284 L406 284 L410 312 L390 312Z" fill="#120c09"/>`+hs('drawerfront',150,180,500,220);
+    }
+    let s=`<rect width="800" height="600" fill="#4a3326"/><rect x="110" y="110" width="580" height="400" fill="#1e140e" stroke="#5a3e2c" stroke-width="20"/>`;
+    s+=`<g transform="rotate(-6 285 265)"><rect x="200" y="200" width="170" height="130" fill="#cfc3aa"/>`+photoScene(210,210,150/600)+`</g>`+hs('photo',190,190,195,155);
+    if(!f.matchboxTaken){
+      s+=`<g transform="rotate(8 525 365)"><rect x="470" y="330" width="110" height="70" rx="4" fill="#6e2a2a"/><rect x="490" y="344" width="70" height="38" fill="#cfc3aa"/>
+          <text x="525" y="368" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="15" fill="#6e2a2a">Lucifers</text>
+          <rect x="470" y="394" width="110" height="6" fill="#3a2a20"/></g>`+hs('matchbox',460,320,130,95);
+    }
+    return s;
+  },
+  photo(){
+    return `<rect width="800" height="600" fill="#1e140e"/><rect x="90" y="60" width="620" height="480" fill="#cfc3aa"/>`+photoScene(100,70,1)+
+      `<text x="400" y="528" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="18" fill="#5a4c3e">the waiting room</text>`+hs('photobig',90,60,620,480);
+  },
+  book(){
+    const f=S.f;
+    if(!f.bookOpen){
+      return `<rect width="800" height="600" fill="#2a1c13"/><rect x="250" y="90" width="300" height="420" rx="6" fill="#6e2a2a" stroke="#3d1717" stroke-width="6"/>
+        <rect x="270" y="110" width="260" height="380" fill="none" stroke="#b08a4a" stroke-width="1.5"/>
+        <text x="400" y="260" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="38" fill="#cfa96a">Pressed Things</text>
+        <path d="M370 290 q30 -16 60 0" stroke="#b08a4a" fill="none" stroke-width="1.5"/>`+hs('opencover',250,90,300,420);
+    }
+    let s=`<rect width="800" height="600" fill="#2a1c13"/><rect x="120" y="110" width="280" height="380" fill="#d8ccb2"/><rect x="400" y="110" width="280" height="380" fill="#cfc1a3"/>
+      <line x1="400" y1="110" x2="400" y2="490" stroke="#9c8e74" stroke-width="3"/>
+      <path d="M258 400 Q262 320 252 250 M256 330 Q236 300 222 296 M256 300 Q280 270 292 262" stroke="#6e7a5a" stroke-width="2.5" fill="none"/>`;
+    [[252,246],[222,292],[292,258],[244,236],[262,238]].forEach(([x,y])=>{ s+=`<circle cx="${x}" cy="${y}" r="7" fill="#6f86a3"/><circle cx="${x}" cy="${y}" r="2.2" fill="#d9c27a"/>`; });
+    s+=`<text x="260" y="450" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="19" fill="#5a4c3e">forget-me-not</text>`;
+    if(!f.matchTaken){
+      s+=`<line x1="470" y1="340" x2="606" y2="252" stroke="#c9b48a" stroke-width="7" stroke-linecap="round"/><ellipse cx="610" cy="249" rx="9" ry="7" fill="#7a2a20" transform="rotate(-33 610 249)"/>
+          <text x="540" y="400" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="19" fill="#5a4c3e">for later</text>`+hs('match',455,225,175,135);
+    }
+    return s;
+  },
+  pot(){
+    const f=S.f;
+    let s=`<rect width="800" height="300" fill="url(#wp)"/><rect y="280" width="800" height="24" fill="#3a2a20"/><rect y="304" width="800" height="296" fill="url(#planks)"/>
+      <path d="M402 236 L404 90 M403 150 L350 80 M404 120 L452 60 M452 60 L478 44 M350 80 L338 50" stroke="#3a2a20" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M220 250 L580 250 L540 560 L260 560Z" fill="#7a4a33"/><rect x="200" y="222" width="400" height="40" rx="6" fill="#8a563d"/>
+      <ellipse cx="400" cy="244" rx="180" ry="20" fill="#2b1e15"/>`;
+    if(f.stringPulled) s+=`<ellipse cx="330" cy="246" rx="34" ry="9" fill="#140d09"/>`;
+    else s+=`<path d="M322 246 q8 -40 34 -26 q18 10 4 22" stroke="#cfc3aa" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    s+=hs('soil',220,222,360,50);
+    if(!f.stringPulled) s+=hs('string',300,190,90,70);
+    return s;
+  },
+  coat(){
+    const f=S.f;
+    let s=`<rect width="800" height="470" fill="url(#wp)"/><rect y="448" width="800" height="24" fill="#3a2a20"/><rect y="472" width="800" height="128" fill="url(#planks)"/>
+      <path d="M330 20 Q220 200 240 470 L560 470 Q580 200 470 20Z" fill="#2c2a26"/>
+      <path d="M380 20 L370 300 M420 20 L440 300" stroke="#1f1d1a" stroke-width="6" fill="none"/>
+      <path d="M260 300 L370 294 L370 380 Q314 396 266 380Z" fill="#23211e" stroke="#1a1816" stroke-width="4"/>`;
+    if(f.sandPoured){
+      s+=`<path d="M200 600 Q300 470 410 600Z" fill="#a89470"/><path d="M300 380 Q296 430 300 520" stroke="#a89470" stroke-width="3" opacity=".5" fill="none"/>`;
+      if(!f.windKeyTaken) s+=birdKey(300,540,2.2,'#c9a35a')+hs('windkey',240,505,130,70);
+    }
+    s+=hs('pocket',255,285,125,115);
+    return s;
+  },
+  cage(){
+    const f=S.f, key=`<line x1="400" y1="390" x2="400" y2="420" stroke="#cfc3aa" stroke-width="2"/>`+sym('key',400,440,26,'#c9a35a',false,5);
+    let s=`<rect width="800" height="600" fill="#2e3529"/><line x1="400" y1="0" x2="400" y2="80" stroke="#8c6a35" stroke-width="6"/>
+      <ellipse cx="400" cy="520" rx="200" ry="24" fill="#6b5226"/><line x1="250" y1="390" x2="550" y2="390" stroke="#6b5226" stroke-width="7"/>`;
+    if(!f.cageOpen && !f.doorKeyTaken) s+=key;
+    for(let x=210;x<=590;x+=24) s+=`<path d="M400 84 Q${x} 100 ${x} 230 V520" fill="none" stroke="#8c6a35" stroke-width="4"/>`;
+    if(f.cageOpen){
+      s+=`<rect x="330" y="300" width="140" height="190" fill="#2e3529"/><path d="M330 300 L250 320 L250 500 L330 490" fill="none" stroke="#8c6a35" stroke-width="4"/>
+          <line x1="330" y1="390" x2="470" y2="390" stroke="#6b5226" stroke-width="7"/>`;
+      if(!f.doorKeyTaken) s+=key;
+    }else{
+      s+=`<rect x="330" y="300" width="140" height="190" fill="none" stroke="#a88442" stroke-width="5"/>
+          <path d="M440 380 q-10 8 0 14 q10 6 -2 14 q-12 8 2 14" stroke="#9aa0a0" stroke-width="4" fill="none"/>`;
+    }
+    s+=hs('cagebody',190,80,420,450);
+    if(!f.cageOpen) s+=hs('cagedoor',320,290,160,210);
+    else if(!f.doorKeyTaken) s+=hs('cagekey',350,410,100,60);
+    return s;
+  },
+  window(){
+    const f=S.f;
+    let s=`<rect width="800" height="600" fill="#2a1c13"/><rect x="80" y="40" width="640" height="480" fill="url(#glass)"/>`;
+    if(f.candle){
+      s+=`<path d="M170 520 L170 420 Q170 360 230 350 Q200 320 205 285 Q210 245 240 245 Q270 245 275 285 Q280 320 250 350 Q310 360 310 420 L310 520Z" fill="#c8d3da" opacity=".2"/>
+          <circle cx="625" cy="430" r="5" fill="#f2b54f"/><circle cx="625" cy="430" r="44" fill="#e3a84b" opacity=".14"/>`;
+      const order=['bird','key','eye','moon'];
+      [180,300,500,620].forEach((x,i)=>{
+        s+=`<ellipse cx="${x}" cy="170" rx="56" ry="48" fill="#c9d3d8" opacity=".16"/>`+sym(order[i],x,170,30,'rgba(230,237,240,.6)',true,4)+
+           `<line x1="${x-14}" y1="214" x2="${x-14}" y2="246" stroke="#c9d3d8" stroke-width="2" opacity=".2"/><line x1="${x+18}" y1="210" x2="${x+18}" y2="232" stroke="#c9d3d8" stroke-width="2" opacity=".18"/>`;
+      });
+    }
+    s+=`<rect x="395" y="40" width="10" height="480" fill="#2a1c13"/><rect x="80" y="276" width="640" height="10" fill="#2a1c13"/>`+hs('glass',80,40,640,480);
+    return s;
+  },
+  lock(){
+    const f=S.f;
+    let s=`<rect width="800" height="600" fill="#3b281c"/><rect x="60" y="40" width="680" height="520" fill="none" stroke="#2a1c13" stroke-width="10"/>
+      <rect x="160" y="130" width="480" height="340" rx="18" fill="#8c6a35" stroke="#5a4220" stroke-width="6"/>
+      <text x="400" y="340" text-anchor="middle" font-family="${FONT}" font-style="italic" font-size="21" fill="#4a3618">Four, in the right order.</text>
+      <ellipse cx="400" cy="400" rx="26" ry="36" fill="#6b5226"/><circle cx="400" cy="392" r="9" fill="#120c09"/><path d="M395 396 L405 396 L408 420 L392 420Z" fill="#120c09"/>`;
+    if(f.keyhole) s+=`<rect x="395" y="386" width="10" height="40" fill="#c9a35a"/><circle cx="400" cy="440" r="14" fill="none" stroke="#c9a35a" stroke-width="6"/>`;
+    f.dials.forEach((d,i)=>{
+      const x=190+i*110;
+      s+=`<rect x="${x}" y="170" width="90" height="120" rx="6" fill="#1e1712" stroke="#5a4220" stroke-width="3"/><path d="M${x+38} 183 l7 -7 l7 7" stroke="#6b5a46" stroke-width="2" fill="none"/>`+
+         sym(d,x+45,235,28,'#d8ccb2',false,3.5)+hs('dial'+i,x,170,90,120);
+    });
+    return s+hs('keyhole',360,355,80,110);
+  }
+};
+function photoScene(x,y,k){
+  const lit=S.f.candle;
+  let s=`<g transform="translate(${x} ${y}) scale(${k})"><rect width="600" height="400" fill="#7a6848"/><rect y="320" width="600" height="80" fill="#5e4f36"/>
+    <rect x="360" y="60" width="130" height="150" fill="#4a3d2a"/><rect x="422" y="60" width="6" height="150" fill="#3a2e20"/>
+    <rect x="110" y="40" width="44" height="120" rx="4" fill="#4a3d2a"/><circle cx="132" cy="70" r="22" fill="#d1c4a4"/>`+hands(132,70,11,17,3,2,'#2a1f14',9,15);
+  s+=`<rect x="190" y="230" width="90" height="14" fill="#3a2e20"/><rect x="194" y="244" width="10" height="86" fill="#3a2e20"/><rect x="266" y="244" width="10" height="86" fill="#3a2e20"/><rect x="266" y="150" width="12" height="94" fill="#3a2e20"/>`;
+  if(lit) s+=`<circle cx="425" cy="140" r="18" fill="#2a2014"/><path d="M400 162 L450 162 L456 330 L394 330Z" fill="#2a2014"/>`;
+  else s+=`<circle cx="232" cy="176" r="18" fill="#2a2014"/><path d="M210 198 L254 198 L262 232 L206 232Z" fill="#2a2014"/>`;
+  return s+`</g>`;
+}
+
+/* ---------- logic ---------- */
+function has(i){ return S.inv.includes(i); }
+function take(i){ if(!has(i)) S.inv.push(i); SFX.pick(); }
+function drop(i){ S.inv=S.inv.filter(x=>x!==i); if(S.sel===i) S.sel=null; }
+function openClose(c,parent){ S.close=c; S.parent=parent||null; SFX.turn(); render(true); }
+function wrongItem(t){ S.sel=null; SFX.wrong(); msg(t); renderInv(); }
+const ACCEPTS=new Set(['candle','drawerfront','clockface','hourhole','minhole','cagedoor','cagebody','keyhole','cage','clock','drawer','door']);
+const ACT={
+  portrait:()=>openClose('portrait'),
+  door:()=>{
+    if(S.f.door) return ending();
+    if(S.sel==='doorkey'){ openClose('lock'); return ACT.keyhole(); }
+    openClose('lock');
+  },
+  clock:()=>{ if(S.sel==='windkey'){ openClose('clock'); return ACT.clockface(); } openClose('clock'); },
+  case:()=>{
+    const f=S.f;
+    if(f.timeSet && !f.cuttersTaken){ f.cuttersTaken=true; take('cutters'); msg('Tiny clockmaker’s cutters, hidden behind the pendulum.'); return render(); }
+    if(f.cuttersTaken) return msg('Just the pendulum now, swinging.');
+    msg('The pendulum case is shut tight. There’s no keyhole, only a tiny catch inside.');
+  },
+  shadow:()=>{ S.f.shadowGone=true; SFX.steps(); msg('The shadows step away from the door. Slowly.'); render(); },
+  coat:()=>openClose('coat'),
+  pocket:()=>{
+    const f=S.f;
+    if(!f.sandPoured){ f.sandPoured=true; SFX.sand(); render(); return setTimeout(()=>{ SFX.sting(); msg('Sand pours out. Far more sand than a pocket could hold. Something fell out with it.'); },500); }
+    msg('The pocket is empty now. It’s still cold inside.');
+  },
+  windkey:()=>{ S.f.windKeyTaken=true; take('windkey'); msg('A winding key, with a little bird for a handle.'); render(); },
+  note:()=>msg('“If you’re reading this, the candle has gone out again. Don’t trust the window. Whatever is written on the glass was written from the outside.”'),
+  drawer:()=>{ if(S.sel==='drawerkey'){ openClose('drawer'); return ACT.drawerfront(); } openClose('drawer'); },
+  candle:()=>{
+    const f=S.f;
+    if(f.candle) return msg('It burns, but it doesn’t get any shorter.');
+    if(S.sel==='litmatch'){
+      drop('litmatch'); f.candle=true; SFX.strike(); render();
+      setTimeout(()=>{ SFX.sting(); msg('The wick catches. Behind you, something in the room moves.'); },500);
+      return setTimeout(SFX.knock,3600);
+    }
+    if(S.sel) return wrongItem('That won’t light it.');
+    msg('A candle. The wick is still warm, as if someone just blew it out.');
+  },
+  book:()=>openClose('book'),
+  cage:()=>openClose('cage'),
+  window:()=>openClose('window'),
+  pot:()=>openClose('pot'),
+  clockface:()=>{
+    const f=S.f;
+    if(S.sel==='windkey'){ drop('windkey'); f.wound=true; SFX.click(); syncTick(); render(); return setTimeout(()=>msg('You wind it. The clock starts ticking, very loudly.'),300); }
+    if(S.sel) return wrongItem('That doesn’t fit the clock.');
+    if(!f.wound) return msg('Stopped at quarter to four. There are two winding holes, but nothing to wind it with.');
+    if(!f.timeSet) return msg('It’s ticking now. The hands can be turned from the winding holes.');
+    msg('Quarter past nine. It keeps ticking, but the hands don’t move on.');
+  },
+  hourhole:()=>setHand('h'),
+  minhole:()=>setHand('m'),
+  face:()=>msg(!S.f.candle?(S.f.wound?'Her head has turned towards the clock. Her eyes are still painted shut.':'Eleanor. Her eyes are painted shut.'):S.f.eyeTaken?'One empty socket. She doesn’t seem to mind.':'Her eyes are open now. One of them catches the light oddly.'),
+  takeeye:()=>{ S.f.eyeTaken=true; take('eye'); msg('Her left eye comes loose with a soft click. It’s glass.'); render(); },
+  drawerfront:()=>{
+    if(S.sel==='drawerkey'){ drop('drawerkey'); S.f.drawerOpen=true; SFX.unlock(); render(); return setTimeout(()=>{ SFX.knock(); setTimeout(()=>msg('Three knocks. From the other side of the door.'),900); },1400); }
+    if(S.sel) return wrongItem('That doesn’t fit the lock.');
+    msg('Locked. The keyhole is very small.');
+  },
+  photo:()=>{ S.f.photoSeen=true; openClose('photo','drawer'); },
+  photobig:()=>{
+    const f=S.f;
+    if(f.candle){
+      if(!f.photoChangedMsg){ f.photoChangedMsg=true; SFX.sting(); save(); }
+      return msg('The chair in the photograph is empty now. Someone is standing at the window.');
+    }
+    msg('This room. Someone sits in a chair that isn’t here any more. The clock on the wall says quarter past nine.');
+  },
+  matchbox:()=>{ S.f.matchboxTaken=true; take('matchbox'); msg('An empty matchbox. The striking strip is still rough.'); render(); },
+  opencover:()=>{ S.f.bookOpen=true; SFX.page(); render(); },
+  match:()=>{ S.f.matchTaken=true; take('match'); msg('A single match, pressed flat between the pages. Someone saved it for later.'); render(); },
+  string:()=>{
+    S.f.stringPulled=true; take('drawerkey'); render();
+    setTimeout(()=>{ SFX.sting(); msg('A small iron key on a string. Just before it came free, something under the soil pulled back.'); },250);
+  },
+  soil:()=>msg(S.f.stringPulled?'You don’t want to put your hand in there again.':'Dry soil. A loop of string pokes out of it.'),
+  glass:()=>msg(S.f.candle?'Someone has drawn on the glass with a finger. From the outside.':'Black glass. You can’t even see your own reflection.'),
+  cagedoor:()=>{
+    if(S.sel==='cutters'){ drop('cutters'); S.f.cageOpen=true; SFX.click(); render(); return setTimeout(()=>{ SFX.sting(); msg('The wire snaps. It was twisted shut from the inside.'); },300); }
+    if(S.sel) return wrongItem('That won’t get through the wire.');
+    msg('The little door is wired shut. Twisted tight, from the inside.');
+  },
+  cagebody:()=>{ if(S.sel) return ACT.cagedoor(); msg(S.f.cageOpen?'The cage is open now. Whatever lived here is gone.':'A heavy key hangs from the perch, out of reach.'); },
+  cagekey:()=>{ if(!S.f.cageOpen) return ACT.cagebody(); S.f.doorKeyTaken=true; take('doorkey'); msg('A heavy brass key. It’s warm, as if someone was holding it.'); render(); },
+  keyhole:()=>{
+    const f=S.f;
+    if(f.keyhole) return msg('The key is in. It won’t turn until the dials are right.');
+    if(S.sel==='doorkey'){ drop('doorkey'); f.keyhole=true; SFX.unlock(); render(); return checkDoor(true); }
+    if(S.sel) return wrongItem('That doesn’t fit this keyhole.');
+    msg('A big, old keyhole under the dials.');
+  }
+};
+for(let i=0;i<4;i++) ACT['dial'+i]=()=>{
+  const d=S.f.dials; d[i]=SYMS[(SYMS.indexOf(d[i])+1)%SYMS.length]; SFX.click(); render(); checkDoor(false);
+};
+function setHand(which){
+  const f=S.f;
+  if(S.sel) return wrongItem('The holes are for turning the hands.');
+  if(!f.wound) return msg('Nothing turns. The clock hasn’t been wound.');
+  if(f.timeSet) return msg('The hands are stuck at quarter past nine now.');
+  if(which==='h') f.hour=f.hour%12+1; else f.min=(f.min+5)%60;
+  SFX.click(); render();
+  if(f.hour===9 && f.min===15){
+    f.timeSet=true; save(); SFX.chime();
+    setTimeout(()=>{ S.close=null; S.view='north'; render(true); setTimeout(()=>msg('The clock chimes. Below it, the pendulum case clicks open.'),400); },1600);
+  }
+}
+function checkDoor(keyJustIn){
+  const f=S.f, ok=f.dials.every((v,j)=>v===CODE[j]);
+  if(ok && f.keyhole){
+    f.door=true; save();
+    setTimeout(()=>{ SFX.unlock(); msg('The key turns. The door swings open by itself.'); S.close=null; S.view='north'; render(true); },600);
+  }else if(keyJustIn) msg('The key goes in, but it won’t turn. The dials aren’t right yet.');
+  else if(ok) msg('The dials settle into place, but the door is still locked.');
+}
+const COMBOS={ 'match+matchbox':'litmatch' };
+function combine(a,b){ return COMBOS[a+'+'+b]||COMBOS[b+'+'+a]||null; }
+function invTap(i){
+  const it=S.inv[i]; if(!it) return;
+  if(S.sel===it){ S.sel=null; msg(ITEMS[it].desc); }
+  else if(S.sel){
+    const r=combine(S.sel,it);
+    if(r){ drop(S.sel); drop(it); S.inv.push(r); S.sel=null; SFX.strike(); msg('You strike the match. It burns with a small, very steady flame.'); }
+    else { S.sel=null; SFX.wrong(); msg('Those don’t go together.'); }
+  } else { S.sel=it; msg(ITEMS[it].name); }
+  render();
+}
+function objective(){
+  const f=S.f;
+  if(!f.stringPulled) return 'pot';
+  if(!f.drawerOpen) return 'drawer';
+  if(!f.photoSeen) return 'photo';
+  if(!f.matchboxTaken) return 'matchbox';
+  if(!f.windKeyTaken) return 'coat';
+  if(!f.wound) return 'wind';
+  if(!f.timeSet) return 'time';
+  if(!f.cuttersTaken) return 'cutters';
+  if(!f.candle && !has('litmatch')) return has('match')?'combine':'match';
+  if(!f.candle) return 'candle';
+  if(!f.cageOpen) return 'cage';
+  if(!f.doorKeyTaken) return 'cagekey';
+  if(!f.keyhole) return 'keyhole';
+  if(!f.windowSeen) return 'window';
+  if(!f.door) return 'dials';
+  return 'out';
+}
+function hint(){
+  const k=objective();
+  if(S.hint.key!==k) S.hint={ key:k, tier:0 };
+  const t=S.hint.tier; msg(`Hint ${t+1} of 3: ${HINTS[k][t]}`);
+  S.hint.tier=Math.min(t+1,2); save();
+}
+function arrive(){
+  const f=S.f, v=S.view;
+  if(v==='north'){
+    if(f.candle && !f.door && !f.shadowGone && !f.shadowMsg){ f.shadowMsg=true; SFX.steps(); return beat('There’s someone standing just outside the door.',900); }
+    if(f.wound && !f.door && !f.headMsg){ f.headMsg=true; return beat('Her head has turned. She’s facing the clock now.'); }
+  }
+  if(v==='east' && f.coatMoved && !f.coatMsg){ f.coatMsg=true; return beat('The coat is hanging on the other hook now.'); }
+  if(v==='west' && f.candle){ setTimeout(SFX.whisper,600); if(!f.whisperMsg){ f.whisperMsg=true; setTimeout(()=>msg('Whispering, close to the window. It stops when you listen.'),1900); } }
+  if(v==='south' && f.candle) setTimeout(SFX.musicbox,700);
+}
+function turn(dir){
+  if(S.close) return;
+  const f=S.f, i=WALLS.indexOf(S.view); S.from=S.view;
+  if(S.view==='east' && f.windKeyTaken && !f.coatMoved) f.coatMoved=true;
+  S.view=WALLS[(i+dir+4)%4]; S.sel=null; SFX.turn(); render(true); arrive();
+}
+function back(){
+  if(!S.close) return;
+  const was=S.close;
+  if(S.parent){ S.close=S.parent; S.parent=null; } else S.close=null;
+  S.sel=null; SFX.turn(); render(true);
+  if(was==='window' && S.f.candle && !S.f.turnMsg){ S.f.turnMsg=true; beat('You turn around quickly. Nobody there.',300); }
+}
+
+/* ---------- render ---------- */
+const sceneEl=document.getElementById('scene'), invEl=document.getElementById('inv');
+const leftB=document.getElementById('left'), rightB=document.getElementById('right'), backB=document.getElementById('back');
+function icon(it){
+  let d='';
+  if(it==='drawerkey') d=sym('key',0,0,22,'#8a8f8a',false,3.5);
+  if(it==='doorkey') d=sym('key',0,0,25,'#c9a35a',false,5);
+  if(it==='windkey') d=birdKey(-2,0,1.15,'#c9a35a');
+  if(it==='cutters') d=cuttersArt(0,-2,1.15);
+  if(it==='matchbox') d=`<rect x="-22" y="-14" width="44" height="28" rx="3" fill="#6e2a2a"/><rect x="-14" y="-8" width="28" height="14" fill="#cfc3aa"/><rect x="-22" y="10" width="44" height="4" fill="#3a2a20"/>`;
+  if(it==='match'||it==='litmatch') d=`<line x1="-18" y1="18" x2="13" y2="-13" stroke="#c9b48a" stroke-width="4" stroke-linecap="round"/><circle cx="15" cy="-15" r="4.5" fill="#7a2a20"/>`+(it==='litmatch'?`<ellipse cx="17" cy="-22" rx="6" ry="10" fill="#f2b54f" opacity=".9"/><ellipse cx="17" cy="-20" rx="3" ry="5" fill="#fff3c4"/>`:'');
+  if(it==='eye') d=`<circle r="17" fill="#e8e2d4"/><circle r="8.5" fill="#6f7e6a"/><circle r="3.8" fill="#120c09"/><circle cx="-5" cy="-6" r="2.5" fill="#fff"/>`;
+  return `<svg viewBox="-30 -30 60 60" aria-hidden="true">${d}</svg>`;
+}
+function renderInv(){
+  let h='';
+  for(let i=0;i<6;i++){
+    const it=S.inv[i];
+    h+= it ? `<button class="slot${S.sel===it?' sel':''}" data-i="${i}" aria-label="${ITEMS[it].name}">${icon(it)}</button>`
+           : `<span class="slot empty" aria-hidden="true"></span>`;
+  }
+  invEl.innerHTML=h;
+}
+function draw(){
+  if(S.close==='window' && S.f.candle && !S.f.windowSeen){ S.f.windowSeen=true; setTimeout(SFX.eerie,250); }
+  sceneEl.innerHTML=defs()+(S.close?CLOSE[S.close]():WALL[S.view]())+light();
+  leftB.classList.toggle('hidden',!!S.close); rightB.classList.toggle('hidden',!!S.close);
+  backB.classList.toggle('hidden',!S.close);
+  renderInv(); save();
+}
+function render(fade){
+  if(!fade || matchMedia('(prefers-reduced-motion: reduce)').matches){ draw(); return; }
+  sceneEl.classList.add('fade'); setTimeout(()=>{ draw(); sceneEl.classList.remove('fade'); },150);
+}
+
+/* ---------- input ---------- */
+let swipeX=null, swiped=false;
+sceneEl.addEventListener('pointerdown',e=>{ swipeX=e.clientX; swiped=false; });
+sceneEl.addEventListener('pointerup',e=>{
+  if(swipeX===null) return; const dx=e.clientX-swipeX; swipeX=null;
+  if(!S.close && Math.abs(dx)>60){ swiped=true; turn(dx<0?1:-1); }
+});
+sceneEl.addEventListener('click',e=>{
+  if(swiped){ swiped=false; return; }
+  const t=e.target.closest('[data-a]'); if(!t) return;
+  const a=t.getAttribute('data-a'), fn=ACT[a]; if(!fn) return;
+  if(S.sel && !ACCEPTS.has(a)) return wrongItem('Nothing happens.');
+  fn();
+});
+invEl.addEventListener('click',e=>{ const b=e.target.closest('[data-i]'); if(b) invTap(+b.dataset.i); });
+leftB.onclick=()=>turn(-1); rightB.onclick=()=>turn(1); backB.onclick=back;
+document.getElementById('hintBtn').onclick=hint;
+const soundBtn=document.getElementById('soundBtn');
+soundBtn.onclick=()=>{ muted=!muted; if(master) master.gain.value=muted?0:.9; soundBtn.textContent=muted?'Sound off':'Sound on'; };
+const restartBtn=document.getElementById('restartBtn'); let armed=null;
+restartBtn.onclick=()=>{
+  if(!armed){ restartBtn.textContent='Tap again to restart'; armed=setTimeout(()=>{ armed=null; restartBtn.textContent='Restart'; },3000); return; }
+  clearTimeout(armed); armed=null; restartBtn.textContent='Restart'; startOver();
+};
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft') turn(-1);
+  if(e.key==='ArrowRight') turn(1);
+  if(e.key==='Escape'||e.key==='ArrowDown') back();
+});
+
+/* ---------- title & ending ---------- */
+const titleEl=document.getElementById('title'), endEl=document.getElementById('end');
+function begin(){
+  audioInit(); if(AC && AC.state==='suspended') AC.resume();
+  const first=!S.started; S.started=true;
+  titleEl.classList.add('hidden'); render(); syncTick();
+  if(first) setTimeout(()=>msg('A small room. The door won’t open, and it’s very dark.'),400);
+}
+function startOver(){
+  if(tickTimer){ clearInterval(tickTimer); tickTimer=null; }
+  wipe(); S=fresh(); endEl.classList.add('hidden'); begin();
+}
+function ending(){
+  const eye=has('eye');
+  document.getElementById('endText').textContent=eye
+    ? 'Behind you, the clock strikes quarter past nine again. In your pocket, the glass eye has gone warm.'
+    : 'Behind you, the clock strikes quarter past nine again. You have the feeling someone is still watching.';
+  document.getElementById('endStats').textContent=`Test room complete. Secrets found: ${eye?1:0} of 1.`;
+  endEl.classList.remove('hidden'); SFX.eerie();
+}
+document.getElementById('againBtn').onclick=startOver;
+document.getElementById('stayBtn').onclick=()=>endEl.classList.add('hidden');
+
+const resumed=load();
+const tb=document.getElementById('titleBtns');
+if(resumed){
+  tb.innerHTML=`<button class="btn big" id="contBtn">Continue</button><button class="btn big" id="newBtn">Start over</button>`;
+  document.getElementById('contBtn').onclick=begin;
+  document.getElementById('newBtn').onclick=startOver;
+}else{
+  tb.innerHTML=`<button class="btn big" id="enterBtn">Enter</button>`;
+  document.getElementById('enterBtn').onclick=begin;
+}
+draw();
+})();
+</script>
+</body>
+</html>
