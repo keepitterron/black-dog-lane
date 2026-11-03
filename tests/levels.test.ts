@@ -24,5 +24,6 @@ describe.skipIf(Object.keys(play).length === 0)('real levels', () => {
     if (result.ok) expect(checkRefs(result.level)).toEqual([])
     // Codes and ids only, never content.
     if (result.ok) expect(validate(result.level, { profile: 'play' }).codes).toEqual([])
-  })
+    // A full state-space search: big levels take seconds, more on CI runners.
+  }, 60_000)
 })

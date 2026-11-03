@@ -94,16 +94,38 @@ function relevance(level: Level): Relevance {
   return { flags, prefixes: level.chapters.flatMap(ch => ch.puzzles.map(p => `${p.id}:`)), fired }
 }
 
-const keyOf = (r: Relevance) => (s: GameState) =>
-  JSON.stringify([
-    s.location.chapter,
-    Object.entries(s.flags)
-      .filter(([f]) => r.flags.has(f) || r.prefixes.some(p => f.startsWith(p)))
-      .toSorted(([a], [b]) => (a < b ? -1 : 1)),
-    s.inventory.toSorted(),
-    s.fired.filter(id => r.fired.has(id)).toSorted(),
-    s.ended,
-  ])
+const keyOf = (r: Relevance) => {
+  const relevant = new Map<string, boolean>()
+  const isRelevant = (f: string) => {
+    let known = relevant.get(f)
+    if (known === undefined) relevant.set(f, (known = r.flags.has(f) || r.prefixes.some(p => f.startsWith(p))))
+    return known
+  }
+  return (s: GameState) =>
+    JSON.stringify([
+      s.location.chapter,
+      Object.entries(s.flags)
+        .filter(([f]) => isRelevant(f))
+        .toSorted(([a], [b]) => (a < b ? -1 : 1)),
+      s.inventory.toSorted(),
+      s.fired.filter(id => r.fired.has(id)).toSorted(),
+      s.ended,
+    ])
+}
+
+// Most successors (looking, turning away, re-tapping) change nothing the key reads. Spotting them
+// without building a key saves most of the search's time.
+function unchanged(a: GameState, b: GameState): boolean {
+  if (a.location.chapter !== b.location.chapter || a.ended !== b.ended) return false
+  if (a.inventory.length !== b.inventory.length || a.fired.length !== b.fired.length) return false
+  if (a.inventory.some((item, i) => b.inventory[i] !== item) || a.fired.some((id, i) => b.fired[i] !== id)) return false
+  let count = 0
+  for (const f in b.flags) {
+    if (a.flags[f] !== b.flags[f]) return false
+    count++
+  }
+  return count === Object.keys(a.flags).length
+}
 
 export function explore(level: Level, { maxStates = 100_000 } = {}): Graph {
   const key = keyOf(relevance(level))
@@ -128,6 +150,7 @@ export function explore(level: Level, { maxStates = 100_000 } = {}): Graph {
     for (const room of rooms) reachedRooms.add(room)
     for (const { state: next, via, solverGaveUp } of successors(level, node.state, rooms)) {
       if (solverGaveUp) truncated = true
+      if (unchanged(node.state, next)) continue
       const nk = key(next)
       if (nk === k) continue
       if (via.kind === 'hotspot') usedHotspots.add(via.id)
