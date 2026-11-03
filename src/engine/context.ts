@@ -36,7 +36,20 @@ export type Ctx = {
 }
 
 export function makeCtx(level: Level, state: GameState): Ctx {
-  return { level, idx: lookup(level), state: structuredClone(state), events: [], changed: new Set() }
+  return { level, idx: lookup(level), state: cloneState(state), events: [], changed: new Set() }
+}
+
+// Every field is a primitive, a list of primitives or a flat record, so one level of copying is a
+// deep clone, and much faster than structuredClone in the solver's hot loop.
+function cloneState(state: GameState): GameState {
+  return {
+    ...state,
+    location: { ...state.location, closeUps: [...state.location.closeUps] },
+    inventory: [...state.inventory],
+    flags: { ...state.flags },
+    fired: [...state.fired],
+    hint: { ...state.hint },
+  }
 }
 
 export function emit(ctx: Ctx, event: GameEvent): void {
