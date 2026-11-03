@@ -2,6 +2,7 @@
 // kind has a fixed layout on the 800×600 close-up template.
 import { drawProp } from '../../art/assets/index.ts'
 import { sym, SYMBOLS, type AssetCtx } from '../../art/kit.ts'
+import { assetMeta } from '../../catalog/assets.ts'
 import { MIN_TAP_UNITS } from '../../engine/layout.ts'
 import { dialValues, patternCells, progress, sliderTiles } from '../../engine/puzzles.ts'
 import type { PuzzleInput } from '../../engine/puzzles.ts'
@@ -11,12 +12,19 @@ type Props = { puzzle: Puzzle; ctx: AssetCtx; onInput: (input: PuzzleInput) => v
 
 const isSymbol = (id: string) => (SYMBOLS as readonly string[]).includes(id)
 
-// A target's face: a code symbol, a prop drawing (the catalog's or the level's own), or
-// failing both its position number.
-function face(id: string, i: number, x: number, y: number, size: number, ctx: AssetCtx): string {
+// A target's face: a code symbol, a drawing (the catalog's or the level's own), or failing
+// both its position number. Props are drawn around the origin; other art is fitted to the tile
+// by its bbox (a close-up by the whole scene).
+export function face(id: string, i: number, x: number, y: number, size: number, ctx: AssetCtx): string {
   if (isSymbol(id)) return sym(id, x, y, size * 0.32, '#d8ccb2', false, 3.5)
-  const prop = drawProp(id, ctx)
-  if (prop) return `<g transform="translate(${x} ${y}) scale(${(size / 70).toFixed(2)})">${prop}</g>`
+  const m = assetMeta(id, ctx.art)
+  const art = m ? drawProp(id, ctx) : ''
+  if (m && art && m.kind === 'prop') return `<g transform="translate(${x} ${y}) scale(${(size / 70).toFixed(2)})">${art}</g>`
+  if (m && art) {
+    const [bx, by, bw, bh] = (typeof m.bbox === 'function' ? m.bbox({}) : m.bbox) ?? [0, 0, 800, 600]
+    const s = (size * 0.8) / Math.max(bw, bh)
+    return `<g transform="translate(${(x - s * (bx + bw / 2)).toFixed(1)} ${(y - s * (by + bh / 2)).toFixed(1)}) scale(${s.toFixed(3)})">${art}</g>`
+  }
   return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${size * 0.4}" fill="#d8ccb2">${i + 1}</text>`
 }
 

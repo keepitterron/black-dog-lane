@@ -9,6 +9,7 @@ import { PALETTES, paletteFor } from '../src/art/palettes.ts'
 import { placedRect, type ArtSet } from '../src/catalog/assets.ts'
 import { parseLevel, type Shape } from '../src/engine/schema.ts'
 import { validate } from '../src/solver/validate.ts'
+import { face } from '../src/ui/game/PuzzleWidget.tsx'
 import strictJson from '../levels/test/strict.json'
 
 const art = (shapes: Shape[], extra: Partial<ArtSet[string]> = {}): ArtSet => ({ a01: { kind: 'wall', bbox: [0, 0, 100, 100], anchor: 'wall', shapes, ...extra } })
@@ -46,6 +47,26 @@ test('text is escaped', () => {
   const svg = renderAsset('a01', {}, ctx(art([{ el: 'text', x: 0, y: 0, text: '<b>"&' }])))
   expect(svg).toContain('&lt;b&gt;&quot;&amp;')
   expect(svg).not.toContain('<b>')
+})
+
+test('an animated shape keeps its opacity on a wrapper, so the flicker cannot override it', () => {
+  const svg = renderAsset('a01', {}, ctx(art([
+    { el: 'circle', cx: 5, cy: 5, r: 40, fill: 'brass', opacity: 0.2, anim: 'flicker' },
+    { el: 'group', opacity: 0.3, anim: 'breathe', shapes: [{ el: 'rect', x: 0, y: 0, w: 1, h: 1 }] },
+    { el: 'rect', x: 0, y: 0, w: 1, h: 1, opacity: 0.5 },
+  ])))
+  expect(svg).toContain('<g opacity="0.2"><circle cx="5" cy="5" r="40" fill="#c9a35a" class="art-flicker"/></g>')
+  expect(svg).toContain('<g opacity="0.3"><g transform="translate(0 0) rotate(0) scale(1)" class="art-breathe">')
+  expect(svg).toContain('opacity="0.5"/>')
+})
+
+test('a sequence tile fits own wall art by its bbox, and centres props', () => {
+  const set: ArtSet = {
+    a01: { kind: 'wall', bbox: [500, 300, 200, 100], anchor: 'wall', shapes: [{ el: 'rect', x: 500, y: 300, w: 200, h: 100 }] },
+    a02: { kind: 'prop', shapes: [{ el: 'circle', cx: 0, cy: 0, r: 20 }] },
+  }
+  expect(face('a01', 0, 100, 100, 130, ctx(set))).toContain('<g transform="translate(-212.0 -82.0) scale(0.520)">')
+  expect(face('a02', 0, 100, 100, 130, ctx(set))).toContain('<g transform="translate(100 100) scale(1.86)">')
 })
 
 test('the schema refuses raw markup in colours and paths', () => {

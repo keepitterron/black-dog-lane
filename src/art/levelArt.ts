@@ -32,15 +32,26 @@ function attrs(shape: Shape, ctx: AssetCtx, lines: boolean): string {
   const stroke = paint(shape.stroke, ctx) ?? (lines ? INK : undefined)
   let a = ` fill="${fill}"`
   if (stroke) a += ` stroke="${stroke}" stroke-width="${r(shape.width ?? 3)}" stroke-linecap="round" stroke-linejoin="round"`
-  if (shape.opacity !== undefined) a += ` opacity="${r(shape.opacity)}"`
-  if (shape.anim) a += ` class="art-${shape.anim}"`
-  return a
+  return a + motion(shape)
+}
+
+// The flicker animates opacity, which would override the shape's own; `drawShapes` then puts
+// that on a wrapper instead.
+function motion(shape: Shape): string {
+  if (shape.anim) return ` class="art-${shape.anim}"`
+  return shape.opacity === undefined ? '' : ` opacity="${r(shape.opacity)}"`
 }
 
 const shown = (shape: Shape, ctx: AssetCtx) => (!shape.if || Boolean(ctx.flags[shape.if])) && (!shape.unless || !ctx.flags[shape.unless])
 
 export function drawShapes(shapes: Shape[], ctx: AssetCtx, draw: DrawAsset, depth: number): string {
-  return shapes.map(shape => (shown(shape, ctx) ? drawShape(shape, ctx, draw, depth) : '')).join('')
+  return shapes
+    .map(shape => {
+      if (!shown(shape, ctx)) return ''
+      const svg = drawShape(shape, ctx, draw, depth)
+      return shape.anim && shape.opacity !== undefined ? `<g opacity="${r(shape.opacity)}">${svg}</g>` : svg
+    })
+    .join('')
 }
 
 function drawShape(shape: Shape, ctx: AssetCtx, draw: DrawAsset, depth: number): string {
@@ -63,14 +74,14 @@ function drawShape(shape: Shape, ctx: AssetCtx, draw: DrawAsset, depth: number):
       return `<text x="${r(shape.x)}" y="${r(shape.y)}" text-anchor="middle" font-family="${FONT}"${shape.italic ? ' font-style="italic"' : ''} font-size="${r(shape.size ?? 22)}"${attrs({ ...shape, fill: shape.fill ?? 'paper' }, ctx, false)}>${esc(shape.text)}</text>`
     case 'group': {
       const t = `translate(${r(shape.x ?? 0)} ${r(shape.y ?? 0)}) rotate(${r(shape.rotate ?? 0)}) scale(${r(shape.scale ?? 1)})`
-      return `<g transform="${t}"${shape.opacity === undefined ? '' : ` opacity="${r(shape.opacity)}"`}${shape.anim ? ` class="art-${shape.anim}"` : ''}>${drawShapes(shape.shapes, ctx, draw, depth)}</g>`
+      return `<g transform="${t}"${motion(shape)}>${drawShapes(shape.shapes, ctx, draw, depth)}</g>`
     }
     case 'use': {
       // Nesting is checked by the validator (no cycles); the depth cap only guards bad data.
       if (depth > 4) return ''
       const inner = draw(shape.asset, shape.params ?? {}, ctx, depth + 1)
       const t = `translate(${r(shape.x ?? 0)} ${r(shape.y ?? 0)}) scale(${r(shape.scale ?? 1)})`
-      return `<g transform="${t}"${shape.opacity === undefined ? '' : ` opacity="${r(shape.opacity)}"`}${shape.anim ? ` class="art-${shape.anim}"` : ''}>${inner}</g>`
+      return `<g transform="${t}"${motion(shape)}>${inner}</g>`
     }
   }
 }
