@@ -1,5 +1,6 @@
 // The interactive part of a puzzle close-up, drawn on top of the view's art. Each widget
 // kind has a fixed layout on the 800×600 close-up template.
+import { useRef } from 'react'
 import { drawProp } from '../../art/assets/index.ts'
 import { sym, SYMBOLS, type AssetCtx } from '../../art/kit.ts'
 import { assetMeta } from '../../catalog/assets.ts'
@@ -33,6 +34,68 @@ function grid(rows: number, cols: number, cell: number, gap: number) {
   const w = cols * cell + (cols - 1) * gap
   const h = rows * cell + (rows - 1) * gap
   return (i: number) => ({ x: 400 - w / 2 + (i % cols) * (cell + gap), y: 280 - h / 2 + Math.floor(i / cols) * (cell + gap) })
+}
+
+// Screen pixels a finger must travel before a press counts as a swipe rather than a tap.
+const SWIPE_PX = 12
+
+// Numbered tiles; tap a tile next to the gap, or swipe it towards the gap, to slide it in.
+function Slider({ puzzle, flags, onInput }: { puzzle: Extract<Puzzle, { kind: 'slider' }>; flags: AssetCtx['flags']; onInput: Props['onInput'] }) {
+  const press = useRef<{ x: number; y: number; swiped: boolean } | null>(null)
+  const tiles = sliderTiles(puzzle, flags)
+  const { size } = puzzle
+  const cell = Math.min(110, Math.floor(400 / size))
+  const at = grid(size, size, cell, 6)
+  const gap = tiles.indexOf(0)
+
+  const swipe = (i: number, e: React.PointerEvent) => {
+    const start = press.current
+    if (!start) return
+    const dx = e.clientX - start.x
+    const dy = e.clientY - start.y
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_PX) return
+    start.swiped = true
+    // The neighbour the swipe points at; the tile slides only if that is the gap.
+    const [dr, dc] = Math.abs(dx) > Math.abs(dy) ? [0, Math.sign(dx)] : [Math.sign(dy), 0]
+    const r = Math.floor(i / size) + dr
+    const c = (i % size) + dc
+    if (r >= 0 && r < size && c >= 0 && c < size && r * size + c === gap) onInput({ kind: 'slide', tile: i })
+  }
+
+  return (
+    <g>
+      {tiles.map((tile, i) => {
+        if (tile === 0) return null
+        const { x, y } = at(i)
+        return (
+          <g
+            key={tile}
+            className="hs tile"
+            style={{ transform: `translate(${x}px, ${y}px)` }}
+            onPointerDown={e => {
+              press.current = { x: e.clientX, y: e.clientY, swiped: false }
+              // Touch is captured by the pressed element already; a mouse needs asking.
+              if (e.pointerType === 'mouse') e.currentTarget.setPointerCapture(e.pointerId)
+            }}
+            onPointerUp={e => swipe(i, e)}
+            onPointerCancel={() => (press.current = null)}
+            onClick={() => {
+              // A swipe already did its work (or nothing); only a plain tap slides here.
+              if (press.current?.swiped) return
+              onInput({ kind: 'slide', tile: i })
+            }}
+            role="button"
+            aria-label={`Tile ${tile}`}
+          >
+            <rect width={cell} height={cell} rx={6} fill="#d8ccb2" stroke="#5a4220" strokeWidth={3} />
+            <text x={cell / 2} y={cell / 2} textAnchor="middle" dominantBaseline="central" fontSize={cell * 0.42} fill="#3a2a20">
+              {tile}
+            </text>
+          </g>
+        )
+      })}
+    </g>
+  )
 }
 
 export function PuzzleWidget({ puzzle, ctx, onInput }: Props) {
@@ -97,29 +160,8 @@ export function PuzzleWidget({ puzzle, ctx, onInput }: Props) {
         </g>
       )
     }
-    case 'slider': {
-      // Numbered tiles; tap one next to the gap to slide it in.
-      const tiles = sliderTiles(puzzle, flags)
-      const { size } = puzzle
-      const cell = Math.min(110, Math.floor(400 / size))
-      const at = grid(size, size, cell, 6)
-      return (
-        <g>
-          {tiles.map((tile, i) => {
-            if (tile === 0) return null
-            const { x, y } = at(i)
-            return (
-              <g key={tile} className="hs tile" style={{ transform: `translate(${x}px, ${y}px)` }} onClick={() => onInput({ kind: 'slide', tile: i })} role="button" aria-label={`Tile ${tile}`}>
-                <rect width={cell} height={cell} rx={6} fill="#d8ccb2" stroke="#5a4220" strokeWidth={3} />
-                <text x={cell / 2} y={cell / 2} textAnchor="middle" dominantBaseline="central" fontSize={cell * 0.42} fill="#3a2a20">
-                  {tile}
-                </text>
-              </g>
-            )
-          })}
-        </g>
-      )
-    }
+    case 'slider':
+      return <Slider puzzle={puzzle} flags={flags} onInput={onInput} />
     case 'pattern': {
       // Lamps in a grid; tapping one toggles it (and its neighbours in `cross` mode).
       const cells = patternCells(puzzle, flags)
