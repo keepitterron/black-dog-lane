@@ -62,6 +62,8 @@ export function Scene({ level, state, onHotspot, onPuzzle, onTurn, onBack, child
   return (
     <div
       className={styles.stage}
+      // A slider is swiped tile by tile, so the browser must not claim the gesture as a pan.
+      data-drag={puzzle?.kind === 'slider' || undefined}
       onPointerDown={e => (swipe.current = { x: e.clientX, swiped: false })}
       onPointerUp={e => {
         const start = swipe.current

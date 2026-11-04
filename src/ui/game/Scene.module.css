@@ -8,6 +8,10 @@
     touch-action: pan-y;
     -webkit-user-select: none;
     user-select: none;
+
+    &[data-drag] {
+      touch-action: none;
+    }
   }
 
   .scene {
